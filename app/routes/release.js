@@ -1,4 +1,5 @@
 const request = require('request');
+const processing = require('./processing');
 
 module.exports = function(app) {
   app.get('/release', (req, res) => {
