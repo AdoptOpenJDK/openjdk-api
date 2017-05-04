@@ -1,19 +1,22 @@
 const request = require('request');
+const processing = require('./processing');
 
 module.exports = function(app) {
-  app.get('/release', (req, res) => {
+  app.get('/releases', (req, res) => {
     request('https://raw.githubusercontent.com/AdoptOpenJDK/openjdk-releases/master/releases.json', function(error, response, body) {
       if (!error && response.statusCode == 200) {
         var importedJSON = JSON.parse(body);
-        res.json(importedJSON)
+        var processedJSON = processing.processJSON(importedJSON);
+        res.json(processedJSON)
       }
     })
   });
-  app.get('/release/latest', (req, res) => {
+  app.get('/releases/latest', (req, res) => {
     request('https://raw.githubusercontent.com/AdoptOpenJDK/openjdk-releases/master/latest_release.json', function(error, response, body) {
       if (!error && response.statusCode == 200) {
         var importedJSON = JSON.parse(body);
-        res.json(importedJSON)
+        var processedJSON = processing.processJSON(importedJSON);
+        res.json(processedJSON)
       }
     })
   });
