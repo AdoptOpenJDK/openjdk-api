@@ -12,7 +12,6 @@ var limiter = new RateLimit({
 });
 
 //  apply to all requests
-app.set('json spaces', 2);
 app.use(limiter);
 app.use(bodyParser.urlencoded({ extended: true }));
 
