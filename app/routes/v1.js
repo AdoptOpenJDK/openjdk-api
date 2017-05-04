@@ -73,7 +73,9 @@ module.exports = function(req, res) {
   }
 
   else {
-    res.status(200).send("Error: your query did not match any results.");
+    // This error should never be returned.
+    // It is a failsafe to prevent timeouts in case a mistake is made in the API code.
+    res.send("Your query does not match any API route!");
   }
 
 };
