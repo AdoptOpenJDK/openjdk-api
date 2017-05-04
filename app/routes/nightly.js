@@ -106,7 +106,7 @@ function processJSON(importedJSON, distro) {
       // firstly, check if the platform name is recognised...
       if(thisPlatform) {
         // secondly, if the 'distro' argument has been provided, check if it matches the current asset's searchableName
-        if (distro !== undefined && distro.toUpperCase() == thisPlatform) {
+        if (distro == undefined || distro !== undefined && distro.toUpperCase() == thisPlatform) {
           // thirdly, check if the file has the expected file extension for that platform...
           // (this filters out all non-binary attachments, e.g. SHA checksums - these contain the platform name, but are not binaries)
           var thisFileExtension = getFileExt(thisPlatform); // get the file extension associated with this platform
