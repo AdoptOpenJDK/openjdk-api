@@ -5,7 +5,7 @@ module.exports = function(app) {
     request('https://raw.githubusercontent.com/AdoptOpenJDK/openjdk-releases/master/releases.json', function(error, response, body) {
       if (!error && response.statusCode == 200) {
         var importedJSON = JSON.parse(body);
-        res.send(importedJSON)
+        res.json(importedJSON)
       }
     })
   });
@@ -13,7 +13,7 @@ module.exports = function(app) {
     request('https://raw.githubusercontent.com/AdoptOpenJDK/openjdk-releases/master/latest_release.json', function(error, response, body) {
       if (!error && response.statusCode == 200) {
         var importedJSON = JSON.parse(body);
-        res.send(importedJSON)
+        res.json(importedJSON)
       }
     })
   });
