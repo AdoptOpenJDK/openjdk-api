@@ -1,7 +1,11 @@
+// EXAMPLE COMMANDS TO USE VERSION 1 OF THE API:
+// curl -H 'accept-version: 1.0.0' api.adoptopenjdk.net/nightly
+// curl -H 'accept-version: 1.0.0' api.adoptopenjdk.net/nightly/x64_linux/latest
+// curl -H 'accept-version: 1.0.0' api.adoptopenjdk.net/releases/latest?pretty=false
+
 const express = require('express');
 const app = express();
-const request = require('request');
-const processing = require('./processing');
+const processing = require('./processing-v1');
 
 module.exports = function(req, res) {
 
@@ -9,73 +13,40 @@ module.exports = function(req, res) {
   if(url.indexOf('?') >= 0) {
     url = url.slice(0, url.indexOf('?'));
   }
+  if(url.endsWith("/") === true) {
+    url = url.slice(0, -1);
+  }
 
   // RELEASES JSON BEGIN
   if(url == '/releases') {
-    request('https://raw.githubusercontent.com/AdoptOpenJDK/openjdk-releases/master/releases.json', function(error, response, body) {
-      if (!error && response.statusCode == 200) {
-        var importedJSON = JSON.parse(body);
-        var processedJSON = processing.processJSON(importedJSON);
-        res.send(processedJSON)
-      }
-    });
+    processing.requestJSON('openjdk-releases', 'releases', req, res);
   }
 
-  else if(url == '/releases/latest')  {
-    request('https://raw.githubusercontent.com/AdoptOpenJDK/openjdk-releases/master/latest_release.json', function(error, response, body) {
-      if (!error && response.statusCode == 200) {
-        var importedJSON = JSON.parse(body);
-        var processedJSON = processing.processJSON(importedJSON);
-        res.json(processedJSON)
-      }
-    });
+  else if(url == '/releases/latest') {
+    processing.requestJSON('openjdk-releases', 'latest_release', req, res);
   }
 
   // NIGHTLY JSON BEGIN
-  else if(url == '/nightly')  {
-    request('https://raw.githubusercontent.com/AdoptOpenJDK/openjdk-nightly/master/nightly.json', function(error, response, body) {
-      if (!error && response.statusCode == 200) {
-        var importedJSON = JSON.parse(body);
-        var processedJSON = processing.processJSON(importedJSON);
-        res.json(processedJSON)
-      }
-    });
+  else if(url == '/nightly') {
+    processing.requestJSON('openjdk-nightly', 'nightly', req, res);
   }
 
-  else if(url == '/nightly/latest')  {
-    request('https://raw.githubusercontent.com/AdoptOpenJDK/openjdk-nightly/master/latest_nightly.json', function(error, response, body) {
-      if (!error && response.statusCode == 200) {
-        var importedJSON = JSON.parse(body);
-        var processedJSON = processing.processJSON(importedJSON);
-        res.json(processedJSON)
-      }
-    });
+  else if(url == '/nightly/latest') {
+    processing.requestJSON('openjdk-nightly', 'latest_nightly', req, res);
   }
 
-  else if(url == ('/nightly/' + req.params.distro))  {
-    request('https://raw.githubusercontent.com/AdoptOpenJDK/openjdk-nightly/master/nightly.json', function(error, response, body) {
-      if (!error && response.statusCode == 200) {
-        var importedJSON = JSON.parse(body);
-        var processedJSON = processing.processJSON(importedJSON, req.params.distro);
-        res.json(processedJSON)
-      }
-    });
+  else if(url == '/nightly/' + req.params.distro) {
+    processing.requestJSON('openjdk-nightly', 'nightly', req, res);
   }
 
-  else if(url == '/nightly/' + req.params.distro + '/latest')  {
-    request('https://raw.githubusercontent.com/AdoptOpenJDK/openjdk-nightly/master/latest_nightly.json', function(error, response, body) {
-      if (!error && response.statusCode == 200) {
-        var importedJSON = JSON.parse(body);
-        var processedJSON = processing.processJSON(importedJSON, req.params.distro);
-        res.json(processedJSON)
-      }
-    });
+  else if(url == '/nightly/' + req.params.distro + '/latest') {
+    processing.requestJSON('openjdk-nightly', 'latest_nightly', req, res);
   }
 
   else {
     // This error should never be returned.
     // It is a failsafe to prevent timeouts in case a mistake is made in the API code.
-    res.send("Your query does not match any API route!");
+    res.send("API error. Please raise an issue detailing steps to reproduce this error at https://github.com/AdoptOpenJDK/openjdk-api/issues.");
   }
 
 };
