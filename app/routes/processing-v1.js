@@ -1,5 +1,5 @@
 var exports = module.exports = {};
-
+const request = require('request');
 const platformlist = require('./platformlist');
 var platforms = platformlist.platforms();
 
@@ -37,7 +37,24 @@ function getFileExt(searchableName) {
   return (lookup[searchableName].fileExtension);
 }
 
-exports.processJSON = function(importedJSON, distro) {
+exports.requestJSON = function(repoName, jsonName, req, res){
+  var processedJSON = null;
+  request('https://raw.githubusercontent.com/AdoptOpenJDK/'+ repoName +'/master/'+ jsonName +'.json', function(error, response, body) {
+    if (!error && response.statusCode == 200) {
+      var importedJSON = JSON.parse(body);
+
+      if(req.params.distro) {
+        processedJSON = processJSON(importedJSON, req.params.distro);
+      }
+      else {
+        processedJSON = processJSON(importedJSON);
+      }
+    }
+    res.send(processedJSON);
+  });
+}
+
+function processJSON(importedJSON, distro) {
   var exportedJSON = [];
 
   if(! Array.isArray(importedJSON)) {
@@ -82,10 +99,10 @@ exports.processJSON = function(importedJSON, distro) {
     }
   });
 
-  if(exportedJSON.length == 0) {
+  if(exportedJSON.length === 0) {
     return "No matches for your query!";
   }
-  if(exportedJSON.length == 1) {
+  if(exportedJSON.length === 1) {
     exportedJSON = exportedJSON[0];
   }
 
