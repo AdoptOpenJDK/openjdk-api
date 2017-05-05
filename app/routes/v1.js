@@ -18,28 +18,28 @@ module.exports = function(req, res) {
   }
 
   // RELEASES JSON BEGIN
-  if(url == '/releases') {
+  if(url === '/releases') {
     processing.requestJSON('openjdk-releases', 'releases', req, res);
   }
 
-  else if(url == '/releases/latest') {
+  else if(url === '/releases/latest') {
     processing.requestJSON('openjdk-releases', 'latest_release', req, res);
   }
 
   // NIGHTLY JSON BEGIN
-  else if(url == '/nightly') {
+  else if(url === '/nightly') {
     processing.requestJSON('openjdk-nightly', 'nightly', req, res);
   }
 
-  else if(url == '/nightly/latest') {
+  else if(url === '/nightly/latest') {
     processing.requestJSON('openjdk-nightly', 'latest_nightly', req, res);
   }
 
-  else if(url == '/nightly/' + req.params.distro) {
+  else if(url === '/nightly/' + req.params.distro) {
     processing.requestJSON('openjdk-nightly', 'nightly', req, res);
   }
 
-  else if(url == '/nightly/' + req.params.distro + '/latest') {
+  else if(url === '/nightly/' + req.params.distro + '/latest') {
     processing.requestJSON('openjdk-nightly', 'latest_nightly', req, res);
   }
 
