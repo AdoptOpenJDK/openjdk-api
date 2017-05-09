@@ -13,6 +13,8 @@
     "express": "^4.15.2",
     "express-rate-limit": "^2.6.0",
     "express-routes-versioning": "^1.0.0",
+    "markdown-serve": "^0.4.0",
+    "pug": "^2.0.0-rc.1",
     "request": "^2.81.0"
   },
   "devDependencies": {
