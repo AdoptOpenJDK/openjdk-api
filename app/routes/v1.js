@@ -3,8 +3,6 @@
 // curl -H 'accept-version: 1.0.0' api.adoptopenjdk.net/nightly/x64_linux/latest
 // curl -H 'accept-version: 1.0.0' api.adoptopenjdk.net/releases/latest?pretty=false
 
-const express = require('express');
-const app = express();
 const processing = require('./processing-v1');
 
 module.exports = function(req, res) {
