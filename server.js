@@ -28,11 +28,11 @@ app.set('views', path.resolve(__dirname, './markdown-layouts'));
 app.set('view engine', 'pug');
 app.use(express.static(path.resolve(__dirname, './markdown-layouts')));
 
-app.use('/', mds.middleware({
-    rootDirectory: path.resolve(__dirname, ''),
-    view: 'layout'
-}));
-
 app.get('/', function(req, res){
   res.redirect('./README');
 });
+
+app.use('/', mds.middleware({
+  rootDirectory: path.resolve(__dirname, ''),
+  view: 'layout'
+}));
