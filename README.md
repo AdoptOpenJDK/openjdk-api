@@ -2,20 +2,18 @@
 
 The AdoptOpenJDK API provides a way to consume JSON information about the AdoptOpenJDK releases and nightly builds.
 
-We recommend that you use `curl` (see the [curl documentation](https://curl.haxx.se/docs/tooldocs.html)), and include an 'accept header' to specify a version of the API. This will ensure consistency when future versions of the API are announced.
-
-For example, the following command specifies **v1.0.0** of the API and returns information about all AdoptOpenJDK releases:
+Here is an example using `curl` (see the [curl documentation](https://curl.haxx.se/docs/tooldocs.html)). This command and returns information about all AdoptOpenJDK releases, and includes an 'accept header' to specify **v1.0.0** of the API. This will ensure consistency when future versions of the API are announced.
 
 ```
 curl -H 'accept-version: 1.0.0' api.adoptopenjdk.net/releases
 ```
 
-However, you should periodically check back here to see if new API developments could benefit your project!
+However, new API developments could benefit your project! Sign up to the [mailing list](http://mail.openjdk.java.net/mailman/listinfo/adoption-discuss) where API updates will be announced, and visit [adoptopenjdk.net](https://adoptopenjdk.net) to find out more about the community.
 
 ## v1.0.0
 
 ### Paths
-You can append the following paths to the `api.adoptopenjdk.net` URL, either in the above `curl` format or in a browser, to return different JSON information:
+You can append the following paths to the `api.adoptopenjdk.net` URL, either in the above `curl` format, in a browser, or through an HTTP client, to return different JSON information:
 
 |Path               |Returns  |
 |-------------------|---------|
