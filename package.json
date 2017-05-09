@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon server.js"
+    "start": "nodemon server.js",
+    "lint": "eslint *.js app/routes/*.js",
+    "test": "npm run lint"
   },
   "author": "",
   "license": "ISC",
@@ -13,9 +15,12 @@
     "express": "^4.15.2",
     "express-rate-limit": "^2.6.0",
     "express-routes-versioning": "^1.0.0",
+    "markdown-serve": "^0.4.0",
+    "pug": "^2.0.0-rc.1",
     "request": "^2.81.0"
   },
   "devDependencies": {
+    "eslint": "^3.19.0",
     "nodemon": "^1.11.0"
   }
 }

@@ -1,0 +1,57 @@
+body {
+  padding: 40px 0;
+}
+
+h1, h2, h3, h4 {
+  margin-top: 40px;
+}
+
+p {
+  margin: 15px 0;
+}
+
+li {
+  margin: 10px 0;
+}
+
+pre {
+  border: none;
+  border-bottom: 3px solid #ccc;
+  border-radius: 5px;
+}
+
+.container {
+  max-width: 900px;
+  width: 85%;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+table {
+  display: block;
+  width: 100%;
+  overflow: auto;
+}
+
+table th {
+  font-weight: 600;
+}
+
+table th,table td {
+  padding: 6px 13px;
+  border: 1px solid #cecece;
+}
+
+table tr {
+  background-color: white;
+  border-top: 1px solid #c6cbd1;
+}
+
+table tr:nth-child(2n) {
+  background-color: #f7f7f7;
+}
+
+code {
+  color: #000000;
+  background-color: #eaeaea;
+}
