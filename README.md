@@ -10,6 +10,8 @@ curl -H 'accept-version: 1.0.0' api.adoptopenjdk.net/releases
 
 However, new API developments could benefit your project! Sign up to the [mailing list](http://mail.openjdk.java.net/mailman/listinfo/adoption-discuss) where API updates will be announced, and visit [adoptopenjdk.net](https://adoptopenjdk.net) to find out more about the community.
 
+> **Note on the API rate limit:** Add the `-i` option (e.g. `curl -i -H 'accept-version: 1.0.0' api.adoptopenjdk.net/releases`) to return the response header as well as the response body. There is a limit of 100 API calls per hour per IP, and the value of `X-RateLimit-Remaining` in the response header is useful to determine how many API calls are remaining from this limit.
+
 ## v1.0.0
 
 ### Paths
