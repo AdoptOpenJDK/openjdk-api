@@ -15,7 +15,7 @@ However, new API developments could benefit your project! Sign up to the [mailin
 ## v1.0.0
 
 ### Paths
-You can append the following paths to the `api.adoptopenjdk.net` URL, either in the above `curl` format, in a browser, or through an HTTP client, to return different JSON information:
+You can append the following paths to the `https://api.adoptopenjdk.net` URL, either in the above `curl` format, in a browser, or through an HTTP client, to return different JSON information:
 
 |Path               |Returns  |
 |-------------------|---------|
