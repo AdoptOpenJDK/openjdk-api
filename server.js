@@ -1,12 +1,19 @@
 const express = require('express');
+const https = require('https');
 const bodyParser = require('body-parser');
 const RateLimit = require('express-rate-limit');
 const mds = require('markdown-serve');
 const path = require('path');
 const app = express();
 const port = 3000;
+const fs = require('fs');
 
-var limiter = new RateLimit({
+https.createServer({
+      key: fs.readFileSync('/home/ubuntu/sslcert/server.key'),
+      cert: fs.readFileSync('/home/ubuntu/sslcert/server.crt')
+    }, app).listen(1234);
+
+const limiter = new RateLimit({
   windowMs: 60*60*1000, // 60 minutes
   max: 100, // limit each IP to 100 requests per windowMs
   delayMs: 0, // disable delaying - full speed until the max limit is reached
