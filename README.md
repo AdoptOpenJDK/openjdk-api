@@ -33,6 +33,7 @@ You can specify a platform by inserting one of the following names, in upper-cas
 - `x64_mac`
 - `s390x_linux`
 - `ppc64le_linux`
+- `arm64_linux`
 
 ### Additional options
 By default, the API returns a pretty-printed JSON. You can disable this pretty-printing by appending `?pretty=false` to the end of any URL. For example:
