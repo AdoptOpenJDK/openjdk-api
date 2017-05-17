@@ -31,8 +31,8 @@ exports.platforms = function(){
         osDetectionString: "not-to-be-detected"
       },
       {
-        officialName: "Linux arm64",
-        searchableName: "ARM64_LINUX",
+        officialName: "Linux aarch64",
+        searchableName: "AARCH64_LINUX",
         logo: "arm.png",
         fileExtension: ".tar.gz",
         requirements: "GLIBC 2.5 and above",
