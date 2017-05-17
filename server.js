@@ -4,15 +4,24 @@ const RateLimit = require('express-rate-limit');
 const mds = require('markdown-serve');
 const path = require('path');
 const app = express();
-const port = 3000;
 const fs = require('fs');
 
 if(process.env.PRODUCTION) {
   const https = require('https');
+  const port = 1234;
   https.createServer({
     key: fs.readFileSync('/home/ubuntu/sslcert/server.key'),
     cert: fs.readFileSync('/home/ubuntu/sslcert/server.crt')
-  }, app).listen(1234);
+  }, app).listen(port, () => {
+    console.log('We are live on port ' + port);
+  });
+}
+else {
+  require('./app/routes')(app, {});
+  const port = 3000;
+  app.listen(port, () => {
+    console.log('We are live on port ' + port);
+  });
 }
 
 const limiter = new RateLimit({
@@ -25,12 +34,6 @@ const limiter = new RateLimit({
 // apply to all requests
 app.use(limiter);
 app.use(bodyParser.urlencoded({ extended: true }));
-
-require('./app/routes')(app, {});
-app.listen(port, () => {
-  console.log('We are live on ' + port);
-});
-
 
 // markdown serving
 app.set('views', path.resolve(__dirname, './markdown-layouts'));

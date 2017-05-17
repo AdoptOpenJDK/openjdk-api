@@ -31,23 +31,23 @@ exports.platforms = function(){
         osDetectionString: "not-to-be-detected"
       },
       {
-        officialName: "Linux arm64",
-        searchableName: "ARM64_LINUX",
+        officialName: "Linux aarch64",
+        searchableName: "AARCH64_LINUX",
         logo: "arm.png",
         fileExtension: ".tar.gz",
         requirements: "GLIBC 2.5 and above",
         architecture: "64",
         osDetectionString: "not-to-be-detected"
       },
-      /*{
+      {
         officialName: "Windows x86-64",
-        searchableName: "WIN",
+        searchableName: "X64_WIN",
         logo: "windows.png",
         fileExtension: ".zip",
         requirements: "VS 2010 and above",
         architecture: "64",
         osDetectionString: "Windows Win Cygwin"
-      }*/
+      },
       {
         officialName: "macOS x86-64",
         searchableName: "X64_MAC",
