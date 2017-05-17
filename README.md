@@ -34,6 +34,7 @@ You can specify a platform by inserting one of the following names, in upper-cas
 |-------|---------|
 | Linux - x64 |`/x64_linux`|
 | Mac - x64 |`/x64_mac`|
+| Windows - x64 |`/x64_win`|
 | Linux - s390x |`/s390x_linux`|
 | Linux - ppc64le | `/ppc64le_linux` |
 | Linux - aarch64 |`/aarch64_linux`|

@@ -39,15 +39,15 @@ exports.platforms = function(){
         architecture: "64",
         osDetectionString: "not-to-be-detected"
       },
-      /*{
+      {
         officialName: "Windows x86-64",
-        searchableName: "WIN",
+        searchableName: "X64_WIN",
         logo: "windows.png",
         fileExtension: ".zip",
         requirements: "VS 2010 and above",
         architecture: "64",
         osDetectionString: "Windows Win Cygwin"
-      }*/
+      },
       {
         officialName: "macOS x86-64",
         searchableName: "X64_MAC",
