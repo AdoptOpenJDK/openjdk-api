@@ -6,6 +6,8 @@ const path = require('path');
 const app = express();
 const fs = require('fs');
 
+require('./app/routes')(app, {});
+
 if(process.env.PRODUCTION) {
   const https = require('https');
   const port = 1234;
@@ -17,7 +19,6 @@ if(process.env.PRODUCTION) {
   });
 }
 else {
-  require('./app/routes')(app, {});
   const port = 3000;
   app.listen(port, () => {
     console.log('We are live on port ' + port);
