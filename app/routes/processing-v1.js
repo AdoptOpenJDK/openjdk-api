@@ -33,8 +33,8 @@ function getOfficialName(searchableName) {
 }
 
 // gets the FILE EXTENSION when you pass in 'searchableName'
-function getFileExt(searchableName) {
-  return (lookup[searchableName].fileExtension);
+function getBinaryExt(searchableName) {
+  return (lookup[searchableName].binaryExtension);
 }
 
 exports.requestJSON = function(repoName, jsonName, req, res){
@@ -72,17 +72,17 @@ function processJSON(importedJSON, distro) {
       if(thisPlatform) {
         // secondly, if the 'distro' argument has been provided, check if it matches the current asset's searchableName
         if (distro == undefined || distro !== undefined && distro.toUpperCase() == thisPlatform) {
-          // thirdly, check if the file has the expected file extension for that platform...
+          // thirdly, check if the file has the expected binary extension for that platform...
           // (this filters out all non-binary attachments, e.g. SHA checksums - these contain the platform name, but are not binaries)
-          var thisFileExtension = getFileExt(thisPlatform); // get the file extension associated with this platform
-          if(uppercaseFilename.indexOf((thisFileExtension.toUpperCase())) >= 0) {
+          var thisBinaryExtension = getBinaryExt(thisPlatform); // get the binary extension associated with this platform
+          if(uppercaseFilename.indexOf((thisBinaryExtension.toUpperCase())) >= 0) {
 
             var assetObj = new Object();
             assetObj.platform = getOfficialName(thisPlatform);
             assetObj.binary_name = eachAsset.name;
             assetObj.binary_link = (eachAsset.browser_download_url);
             assetObj.binary_size = (Math.floor((eachAsset.size)/1024/1024)+" MB");
-            assetObj.checksum_link = (eachAsset.browser_download_url).replace(thisFileExtension, ".sha256.txt");
+            assetObj.checksum_link = (eachAsset.browser_download_url).replace(thisBinaryExtension, ".sha256.txt");
 
             assetArray.push(assetObj);
           }
