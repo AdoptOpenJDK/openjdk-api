@@ -21,6 +21,8 @@ You can append the following paths to the `https://api.adoptopenjdk.net` URL, ei
 |-------------------|---------|
 |`/releases`          |All releases, all platforms.      |
 |`/releases/latest`   |The latest release, all platforms.|
+|`/releases/<platform>`|All releases, one specified platform.|
+|`/releases/<platform>/latest`|The latest release, one specified platform.|
 |`/nightly`           |All nightly builds, all platforms.|
 |`/nightly/latest`    |The latest nightly build, all platforms.   |
 |`/nightly/<platform>`|All nightly builds, one specified platform.|

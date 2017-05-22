@@ -24,6 +24,14 @@ module.exports = function(req, res) {
     processing.requestJSON('openjdk-releases', 'latest_release', req, res);
   }
 
+  else if(url === '/releases/' + req.params.distro) {
+    processing.requestJSON('openjdk-releases', 'releases', req, res);
+  }
+
+  else if(url === '/releases/' + req.params.distro + '/latest') {
+    processing.requestJSON('openjdk-releases', 'latest_release', req, res);
+  }
+
   // NIGHTLY JSON BEGIN
   else if(url === '/nightly') {
     processing.requestJSON('openjdk-nightly', 'nightly', req, res);
