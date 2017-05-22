@@ -19,27 +19,26 @@ You can append the following paths to the `https://api.adoptopenjdk.net` URL, ei
 
 |Path               |Returns  |
 |-------------------|---------|
-|`/releases`          |All releases, all platforms.      |
-|`/releases/latest`   |The latest release, all platforms.|
-|`/releases/<platform>`|All releases, one specified platform.|
-|`/releases/<platform>/latest`|The latest release, one specified platform.|
-|`/nightly`           |All nightly builds, all platforms.|
-|`/nightly/latest`    |The latest nightly build, all platforms.   |
-|`/nightly/<platform>`|All nightly builds, one specified platform.|
-|`/nightly/<platform>/latest`|The latest nightly build, one specified platform.|
+|[`/releases`](https://api.adoptopenjdk.net/releases)|All releases, all platforms.      |
+|[`/releases/latest`](https://api.adoptopenjdk.net/releases/latest) |The latest release, all platforms.|
+|[`/releases/<platform>`](https://api.adoptopenjdk.net/releases/x64_linux/)|All releases, one specified platform.|
+|[`/releases/<platform>/latest`](https://api.adoptopenjdk.net/releases/x64_linux/latest)|The latest release, one specified platform.|
+|[`/nightly`](https://api.adoptopenjdk.net/nightly/)|All nightly builds, all platforms.|
+|[`/nightly/latest`](https://api.adoptopenjdk.net/nightly/latest)|The latest nightly build, all platforms.   |
+|[`/nightly/<platform>`](https://api.adoptopenjdk.net/nightly/x64_linux)|All nightly builds, one specified platform.|
+|[`/nightly/<platform>/latest`](https://api.adoptopenjdk.net/nightly/x64_linux/latest)|The latest nightly build, one specified platform.|
 
 ### Platforms
 You can specify a platform by inserting one of the following names, in upper-case or lower-case, where you see `<platform>` in the path options:
 
-
 |Platform |Route  |
 |-------|---------|
-| Linux - x64 |`/x64_linux`|
-| Mac - x64 |`/x64_mac`|
-| Windows - x64 |`/x64_win`|
-| Linux - s390x |`/s390x_linux`|
-| Linux - ppc64le | `/ppc64le_linux` |
-| Linux - aarch64 |`/aarch64_linux`|
+| Linux - x64 |[`/x64_linux`](https://api.adoptopenjdk.net/releases/x64_linux/)|
+| Mac - x64 |[`/x64_mac`](https://api.adoptopenjdk.net/releases/x64_mac/)|
+| Windows - x64 |[`/x64_win`](https://api.adoptopenjdk.net/releases/x64_win/)|
+| Linux - s390x |[`/s390x_linux`](https://api.adoptopenjdk.net/releases/s390x_linux)|
+| Linux - ppc64le |[`/ppc64le_linux`](https://api.adoptopenjdk.net/releases/ppc64le_linux)|
+| Linux - aarch64 |[`/aarch64_linux`](https://api.adoptopenjdk.net/releases/aarch64_linux)|
 
 ### Additional options
 By default, the API returns a pretty-printed JSON. You can disable this pretty-printing by appending `?pretty=false` to the end of any URL. For example:
