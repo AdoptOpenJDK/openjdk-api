@@ -49,3 +49,9 @@ app.use('/', mds.middleware({
   rootDirectory: path.resolve(__dirname, ''),
   view: 'layout'
 }));
+
+// eslint-disable-next-line no-unused-vars
+app.use(function (err, req, res, next) {
+  console.error(err.stack)
+  res.status(500).send('Error - please try again or raise an issue at https://github.com/AdoptOpenJDK/openjdk-api/issues.')
+});
