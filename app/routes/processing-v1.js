@@ -49,10 +49,12 @@ exports.requestJSON = function(repoName, jsonName, req, res){
       else {
         processedJSON = processJSON(importedJSON);
       }
+    } else {
+      processedJSON = processUnexpectedResponse();
     }
     res.send(processedJSON);
   });
-}
+};
 
 function processJSON(importedJSON, distro) {
   var exportedJSON = [];
@@ -107,4 +109,13 @@ function processJSON(importedJSON, distro) {
   }
 
   return exportedJSON;
+}
+
+function processUnexpectedResponse() {
+  var errorObj = new Object();
+  errorObj.message =
+      'Service unavailable. ' +
+      'Try again later and if the problem persists please raise an issue detailing steps to reproduce this error at ' +
+      'https://github.com/AdoptOpenJDK/openjdk-api/issues.';
+  return JSON.stringify(errorObj);
 }
