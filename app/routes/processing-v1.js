@@ -39,7 +39,7 @@ function getBinaryExt(searchableName) {
   return (lookup[searchableName].binaryExtension);
 }
 
-exports.requestJSON = function(repoName, jsonName, req, res) {
+exports.requestJSON = function(repoName, jsonName, req, res, download) {
 
   request('https://adoptopenjdk.net/dist/json/config.json', function(error, response, body) {
     if (!error && response.statusCode == 200) {
@@ -57,18 +57,23 @@ exports.requestJSON = function(repoName, jsonName, req, res) {
           else {
             processedJSON = processJSON(importedJSON);
           }
+
+          if(download === 'binary') {
+            res.redirect(processedJSON.binaries[0].binary_link);
+          }
+          else {
+            res.send(processedJSON);
+          }
         }
         else {
           processedJSON = processUnexpectedResponse();
+          res.send(processedJSON);
         }
-        res.send(processedJSON);
       });
     }
     else {
       processedJSON = processUnexpectedResponse();
-      res.send('Error: platform information cannot be retrieved. ' +
-      'Try again later and if the problem persists please raise an issue detailing steps to reproduce this error at ' +
-      'https://github.com/AdoptOpenJDK/openjdk-api/issues.');
+      res.send(processedJSON);
     }
   });
 };
