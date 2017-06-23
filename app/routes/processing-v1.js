@@ -1,13 +1,15 @@
 var exports = module.exports = {};
 const request = require('request');
-const platformlist = require('./platformlist');
-var platforms = platformlist.platforms();
-
-// FUNCTIONS FOR GETTING PLATFORM DATA
-// allows us to use, for example, 'lookup["MAC"];'
+var platforms = [];
 var lookup = {};
-for (var i = 0, len = platforms.length; i < len; i++) {
-    lookup[platforms[i].searchableName] = platforms[i];
+var i = 0;
+
+function setLookup() {
+  // FUNCTIONS FOR GETTING PLATFORM DATA
+  // allows us to use, for example, 'lookup["MAC"];'
+  for (i = 0; i < platforms.length; i++) {
+      lookup[platforms[i].searchableName] = platforms[i];
+  }
 }
 
 // gets the 'searchableName' when you pass in the full filename.
@@ -37,22 +39,42 @@ function getBinaryExt(searchableName) {
   return (lookup[searchableName].binaryExtension);
 }
 
-exports.requestJSON = function(repoName, jsonName, req, res){
-  var processedJSON = null;
-  request('https://raw.githubusercontent.com/AdoptOpenJDK/'+ repoName +'/master/'+ jsonName +'.json', function(error, response, body) {
-    if (!error && response.statusCode == 200) {
-      var importedJSON = JSON.parse(body);
+exports.requestJSON = function(repoName, jsonName, req, res, download) {
 
-      if(req.params.distro) {
-        processedJSON = processJSON(importedJSON, req.params.distro);
-      }
-      else {
-        processedJSON = processJSON(importedJSON);
-      }
-    } else {
-      processedJSON = processUnexpectedResponse();
+  request('https://adoptopenjdk.net/dist/json/config.json', function(error, response, body) {
+    if (!error && response.statusCode == 200) {
+      platforms = JSON.parse(body).platforms;
+      setLookup();
+
+      var processedJSON = null;
+      request('https://raw.githubusercontent.com/AdoptOpenJDK/'+ repoName +'/master/'+ jsonName +'.json', function(error, response, body) {
+        if (!error && response.statusCode == 200) {
+          var importedJSON = JSON.parse(body);
+
+          if(req.params.distro) {
+            processedJSON = processJSON(importedJSON, req.params.distro);
+          }
+          else {
+            processedJSON = processJSON(importedJSON);
+          }
+
+          if(download === 'binary') {
+            res.redirect(processedJSON.binaries[0].binary_link);
+          }
+          else {
+            res.send(processedJSON);
+          }
+        }
+        else {
+          processedJSON = processUnexpectedResponse();
+          res.send(processedJSON);
+        }
+      });
     }
-    res.send(processedJSON);
+    else {
+      processedJSON = processUnexpectedResponse();
+      res.send(processedJSON);
+    }
   });
 };
 

@@ -4,7 +4,7 @@ const v1 = require('./v1');
 
 module.exports = function(app) {
 
-  app.get(['/releases','/releases/latest','/releases/:distro','/releases/:distro/latest','/nightly','/nightly/latest','/nightly/:distro','/nightly/:distro/latest'],
+  app.get(['/releases','/releases/latest','/releases/:distro','/releases/:distro/latest','/releases/:distro/latest/binary','/nightly','/nightly/latest','/nightly/:distro','/nightly/:distro/latest'],
 
     function(req, res, next) {
       app.set('json spaces', 2);
@@ -15,7 +15,8 @@ module.exports = function(app) {
     },
 
     routesVersioning({
-    '^1.0.0': v1
+    '^1.0.0': v1,
+    '^1.1.0': v1
     // add future versions here, with a comma ( , ) after the previous line. Also add the require(); above.
 
   }));
