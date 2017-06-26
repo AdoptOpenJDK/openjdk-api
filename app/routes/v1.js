@@ -24,7 +24,7 @@ module.exports = function(req, res) {
     processing.requestJSON('openjdk-releases', 'latest_release', req, res);
   }
 
-  else if(url === '/releases/all/' + req.params.id) {
+  else if(url === '/releases/all/' + req.params.releasename) {
     processing.requestJSON('openjdk-releases', 'releases', req, res);
   }
 
@@ -40,11 +40,11 @@ module.exports = function(req, res) {
     processing.requestJSON('openjdk-releases', 'latest_release', req, res, 'binary');
   }
 
-  else if(url === '/releases/' + req.params.distro + '/' + req.params.id) {
+  else if(url === '/releases/' + req.params.distro + '/' + req.params.releasename) {
     processing.requestJSON('openjdk-releases', 'releases', req, res);
   }
 
-  else if(url === '/releases/' + req.params.distro + '/' + req.params.id + '/binary') {
+  else if(url === '/releases/' + req.params.distro + '/' + req.params.releasename + '/binary') {
     processing.requestJSON('openjdk-releases', 'releases', req, res, 'binary');
   }
 
