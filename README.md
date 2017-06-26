@@ -15,17 +15,25 @@ However, new API developments could benefit your project! Sign up to the [mailin
 ## v1.1.0
 
 ### New paths
-In v1.1.0, you can directly download a binary.
+In v1.1.0, you can directly download a binary, and specify a single release by its name.
 
 |Path               |Returns  |
 |-------------------|---------|
 |[`/releases/<platform>/latest/binary`](https://api.adoptopenjdk.net/releases/x64_linux/latest/binary)|Redirects to the latest binary for the specified platform|
+|[`/releases/all/<release-name>`](https://api.adoptopenjdk.net/releases/all/jdk8u152-b03)|One specified release, all platforms|
+|[`/releases/<platform>/<release-name>`](https://api.adoptopenjdk.net/releases/x64_linux/jdk8u152-b03)|One specified release, one specified platform|
+|[`/releases/<platform>/<release-name>/binary`](https://api.adoptopenjdk.net/releases/x64_linux/jdk8u152-b03/binary)|Redirects to the specified binary for the specified platform|
 
-Example usage, to download the latest binary for Linux X64 with `curl`:
+Example usage of the `/binary` path, to download the latest binary for Linux X64 with `curl`:
 
 ```bash
 curl -OLJ -H 'accept-version: 1.1.0' https://api.adoptopenjdk.net/releases/x64_linux/latest/binary
 ```
+
+Example release names:
+`jdk8u162-b00`, `jdk8u152-b03`, `jdk8u152-b01`.
+
+You can find more release names at [adoptopenjdk.net/archive](https://adoptopenjdk.net/archive.html).
 
 ## v1.0.0
 

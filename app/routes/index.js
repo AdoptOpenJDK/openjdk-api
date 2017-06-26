@@ -4,7 +4,7 @@ const v1 = require('./v1');
 
 module.exports = function(app) {
 
-  app.get(['/releases','/releases/latest','/releases/:distro','/releases/:distro/latest','/releases/:distro/latest/binary','/nightly','/nightly/latest','/nightly/:distro','/nightly/:distro/latest'],
+  app.get(['/releases','/releases/latest','/releases/:distro','/releases/:distro/latest','/releases/:distro/latest/binary','/releases/all/:id','/releases/:distro/:id','/releases/:distro/:id/binary','/nightly','/nightly/latest','/nightly/:distro','/nightly/:distro/latest'],
 
     function(req, res, next) {
       app.set('json spaces', 2);
