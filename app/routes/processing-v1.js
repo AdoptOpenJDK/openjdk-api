@@ -51,14 +51,9 @@ exports.requestJSON = function(repoName, jsonName, req, res, download) {
         if (!error && response.statusCode == 200) {
           var importedJSON = JSON.parse(body);
 
-          if(req.params.distro) {
-            processedJSON = processJSON(importedJSON, req.params.distro);
-          }
-          else {
-            processedJSON = processJSON(importedJSON);
-          }
+          processedJSON = processJSON(importedJSON, req.params.distro, req.params.releasename);
 
-          if(download === 'binary') {
+          if(download === 'binary' && processedJSON.binaries) {
             res.redirect(processedJSON.binaries[0].binary_link);
           }
           else {
@@ -78,7 +73,7 @@ exports.requestJSON = function(repoName, jsonName, req, res, download) {
   });
 };
 
-function processJSON(importedJSON, distro) {
+function processJSON(importedJSON, distro, releaseName) {
   var exportedJSON = [];
 
   if(! Array.isArray(importedJSON)) {
@@ -86,41 +81,47 @@ function processJSON(importedJSON, distro) {
   }
 
   importedJSON.forEach(function(eachRelease) {
-    var assetArray = [];
-    eachRelease.assets.forEach(function(eachAsset) {
-      var nameOfFile = (eachAsset.name);
-      var uppercaseFilename = nameOfFile.toUpperCase(); // make the name of the asset uppercase
-      var thisPlatform = getSearchableName(uppercaseFilename); // get the searchableName, e.g. X64_MAC or X64_LINUX.
+    // if a release number has been specified, check if it matches this release number...
+    if(!releaseName || releaseName === eachRelease.name) {
+      var assetArray = [];
+      eachRelease.assets.forEach(function(eachAsset) {
+        var nameOfFile = (eachAsset.name);
+        var uppercaseFilename = nameOfFile.toUpperCase(); // make the name of the asset uppercase
+        var supportedPlatform = getSearchableName(uppercaseFilename); // get the searchableName, e.g. X64_MAC or X64_LINUX.
 
-      // firstly, check if the platform name is recognised...
-      if(thisPlatform) {
-        // secondly, if the 'distro' argument has been provided, check if it matches the current asset's searchableName
-        if (distro == undefined || distro !== undefined && distro.toUpperCase() == thisPlatform) {
-          // thirdly, check if the file has the expected binary extension for that platform...
-          // (this filters out all non-binary attachments, e.g. SHA checksums - these contain the platform name, but are not binaries)
-          var thisBinaryExtension = getBinaryExt(thisPlatform); // get the binary extension associated with this platform
-          if(uppercaseFilename.indexOf((thisBinaryExtension.toUpperCase())) >= 0) {
+        // firstly, check if the platform name is recognised...
+        if(supportedPlatform) {
+          // secondly, if the 'distro' argument has been provided, check if it matches the current asset's searchableName
+          if (distro == undefined || distro.toUpperCase() === supportedPlatform) {
+            // thirdly, check if the file has the expected binary extension for that platform...
+            // (this filters out all non-binary attachments, e.g. SHA checksums - these contain the platform name, but are not binaries)
+            var binaryExtension = getBinaryExt(supportedPlatform); // get the binary extension associated with this platform
+            if(uppercaseFilename.indexOf((binaryExtension.toUpperCase())) >= 0) {
 
-            var assetObj = new Object();
-            assetObj.platform = getOfficialName(thisPlatform);
-            assetObj.binary_name = eachAsset.name;
-            assetObj.binary_link = (eachAsset.browser_download_url);
-            assetObj.binary_size = (Math.floor((eachAsset.size)/1024/1024)+" MB");
-            assetObj.checksum_link = (eachAsset.browser_download_url).replace(thisBinaryExtension, ".sha256.txt");
+              var assetObj = new Object();
+              assetObj.platform = getOfficialName(supportedPlatform);
+              assetObj.binary_name = eachAsset.name;
+              assetObj.binary_link = (eachAsset.browser_download_url);
+              assetObj.binary_size = (Math.floor((eachAsset.size)/1024/1024)+" MB");
+              assetObj.checksum_link = (eachAsset.browser_download_url).replace(binaryExtension, ".sha256.txt");
 
-            assetArray.push(assetObj);
+              assetArray.push(assetObj);
+            }
           }
         }
-      }
-    });
-    if(assetArray[0]) {
-      var releaseObj = new Object();
-      releaseObj.release_name = eachRelease.name;
-      releaseObj.timestamp = eachRelease.published_at;
-      releaseObj.binaries = assetArray;
+      });
 
-      exportedJSON.push(releaseObj);
+      var atLeastOneAsset = assetArray[0];
+      if(atLeastOneAsset) {
+        var releaseObj = new Object();
+        releaseObj.release_name = eachRelease.name;
+        releaseObj.timestamp = eachRelease.published_at;
+        releaseObj.binaries = assetArray;
+
+        exportedJSON.push(releaseObj);
+      }
     }
+
   });
 
   if(exportedJSON.length === 0) {
