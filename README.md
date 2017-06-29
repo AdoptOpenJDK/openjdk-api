@@ -2,15 +2,22 @@
 
 The AdoptOpenJDK API provides a way to consume JSON information about the AdoptOpenJDK releases and nightly builds.
 
-Here is an example using `curl` (see the [curl documentation](https://curl.haxx.se/docs/tooldocs.html)). This command returns information about all AdoptOpenJDK releases, and includes an 'accept header' to specify **v1.1.0** of the API. This will ensure consistency when future versions of the API are announced.
+Here is an example using `curl` (see the [curl documentation](https://curl.haxx.se/docs/tooldocs.html)):
 
+```bash
+curl https://api.adoptopenjdk.net/releases
+```
+
+This command returns information about all AdoptOpenJDK releases, and defaults to the latest version of the API.
+
+Optionally, you can include an 'accept header' to specify a version of the API:
 ```bash
 curl -H 'accept-version: 1.1.0' https://api.adoptopenjdk.net/releases
 ```
 
-However, new API developments could benefit your project! Sign up to the [mailing list](http://mail.openjdk.java.net/mailman/listinfo/adoption-discuss) where API updates will be announced, and visit [adoptopenjdk.net](https://adoptopenjdk.net) to find out more about the community.
+Sign up to the [mailing list](http://mail.openjdk.java.net/mailman/listinfo/adoption-discuss) where major API updates will be announced, and visit [adoptopenjdk.net](https://adoptopenjdk.net) to find out more about the community.
 
-> **Note on the API rate limit:** Add the `-i` option (e.g. `curl -i -H 'accept-version: 1.1.0' https://api.adoptopenjdk.net/releases`) to return the response header as well as the response body. There is a limit of 100 API calls per hour per IP, and the value of `X-RateLimit-Remaining` in the response header is useful to determine how many API calls are remaining from this limit.
+> **Note on the API rate limit:** Add the `-i` option (e.g. `curl -i https://api.adoptopenjdk.net/releases`) to return the response header as well as the response body. There is a limit of 100 API calls per hour per IP, and the value of `X-RateLimit-Remaining` in the response header is useful to determine how many API calls are remaining from this limit.
 
 ## v1.1.0
 
@@ -27,7 +34,7 @@ In v1.1.0, you can directly download a binary, and specify a single release by i
 Example usage of the `/binary` path, to download the latest binary for Linux X64 with `curl`:
 
 ```bash
-curl -OLJ -H 'accept-version: 1.1.0' https://api.adoptopenjdk.net/releases/x64_linux/latest/binary
+curl -OLJ https://api.adoptopenjdk.net/releases/x64_linux/latest/binary
 ```
 
 Example release names:
@@ -66,12 +73,12 @@ You can specify a platform by inserting one of the following names, in upper-cas
 ### Additional options
 By default, the API returns a pretty-printed JSON. You can disable this pretty-printing by appending `?pretty=false` to the end of any URL. For example:
 ```bash
-curl -H 'accept-version: 1.1.0' https://api.adoptopenjdk.net/releases?pretty=false
+curl https://api.adoptopenjdk.net/releases?pretty=false
 ```
 
 ### Examples
 ```bash
-curl -H 'accept-version: 1.1.0' https://api.adoptopenjdk.net/nightly
-curl -H 'accept-version: 1.1.0' https://api.adoptopenjdk.net/releases/latest?pretty=false
-curl -H 'accept-version: 1.1.0' https://api.adoptopenjdk.net/nightly/x64_linux/latest
+curl https://api.adoptopenjdk.net/nightly
+curl https://api.adoptopenjdk.net/releases/latest?pretty=false
+curl https://api.adoptopenjdk.net/nightly/x64_linux/latest
 ```
