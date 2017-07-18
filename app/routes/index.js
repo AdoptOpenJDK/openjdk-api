@@ -5,7 +5,11 @@ const v1 = require('./v1');
 
 module.exports = function(app) {
 
-  app.get(['/:variant/:buildtype','/:variant/:buildtype/:platform','/:variant/:buildtype/:platform/:build','/:variant/:buildtype/:platform/:build/:datatype'],
+  app.get('/favicon.ico', function(req, res) {
+    res.status(204);
+  });
+  
+  app.get(['/:variant','/:variant/:buildtype','/:variant/:buildtype/:platform','/:variant/:buildtype/:platform/:build','/:variant/:buildtype/:platform/:build/:datatype'],
 
     function(req, res, next) {
       app.set('json spaces', 2);
@@ -16,10 +20,10 @@ module.exports = function(app) {
     },
 
     routesVersioning({
-    '^1.0.0': v1
-    // add future versions here, with a comma ( , ) after the previous line. Also add the require(); above.
-
-  }));
+      '^1.0.0': v1
+      // add future versions here, with a comma ( , ) after the previous line. Also add the require(); above.
+    })
+  );
 
   /*
 

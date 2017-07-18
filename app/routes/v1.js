@@ -40,7 +40,6 @@ function getBinaryExt(searchableName) {
 }
 
 module.exports = function(req, res) {
-
   // set the defaults for each part of the route, overwriting these defaults where the user has specified these parts of the URL/route
   var ROUTEvariant = req.params.variant;
   var ROUTEbuildtype = (req.params.buildtype) ? req.params.buildtype : 'releases';
@@ -50,10 +49,10 @@ module.exports = function(req, res) {
 
   // set the JSON filename - if the user wants the latest nightly or release, adjust the name to match the actual JSON filename.
   var jsonFilenamePrefix = '';
-  var jsonFilename = buildtype;
-  if(build === 'latest') {
+  var jsonFilename = ROUTEbuildtype;
+  if(ROUTEbuild === 'latest') {
     jsonFilenamePrefix = 'latest_'
-    if(buildtype === 'releases') {
+    if(ROUTEbuildtype === 'releases') {
       jsonFilename = 'release';
     }
   }
@@ -73,11 +72,19 @@ module.exports = function(req, res) {
 
           processedJSON = processJSON(importedJSON, ROUTEplatform, ROUTEbuild);
 
-          if(ROUTEdatatype === 'binary' && processedJSON.binaries) {
-            res.redirect(processedJSON.binaries[0].binary_link);
+          if(ROUTEdatatype === 'binary'){
+            if(processedJSON.binaries) {
+              res.redirect(processedJSON.binaries[0].binary_link);
+            }
+            else {
+              res.send(JSON.stringify('Error: you can only directly download a binary by specifying a single platform and a single build.'));
+            }
+          }
+          else if(ROUTEdatatype === 'info') {
+            res.send(processedJSON);
           }
           else {
-            res.send(processedJSON);
+            res.send(JSON.stringify('Error: refer to the API homepage or README for available routes.'));
           }
         }
         else {
@@ -102,17 +109,16 @@ function processJSON(importedJSON, ROUTEplatform, ROUTEbuild) {
 
   importedJSON.forEach(function(eachRelease) {
     // if a build number has been specified, check if it matches this build number...
-    if(!ROUTEbuild || ROUTEbuild === eachRelease.name) {
+    if(ROUTEbuild === 'allbuilds' || ROUTEbuild === 'latest' || ROUTEbuild === eachRelease.name) {
       var assetArray = [];
       eachRelease.assets.forEach(function(eachAsset) {
         var nameOfFile = (eachAsset.name);
         var uppercaseFilename = nameOfFile.toUpperCase(); // make the name of the asset uppercase
         var supportedPlatform = getSearchableName(uppercaseFilename); // get the searchableName, e.g. X64_MAC or X64_LINUX.
-
         // firstly, check if the platform name is recognised...
         if(supportedPlatform) {
-          // secondly, if the 'ROUTEplatform' argument has been provided, check if it matches the current asset's searchableName
-          if (ROUTEplatform == undefined || ROUTEplatform.toUpperCase() === supportedPlatform) {
+          // secondly, check that the 'ROUTEplatform' argument is either 'allplatforms' or matches the current asset's searchableName
+          if (ROUTEplatform === 'allplatforms' || ROUTEplatform.toUpperCase() === supportedPlatform) {
             // thirdly, check if the file has the expected binary extension for that platform...
             // (this filters out all non-binary attachments, e.g. SHA checksums - these contain the platform name, but are not binaries)
             var binaryExtension = getBinaryExt(supportedPlatform); // get the binary extension associated with this platform
@@ -157,8 +163,8 @@ function processJSON(importedJSON, ROUTEplatform, ROUTEbuild) {
 function processUnexpectedResponse() {
   var errorObj = new Object();
   errorObj.message =
-      'Service unavailable. ' +
-      'Try again later and if the problem persists please raise an issue detailing steps to reproduce this error at ' +
+      'Error.' +
+      'Try again and if the problem persists please raise an issue detailing steps to reproduce this error at ' +
       'https://github.com/AdoptOpenJDK/openjdk-api/issues.';
   return JSON.stringify(errorObj);
 }
