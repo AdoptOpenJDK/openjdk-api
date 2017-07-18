@@ -1,22 +1,22 @@
 const routesVersioning = require('express-routes-versioning')();
 const v1 = require('./v1');
+
 // add future versions here. Also add to the routesVersioning object below.
 
 module.exports = function(app) {
 
-  app.get(['/releases','/releases/latest','/releases/:distro','/releases/:distro/latest','/releases/:distro/latest/binary','/releases/all/:releasename','/releases/:distro/:releasename','/releases/:distro/:releasename/binary','/nightly','/nightly/latest','/nightly/:distro','/nightly/:distro/latest'],
+  app.get(['/:variant/:buildtype','/:variant/:buildtype/:platform','/:variant/:buildtype/:platform/:build','/:variant/:buildtype/:platform/:build/:datatype'],
 
     function(req, res, next) {
       app.set('json spaces', 2);
-      if(req.query.pretty === "false") {
+      if(req.query.pretty === 'false') {
         app.disable('json spaces')
       }
       next()
     },
 
     routesVersioning({
-    '^1.0.0': v1,
-    '^1.1.0': v1
+    '^1.0.0': v1
     // add future versions here, with a comma ( , ) after the previous line. Also add the require(); above.
 
   }));

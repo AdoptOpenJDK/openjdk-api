@@ -69,6 +69,7 @@ You can specify a platform by inserting one of the following names, in upper-cas
 | Linux - s390x |[`/s390x_linux`](https://api.adoptopenjdk.net/releases/s390x_linux)|
 | Linux - ppc64le |[`/ppc64le_linux`](https://api.adoptopenjdk.net/releases/ppc64le_linux)|
 | Linux - aarch64 |[`/aarch64_linux`](https://api.adoptopenjdk.net/releases/aarch64_linux)|
+| AIX - ppc64 |[`/ppc64_aix`](https://api.adoptopenjdk.net/releases/ppc64_aix)|
 
 ### Additional options
 By default, the API returns a pretty-printed JSON. You can disable this pretty-printing by appending `?pretty=false` to the end of any URL. For example:
