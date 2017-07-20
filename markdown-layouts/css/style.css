@@ -72,3 +72,7 @@ blockquote p {
 blockquote code {
   background-color: white;
 }
+
+a code {
+  color: #428bca;
+}
