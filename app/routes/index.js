@@ -8,7 +8,7 @@ module.exports = function(app) {
   app.get('/favicon.ico', function(req, res) {
     res.status(204);
   });
-  
+
   app.get(['/:variant','/:variant/:buildtype','/:variant/:buildtype/:platform','/:variant/:buildtype/:platform/:build','/:variant/:buildtype/:platform/:build/:datatype'],
 
     function(req, res, next) {

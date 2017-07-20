@@ -6,8 +6,7 @@ const path = require('path');
 const app = express();
 const fs = require('fs');
 
-require('./app/routes')(app, {});
-
+// Production / development setup
 if(process.env.PRODUCTION) {
   const https = require('https');
   const port = 1234;
@@ -25,6 +24,7 @@ else {
   });
 }
 
+// limit requests to 100 per hour
 const limiter = new RateLimit({
   windowMs: 60*60*1000, // 60 minutes
   max: 100, // limit each IP to 100 requests per windowMs
@@ -49,6 +49,9 @@ app.use('/', mds.middleware({
   rootDirectory: path.resolve(__dirname, ''),
   view: 'layout'
 }));
+
+// import all of the 'routes' JS files
+require('./app/routes')(app, {});
 
 // eslint-disable-next-line no-unused-vars
 app.use(function (err, req, res, next) {
