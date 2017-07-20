@@ -82,7 +82,7 @@ To specify a 'nightly' build number, go to [adoptopenjdk.net/nightly](https://ad
 
 |Data Type |Example (click to view) |
 |-----------|--------|
-|`info` (DEFAULT) |[`/openjdk/releases/x64_linux/latest/info`](https://api.adoptopenjdk.net/openjdk/releases/x64_linux/allbuild/info) |
+|`info` (DEFAULT) |[`/openjdk/releases/x64_linux/latest/info`](https://api.adoptopenjdk.net/openjdk/releases/x64_linux/latest/info) |
 |`binary` (Redirects to download) |[`/openjdk/releases/x64_linux/latest/binary`](https://api.adoptopenjdk.net/openjdk/releases/x64_linux/latest/binary) |
 
 > **Note on the `/binary` path:** you must specify a single platform and a single build before you can use `/binary`.
