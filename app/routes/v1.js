@@ -163,7 +163,7 @@ function processJSON(importedJSON, ROUTEplatform, ROUTEbuild) {
 function processUnexpectedResponse() {
   var errorObj = new Object();
   errorObj.message =
-      'Error.' +
+      'Error. ' +
       'Try again and if the problem persists please raise an issue detailing steps to reproduce this error at ' +
       'https://github.com/AdoptOpenJDK/openjdk-api/issues.';
   return JSON.stringify(errorObj);
