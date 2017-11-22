@@ -52,6 +52,7 @@ However, if you need to specify `<build>` as `latest`, for instance, then you al
 |Variant |Example (click to view) |
 |--------|--------|
 |`openjdk8` |[`/openjdk8`](https://api.adoptopenjdk.net/openjdk8) |
+|`openjdk8` |[`/openjdk8-openj9`](https://api.adoptopenjdk.net/openjdk8-openj9) |
 |`openjdk9` |[`/openjdk9`](https://api.adoptopenjdk.net/openjdk9) |
 |`openjdk9` |[`/openjdk9-openj9`](https://api.adoptopenjdk.net/openjdk9-openj9) |
 
