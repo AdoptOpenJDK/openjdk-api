@@ -11,8 +11,8 @@ if(process.env.PRODUCTION) {
   const https = require('https');
   const port = 1234;
   https.createServer({
-    key: fs.readFileSync('/home/ubuntu/sslcert/server.key'),
-    cert: fs.readFileSync('/home/ubuntu/sslcert/server.crt')
+    key: fs.readFileSync('/home/jenkins/sslcert/server.key'),
+    cert: fs.readFileSync('/home/jenkins/sslcert/server.crt')
   }, app).listen(port, () => {
     console.log('We are live on port ' + port);
   });
