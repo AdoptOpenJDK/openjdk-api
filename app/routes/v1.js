@@ -1,6 +1,7 @@
 const request = require('request');
 
 var platforms = [];
+var variants = [];
 var lookup = {};
 var i = 0;
 
@@ -62,6 +63,20 @@ module.exports = function(req, res) {
   request('https://adoptopenjdk.net/dist/json/config.json', function(error, response, body) {
     if (!error && response.statusCode == 200) {
       platforms = JSON.parse(body).platforms;
+      variants = JSON.parse(body).variants;
+
+      if (ROUTEvariant == "variants") {
+        var variantArray = []
+        for (var variant in variants) {
+          var variantObj = new Object()
+          variantObj.name = variants[variant].officialName
+          variantObj.variant = variants[variant].searchableName
+          variantArray.push(variantObj);
+        }
+        res.json(variantArray)
+        return variantArray
+      }
+
       setLookup();
 
       // get the JSON file based on the request
