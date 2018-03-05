@@ -33,6 +33,12 @@ There are default values for all values in this path, with the exception of `<va
 /<variant>/releases/allplatforms/allbuilds/info
 ```
 
+To view the list of available variants simply use the following [route](https://api.adoptopenjdk.net/variants):
+
+```
+/variants
+```
+
 This means that each of the following paths all return the same result (information about all builds, all platforms, of the 'release' build type):
 
 - `/openjdk8`
