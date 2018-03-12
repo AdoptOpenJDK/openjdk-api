@@ -62,7 +62,6 @@ However, if you need to specify `<build>` as `latest`, for instance, then you al
 |`openjdk9` |[`/openjdk9`](https://api.adoptopenjdk.net/openjdk9) |
 |`openjdk9` |[`/openjdk9-openj9`](https://api.adoptopenjdk.net/openjdk9-openj9) |
 |`openjdk10` |[`/openjdk10`](https://api.adoptopenjdk.net/openjdk10) |
-|`openjdk10` |[`/openjdk10-openj9`](https://api.adoptopenjdk.net/openjdk10-openj9) |
 |`amber` |[`/openjdk-amber`](https://api.adoptopenjdk.net/openjdk-amber) |
 
 
