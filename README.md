@@ -1,6 +1,8 @@
 # AdoptOpenJDK API
 
-The AdoptOpenJDK API provides a way to consume JSON information about the AdoptOpenJDK releases and nightly builds.
+The AdoptOpenJDK API provides a way to consume JSON information about the AdoptOpenJDK releases and nightly builds.  Sign up to the [mailing list](http://mail.openjdk.java.net/mailman/listinfo/adoption-discuss) where major API updates will be announced, and visit [adoptopenjdk.net](https://adoptopenjdk.net) to find out more about the community.
+
+## Usage
 
 Here is an example using `curl` (see the [curl documentation](https://curl.haxx.se/docs/tooldocs.html)):
 
@@ -15,11 +17,39 @@ Optionally, you can include an 'accept header' to specify a version of the API:
 curl -H 'accept-version: 1.0.0' https://api.adoptopenjdk.net/openjdk8/releases
 ```
 
-Sign up to the [mailing list](http://mail.openjdk.java.net/mailman/listinfo/adoption-discuss) where major API updates will be announced, and visit [adoptopenjdk.net](https://adoptopenjdk.net) to find out more about the community.
+The following [Windows Powershell](https://docs.microsoft.com/en-us/powershell/scripting/getting-started/getting-started-with-windows-powershell?view=powershell-6) script uses `Invoke-Webrequest` to download the latest Windows 64-bit archive.
+```
+function Get-RedirectedUrl
+{
+    Param (
+        [Parameter(Mandatory=$true)]
+        [String]$URL
+    )
+
+    $request = [System.Net.WebRequest]::Create($url)
+    $request.AllowAutoRedirect=$false
+    $response=$request.GetResponse()
+
+    If ($response.StatusCode -eq "Found")
+    {
+        $response.GetResponseHeader("Location")
+    }
+}
+
+$url= "https://api.adoptopenjdk.net/openjdk8/releases/x64_win/latest/binary"
+
+$fUrl = Get-RedirectedUrl $url
+$filename = [System.IO.Path]::GetFileName($fUrl); 
+
+Write-Host "Downloading $filename"
+
+[Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls"
+Invoke-WebRequest -Uri $url -OutFile $filename
+```
 
 > **Note on the API rate limit:** Add the `-i` option (e.g. `curl -i https://api.adoptopenjdk.net/openjdk8/releases`) to return the response header as well as the response body. There is a limit of 100 API calls per hour per IP, and the value of `X-RateLimit-Remaining` in the response header is useful to determine how many API calls are remaining from this limit.
 
-## API v1.0.0
+## API v1.0.0 Specification
 
 You can append different paths to the `https://api.adoptopenjdk.net` URL, either in the above `curl` format, in a browser, or through an HTTP client, to return different JSON information:
 
