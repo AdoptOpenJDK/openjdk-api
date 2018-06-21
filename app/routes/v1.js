@@ -55,6 +55,7 @@ module.exports = function(req, res) {
     jsonFilenamePrefix = ''
     if(ROUTEbuildtype === 'releases') {
       jsonFilename = 'release';
+      jsonFilenamePrefix = 'latest_'
     }
   }
   jsonFilename = jsonFilenamePrefix + jsonFilename;
@@ -85,7 +86,7 @@ module.exports = function(req, res) {
         if (!error && response.statusCode == 200) {
           var importedJSON = JSON.parse(body);
 
-          processedJSON = processJSON(importedJSON, ROUTEplatform, ROUTEbuild);
+          processedJSON = processJSON(importedJSON, ROUTEplatform, ROUTEbuild, ROUTEbuildtype);
 
           if(ROUTEdatatype === 'binary'){
             if(processedJSON.binaries) {
@@ -115,7 +116,7 @@ module.exports = function(req, res) {
   });
 };
 
-function processJSON(importedJSON, ROUTEplatform, ROUTEbuild) {
+function processJSON(importedJSON, ROUTEplatform, ROUTEbuild, ROUTEbuildtype) {
   var exportedJSON = [];
 
   if(! Array.isArray(importedJSON)) {
@@ -171,7 +172,7 @@ function processJSON(importedJSON, ROUTEplatform, ROUTEbuild) {
     exportedJSON = exportedJSON[0];
   }
 
-  if(ROUTEbuild === 'latest') {
+  if(ROUTEbuild === 'latest' && ROUTEbuildtype !== 'releases') {
     exportedJSON = exportedJSON[0];
   }
 
