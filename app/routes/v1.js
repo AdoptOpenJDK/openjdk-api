@@ -52,7 +52,7 @@ module.exports = function(req, res) {
   var jsonFilenamePrefix = '';
   var jsonFilename = ROUTEbuildtype;
   if(ROUTEbuild === 'latest') {
-    jsonFilenamePrefix = 'latest_'
+    jsonFilenamePrefix = ''
     if(ROUTEbuildtype === 'releases') {
       jsonFilename = 'release';
     }
@@ -158,7 +158,6 @@ function processJSON(importedJSON, ROUTEplatform, ROUTEbuild) {
         releaseObj.release_name = eachRelease.name;
         releaseObj.timestamp = eachRelease.published_at;
         releaseObj.binaries = assetArray;
-
         exportedJSON.push(releaseObj);
       }
     }
@@ -169,6 +168,10 @@ function processJSON(importedJSON, ROUTEplatform, ROUTEbuild) {
     return "No matches for your query!";
   }
   if(exportedJSON.length === 1) {
+    exportedJSON = exportedJSON[0];
+  }
+
+  if(ROUTEbuild === 'latest') {
     exportedJSON = exportedJSON[0];
   }
 
