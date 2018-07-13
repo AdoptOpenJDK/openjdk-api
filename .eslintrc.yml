@@ -5,6 +5,5 @@ env:
 rules:
   no-console: 0
   no-inner-declarations: 0
-globals:
 
 extends: eslint:recommended

@@ -11,16 +11,16 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "body-parser": "^1.17.1",
-    "express": "^4.15.2",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.3",
     "express-rate-limit": "^2.6.0",
     "express-routes-versioning": "^1.0.0",
-    "markdown-serve": "^0.4.0",
-    "pug": "^2.0.0-rc.1",
-    "request": "^2.81.0"
+    "markdown-serve": "^0.5.0",
+    "pug": "^2.0.3",
+    "request": "^2.87.0"
   },
   "devDependencies": {
-    "eslint": "^3.19.0",
-    "nodemon": "^1.11.0"
+    "eslint": "^5.1.0",
+    "nodemon": "^1.18.1"
   }
 }
