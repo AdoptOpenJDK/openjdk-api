@@ -180,7 +180,7 @@ function getOldStyleFileInfo(name) {
 
   openjdk_impl = 'hotspot';
   if (matched[2] !== undefined) {
-    openjdk_impl = openjdk_impl.replace('-', '');
+    openjdk_impl = matched[2].replace('-', '');
   }
 
   return {
