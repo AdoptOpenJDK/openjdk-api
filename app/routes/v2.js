@@ -48,7 +48,9 @@ function filterReleaseBinaries(releases, filterFunction) {
 }
 
 function filterRelease(releases, releaseName) {
-  if (releaseName === 'latest') {
+  if (releaseName === undefined) {
+    return releases;
+  } else if (releaseName === 'latest') {
     return _.chain(releases)
       .sortBy(function (release) {
         return release.timestamp
@@ -65,8 +67,13 @@ function filterRelease(releases, releaseName) {
 }
 
 function filterReleaseOnBinaryProperty(releases, propertyName, property) {
+  if (property === undefined) {
+    return releases;
+  }
+  property = property.toLowerCase();
+
   return filterReleaseBinaries(releases, function (binary) {
-    return binary[propertyName] === property;
+    return binary[propertyName].toLowerCase() === property;
   })
 }
 
@@ -116,25 +123,11 @@ module.exports = function (req, res) {
 
   getInfoForVersion(ROUTEversion, ROUTEbuildtype)
     .then(function (data) {
-      if (ROUTEopenjdkImpl !== undefined) {
-        data = filterReleaseOnBinaryProperty(data, 'openjdk_impl', ROUTEopenjdkImpl.toLowerCase())
-      }
-
-      if (ROUTEos !== undefined) {
-        data = filterReleaseOnBinaryProperty(data, 'os', ROUTEos.toLowerCase())
-      }
-
-      if (ROUTEarch !== undefined) {
-        data = filterReleaseOnBinaryProperty(data, 'architecture', ROUTEarch.toLowerCase())
-      }
-
-      if (ROUTEtype !== undefined) {
-        data = filterReleaseOnBinaryProperty(data, 'binaryType', ROUTEtype.toLowerCase())
-      }
-
-      if (ROUTErelease !== undefined) {
-        data = filterRelease(data, ROUTErelease.toLowerCase())
-      }
+      data = filterReleaseOnBinaryProperty(data, 'openjdk_impl', ROUTEopenjdkImpl);
+      data = filterReleaseOnBinaryProperty(data, 'os', ROUTEos);
+      data = filterReleaseOnBinaryProperty(data, 'architecture', ROUTEarch);
+      data = filterReleaseOnBinaryProperty(data, 'binaryType', ROUTEtype);
+      data = filterRelease(data, ROUTErelease);
 
       if (ROUTErequestType === 'info') {
         sendData(data, res);
