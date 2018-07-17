@@ -16,7 +16,8 @@ module.exports = function (app) {
 
     // Examples:
     //      /info/releases/openjdk8
-    //      /info/nightly/openjdk8/openj9
+    //      /info/nightly/openjdk8
+    //      /info/nightly/openjdk8?openjdkImpl=hotspot&os=windows&arch=x64
 
     //      /binary/releases/openjdk8
     //      /binary/nightly/openjdk8
@@ -32,16 +33,13 @@ module.exports = function (app) {
     // curl "http://127.0.0.1:3000/v2/binary/nightly/openjdk8?openjdkImpl=hotspot&os=windows&arch=x64&release=latest&type=jdk"
     // curl "http://127.0.0.1:3000/v2/info/releases/openjdk10?openjdkImpl=hotspot&type=jdk"
 
-    function (req, res, next) {
+    function handleRequest(req, res, next) {
       app.set('json spaces', 2);
       if (req.query.pretty === 'false') {
         app.disable('json spaces')
       }
       next()
-    }
-
-    ,
-
+    },
     routesVersioning({
       '^2.0.0': v2
     })
@@ -58,7 +56,6 @@ module.exports = function (app) {
       }
       next()
     },
-
     routesVersioning({
       '^1.0.0': v1
       // add future versions here, with a comma ( , ) after the previous line. Also add the require(); above.
