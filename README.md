@@ -48,16 +48,17 @@ Invoke-WebRequest -Uri $url -OutFile $filename
 
 ## API v2.0.0 Specification
 
-You can append different paths to the `https://api.adoptopenjdk.net` URL, either in the above `curl` format, in a browser, or through an HTTP client, to return different JSON information:
+You can append different paths to the `https://api.adoptopenjdk.net/v2/` URL, either in the above `curl` format, in a browser, or through an HTTP client, to return different JSON information:
 
 ```
-/<request type>/<release type>/<version>
+/v2/<request type>/<release type>/<version>
 ```
 
 For instance:
 
 ```
 /info/latest/openjdk10
+curl https://api.adoptopenjdk.net/v2/info/nightly/openjdk10
 ```
 
 ### Path Parameters
@@ -73,7 +74,7 @@ curl https://api.adoptopenjdk.net/v2/info/nightly/openjdk8?openjdkImpl=hotspot
 ```
 
 ##### binary
-binary - Redirects to the binary that matches your current query. If multiple or no binarys match the query, an error code will be returned
+Redirects to the binary that matches your current query. If multiple or no binarys match the query, an error code will be returned
 
 ```
 curl https://api.adoptopenjdk.net/v2/binary/nightly/openjdk8?openjdkImpl=hotspot&os=windows&arch=x64&release=latest&type=jdk
@@ -100,3 +101,8 @@ The data that can be returned can then be filtered to find builds of a specific 
 | Binary Type | type | jdk, jre |
 
 In the absence of a given parameter, it will return all elements. 
+
+To return latest, hotspot, windows, x64, jdk:
+```
+curl https://api.adoptopenjdk.net/v2/binary/nightly/openjdk8?openjdkImpl=hotspot&os=windows&arch=x64&release=latest&type=jdk
+```
