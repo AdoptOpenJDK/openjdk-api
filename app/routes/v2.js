@@ -1,62 +1,6 @@
 const request = require('request');
 const _ = require('underscore');
-
-function formErrorResponse(error, response, body) {
-  return {
-    error: error,
-    response: response,
-    body: body
-  };
-}
-
-function getInfoForNewRepo(version, releaseType) {
-  return new Promise(function (resolve, reject) {
-    request(`https://raw.githubusercontent.com/AdoptOpenJDK/${version}-binaries/master/${releaseType}.json`, function (error, response, body) {
-      if (!error && response.statusCode === 200) {
-        resolve(JSON.parse(body))
-      } else {
-        reject(formErrorResponse(error, response, body));
-      }
-    });
-  });
-}
-
-function getInfoForOldRepo(version, releaseType) {
-  return new Promise(function (resolve, reject) {
-    request(`https://raw.githubusercontent.com/AdoptOpenJDK/${version}-${releaseType}/master/${releaseType}.json`, function (error, response, hotspotBody) {
-      if (!error && response.statusCode === 200) {
-        request(`https://raw.githubusercontent.com/AdoptOpenJDK/${version}-openj9-${releaseType}/master/${releaseType}.json`, function (error, response, openj9Body) {
-          if (!error && response.statusCode === 200) {
-            const unifiedJson = _.union(JSON.parse(hotspotBody), JSON.parse(openj9Body));
-            resolve(unifiedJson);
-          } else {
-            reject(formErrorResponse(error, response, openj9Body));
-          }
-        })
-      } else {
-        reject(formErrorResponse(error, response, hotspotBody));
-      }
-    });
-  });
-}
-
-function getInfoForVersion(version, releaseType) {
-  return new Promise(function (resolve, reject) {
-    getInfoForNewRepo(version, releaseType)
-      .then(function (body) {
-        resolve(githubDataToAdoptApi(body))
-      })
-      .catch(function () {
-        getInfoForOldRepo(version, releaseType)
-          .then(function (body) {
-            resolve(githubDataToAdoptApi(body))
-          })
-          .catch(function (error) {
-            reject(error);
-          })
-      });
-  });
-}
+const cache = require('./github_file_cache');
 
 function filterReleaseBinaries(releases, filterFunction) {
   return _.chain(releases)
@@ -146,8 +90,10 @@ module.exports = function (req, res) {
   const ROUTErelease = req.query['release'];
   const ROUTEtype = req.query['type'];
 
-  getInfoForVersion(ROUTEversion, ROUTEbuildtype)
+  cache.getInfoForVersion(ROUTEversion, ROUTEbuildtype)
     .then(function (data) {
+      data = githubDataToAdoptApi(data);
+
       data = filterReleaseOnBinaryProperty(data, 'openjdk_impl', ROUTEopenjdkImpl);
       data = filterReleaseOnBinaryProperty(data, 'os', ROUTEos);
       data = filterReleaseOnBinaryProperty(data, 'architecture', ROUTEarch);
@@ -164,6 +110,8 @@ module.exports = function (req, res) {
       }
     })
     .catch(function (err) {
+
+      console.log(err);
       if (err.err) {
         res.status(500);
         res.send('Internal error');
