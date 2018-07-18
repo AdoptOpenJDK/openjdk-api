@@ -1,4 +1,3 @@
-const request = require('request');
 const _ = require('underscore');
 const cache = require('./github_file_cache');
 
@@ -144,7 +143,7 @@ function getNewStyleFileInfo(name) {
 
 function getOldStyleFileInfo(name) {
   let timestampRegex = '[0-9]{4}[0-9]{2}[0-9]{2}[0-9]{2}[0-9]{2}';
-  let regex = 'OpenJDK([0-9]+)U?(\-[0-9a-zA-Z]+)?_([0-9a-zA-Z]+)_([0-9a-zA-Z]+).*_(' + timestampRegex + ').(tar.gz|zip)';
+  let regex = 'OpenJDK([0-9]+)U?(-[0-9a-zA-Z]+)?_([0-9a-zA-Z]+)_([0-9a-zA-Z]+).*_(' + timestampRegex + ').(tar.gz|zip)';
 
   let matched = name.match(new RegExp(regex));
 

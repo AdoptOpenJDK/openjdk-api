@@ -35,6 +35,8 @@ function cachedGet(url, cache) {
         resolve(cache[options.url].body);
         return
       } else {
+        // Ask github to only return data if the file was modified since,
+        // if not will return a 304
         options.headers['If-Modified-Since'] = cache[options.url].modifiedTime
       }
     }
@@ -46,10 +48,12 @@ function cachedGet(url, cache) {
       }
 
       if (response.statusCode === 304) {
+        // File has not been modified, return the cached version
         console.log("cache hit " + cache[options.url].modifiedTime);
+
+        // Reset cache cooldown
         cache[options.url].cacheTime = Date.now();
 
-        // cache still valid
         resolve(cache[options.url].body);
       } else if (response.statusCode === 200) {
         cache[options.url] = {
