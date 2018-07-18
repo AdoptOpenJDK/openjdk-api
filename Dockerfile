@@ -11,9 +11,6 @@ RUN \
 RUN curl -sL https://deb.nodesource.com/setup_8.x |  bash -
 RUN apt-get install -y nodejs
 
-# do first step from Contribution
-RUN npm install --global gulp-cli
-
 # expose ports which are being used in this project
 EXPOSE 3001
 EXPOSE 3000
