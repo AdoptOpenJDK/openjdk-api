@@ -167,14 +167,44 @@ function getOldStyleFileInfo(name) {
   };
 }
 
-function formBinaryAssetInfo(asset) {
+function getAmberStyleFileInfo(name, release) {
+  let timestampRegex = '[0-9]{4}[0-9]{2}[0-9]{2}[0-9]{2}[0-9]{2}';
+  let regex = 'OpenJDK-AMBER_([0-9a-zA-Z]+)_([0-9a-zA-Z]+)_(' + timestampRegex + ').(tar.gz|zip)';
+  let matched = name.match(new RegExp(regex));
+
+  if (matched === null) {
+    return null;
+  }
+
+  let versionMatcher = release.tag_name.match(new RegExp('jdk-([0-9]+).*'));
+
+  if (versionMatcher === null) {
+    return null;
+  }
+
+  return {
+    arch: matched[1],
+    os: matched[2],
+    tstamp: matched[3],
+    binaryType: 'jdk',
+    openjdk_impl: 'hotspot',
+    version: versionMatcher[1],
+    extension: matched[4]
+  };
+}
+
+function formBinaryAssetInfo(asset, release) {
   let fileInfo = getNewStyleFileInfo(asset.name);
 
-  if (fileInfo == null) {
+  if (fileInfo === null) {
     fileInfo = getOldStyleFileInfo(asset.name)
   }
 
-  if (fileInfo == null) {
+  if (fileInfo === null) {
+    fileInfo = getAmberStyleFileInfo(asset.name, release)
+  }
+
+  if (fileInfo === null) {
     return null;
   }
 
@@ -186,7 +216,8 @@ function formBinaryAssetInfo(asset) {
     binary_name: asset.name,
     binary_link: asset.browser_download_url,
     binary_size: asset.size,
-    checksum_link: asset.browser_download_url + '.sha256.txt'
+    checksum_link: asset.browser_download_url + '.sha256.txt',
+    version: fileInfo.version
   }
 }
 
@@ -195,7 +226,9 @@ function githubReleaseToAdoptRelease(release) {
     .filter(function (asset) {
       return !asset.name.endsWith('sha256.txt')
     })
-    .map(formBinaryAssetInfo)
+    .map(function (asset) {
+      return formBinaryAssetInfo(asset, release)
+    })
     .filter(function (asset) {
       return asset !== null;
     })

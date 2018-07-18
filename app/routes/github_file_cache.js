@@ -41,6 +41,7 @@ function cachedGet(url, cache) {
       }
     }
 
+    console.log("Checking " + options.url);
     request(options, function (error, response, body) {
       if (error !== null) {
         reject(formErrorResponse(error, response, body));
@@ -77,6 +78,13 @@ function getInfoForOldRepo(version, releaseType) {
   return new Promise(function (resolve, reject) {
     cachedGet(`https://api.github.com/repos/AdoptOpenJDK/${version}-${releaseType}/contents/${releaseType}.json`, oldCache)
       .then(function (hotspotBody) {
+
+        if (version.indexOf('amber') > 0) {
+          // if amber do not look at openj9 repo
+          resolve(hotspotBody);
+          return;
+        }
+
         cachedGet(`https://api.github.com/repos/AdoptOpenJDK/${version}-openj9-${releaseType}/contents/${releaseType}.json`, oldCache)
           .then(function (openj9Body) {
             const unifiedJson = _.union(hotspotBody, openj9Body);
