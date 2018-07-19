@@ -78,6 +78,52 @@ function redirectToBinary(data, res) {
   }
 }
 
+function sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, ROUTEopenjdkImpl, ROUTEos, ROUTEarch, ROUTErelease, ROUTEtype) {
+  let errorMsg = undefined;
+
+  const alNum = /[a-zA-Z0-9]+/;
+
+  if (ROUTErequestType !== 'info' && ROUTErequestType !== 'binary') {
+    errorMsg = 'Unknown request type';
+  }
+
+  if (ROUTEbuildtype !== 'releases' && ROUTEbuildtype !== 'nightly') {
+    errorMsg = 'Unknown build type';
+  }
+
+  if (ROUTEversion.match(/openjdk(([0-9]+)|-amber)/) === null) {
+    errorMsg = 'Unknown version type';
+  }
+
+  if (ROUTEopenjdkImpl !== undefined && (ROUTEopenjdkImpl !== 'hotspot' && ROUTEopenjdkImpl !== 'openj9')) {
+    errorMsg = 'Unknown openjdkImpl';
+  }
+
+  if (ROUTEos !== undefined && ROUTEos.match(alNum) === null) {
+    errorMsg = 'Unknown os format';
+  }
+
+  if (ROUTEarch !== undefined && ROUTEarch.match(alNum) === null) {
+    errorMsg = 'Unknown architecture format';
+  }
+
+  if (ROUTErelease !== undefined && ROUTErelease.match(/[a-zA-Z0-9\-]+/) === null) {
+    errorMsg = 'Unknown release format';
+  }
+
+  if (ROUTEtype !== undefined && (ROUTEtype !== 'jdk' && ROUTEtype !== 'jre')) {
+    errorMsg = 'Unknown type format';
+  }
+
+  if (errorMsg !== undefined) {
+    res.status(404);
+    res.send(errorMsg);
+    return false;
+  } else {
+    return true;
+  }
+}
+
 module.exports = function (req, res) {
   const ROUTErequestType = req.params.requestType;
   const ROUTEbuildtype = req.params.buildtype;
@@ -94,6 +140,10 @@ module.exports = function (req, res) {
   const ROUTEarch = req.query['arch'];
   const ROUTErelease = req.query['release'];
   const ROUTEtype = req.query['type'];
+
+  if (!sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, ROUTEopenjdkImpl, ROUTEos, ROUTEarch, ROUTErelease, ROUTEtype)) {
+    return;
+  }
 
   cache.getInfoForVersion(ROUTEversion, ROUTEbuildtype)
     .then(function (data) {
