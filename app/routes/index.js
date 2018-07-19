@@ -12,6 +12,13 @@ module.exports = function (app) {
 
 
   app.get([
+      //these 3 paths dont make sense and are not valid, but if you dont have them then the matching will fall through to the v1 api
+      '/v2',
+      '/v2/:requestType',
+      '/v2/:requestType/:buildtype',
+
+
+
       '/v2/:requestType/:buildtype/:version'],
 
     // Examples:
@@ -48,7 +55,15 @@ module.exports = function (app) {
       '/v1/:variant/:buildtype',
       '/v1/:variant/:buildtype/:platform',
       '/v1/:variant/:buildtype/:platform/:build',
-      '/v1/:variant/:buildtype/:platform/:build/:datatype'],
+      '/v1/:variant/:buildtype/:platform/:build/:datatype',
+
+      //Maintain backwards compatibility for a while
+      '/:variant',
+      '/:variant/:buildtype',
+      '/:variant/:buildtype/:platform',
+      '/:variant/:buildtype/:platform/:build',
+      '/:variant/:buildtype/:platform/:build/:datatype',
+    ],
     function (req, res, next) {
       app.set('json spaces', 2);
       if (req.query.pretty === 'false') {

@@ -83,6 +83,12 @@ module.exports = function (req, res) {
   const ROUTEbuildtype = req.params.buildtype;
   const ROUTEversion = req.params.version;
 
+  if (ROUTErequestType === undefined || ROUTEbuildtype === undefined || ROUTEversion === undefined) {
+    res.status(404);
+    res.send('Not found');
+    return;
+  }
+
   const ROUTEopenjdkImpl = req.query['openjdkImpl'];
   const ROUTEos = req.query['os'];
   const ROUTEarch = req.query['arch'];
