@@ -102,18 +102,45 @@ function getInfoForOldRepo(version, releaseType) {
 
 exports.getInfoForVersion = function (version, releaseType) {
   return new Promise(function (resolve, reject) {
+
+    var newData = undefined;
+    var oldData = undefined;
+    var newError = undefined;
+    var oldError = undefined;
+
+    function checkComplete() {
+      if (oldData !== undefined && newData !== undefined) {
+        if (newError !== undefined && oldError !== undefined) {
+          reject(oldError);
+        } else {
+          resolve({
+            newData: newData,
+            oldData: oldData
+          })
+        }
+      }
+    }
+
     getInfoForNewRepo(version, releaseType)
-      .then(function (body) {
-        resolve(body)
+      .then(function (data) {
+        newData = data;
+        checkComplete();
       })
-      .catch(function () {
-        getInfoForOldRepo(version, releaseType)
-          .then(function (body) {
-            resolve(body)
-          })
-          .catch(function (error) {
-            reject(error);
-          })
+      .catch(function (error) {
+        newData = null;
+        newError = error;
+        checkComplete();
+      });
+
+    getInfoForOldRepo(version, releaseType)
+      .then(function (data) {
+        oldData = data;
+        checkComplete();
+      })
+      .catch(function (error) {
+        oldData = null;
+        oldError = error;
+        checkComplete();
       });
   });
 };
