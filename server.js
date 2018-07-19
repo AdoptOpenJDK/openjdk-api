@@ -45,6 +45,10 @@ app.get('/', function(req, res){
   res.redirect('./README');
 });
 
+app.get('/README.v1.md', function(req, res){
+  res.redirect('./README.v1');
+});
+
 app.use('/', mds.middleware({
   rootDirectory: path.resolve(__dirname, ''),
   view: 'layout'
