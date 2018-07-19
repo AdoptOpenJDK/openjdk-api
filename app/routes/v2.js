@@ -16,7 +16,7 @@ function filterReleaseBinaries(releases, filterFunction) {
 }
 
 function filterRelease(releases, releaseName) {
-  if (releaseName === undefined) {
+  if (releaseName === undefined || releases.length === 0) {
     return releases;
   } else if (releaseName === 'latest') {
     return _.chain(releases)
@@ -97,12 +97,15 @@ module.exports = function (req, res) {
 
   cache.getInfoForVersion(ROUTEversion, ROUTEbuildtype)
     .then(function (data) {
+
       data = githubDataToAdoptApi(data);
+
 
       data = filterReleaseOnBinaryProperty(data, 'openjdk_impl', ROUTEopenjdkImpl);
       data = filterReleaseOnBinaryProperty(data, 'os', ROUTEos);
       data = filterReleaseOnBinaryProperty(data, 'architecture', ROUTEarch);
       data = filterReleaseOnBinaryProperty(data, 'binaryType', ROUTEtype);
+
       data = filterRelease(data, ROUTErelease);
 
       if (ROUTErequestType === 'info') {
@@ -134,22 +137,22 @@ function getNewStyleFileInfo(name) {
 
   if (matched != null) {
     return {
-      version: matched[1],
+      version: matched[1].toLowerCase(),
       binaryType: (matched[2] !== undefined) ? 'jre' : 'jdk',
-      arch: matched[3],
-      os: matched[4],
-      openjdk_impl: matched[5],
-      tstamp: matched[6],
-      extension: matched[7]
+      arch: matched[3].toLowerCase(),
+      os: matched[4].toLowerCase(),
+      openjdk_impl: matched[5].toLowerCase(),
+      tstamp: matched[6].toLowerCase(),
+      extension: matched[7].toLowerCase()
     }
   } else {
     return null;
   }
 }
 
-function getOldStyleFileInfo(name) {
+function getOldStyleFileInfo(name, release) {
   let timestampRegex = '[0-9]{4}[0-9]{2}[0-9]{2}[0-9]{2}[0-9]{2}';
-  let regex = 'OpenJDK([0-9]+)U?(-[0-9a-zA-Z]+)?_([0-9a-zA-Z]+)_([0-9a-zA-Z]+).*_(' + timestampRegex + ').(tar.gz|zip)';
+  let regex = 'OpenJDK([0-9]+)U?(-[0-9a-zA-Z]+)?_([0-9a-zA-Z]+)_([0-9a-zA-Z]+).*_?(' + timestampRegex + ')?.(tar.gz|zip)';
 
   let matched = name.match(new RegExp(regex));
 
@@ -162,14 +165,19 @@ function getOldStyleFileInfo(name) {
     openjdk_impl = matched[2].replace('-', '');
   }
 
+  let tstamp = matched[5]
+  if (tstamp === undefined) {
+    tstamp = release.created_at;
+  }
+
   return {
-    version: matched[1],
-    openjdk_impl: openjdk_impl,
+    version: matched[1].toLowerCase(),
+    openjdk_impl: openjdk_impl.toLowerCase(),
     binaryType: 'jdk',
-    arch: matched[3],
-    os: matched[4],
-    tstamp: matched[5],
-    extension: matched[6]
+    arch: matched[3].toLowerCase(),
+    os: matched[4].toLowerCase(),
+    tstamp: tstamp,
+    extension: matched[6].toLowerCase()
   };
 }
 
@@ -202,8 +210,9 @@ function getAmberStyleFileInfo(name, release) {
 function formBinaryAssetInfo(asset, release) {
   let fileInfo = getNewStyleFileInfo(asset.name);
 
+
   if (fileInfo === null) {
-    fileInfo = getOldStyleFileInfo(asset.name)
+    fileInfo = getOldStyleFileInfo(asset.name, release)
   }
 
   if (fileInfo === null) {
@@ -213,7 +222,6 @@ function formBinaryAssetInfo(asset, release) {
   if (fileInfo === null) {
     return null;
   }
-
   return {
     os: fileInfo.os.toLowerCase(),
     architecture: fileInfo.arch.toLowerCase(),
@@ -248,10 +256,14 @@ function githubReleaseToAdoptRelease(release) {
 }
 
 function githubDataToAdoptApi(githubApiData) {
+
   return _.chain(githubApiData)
     .map(githubReleaseToAdoptRelease)
     .filter(function (release) {
       return release.binaries.length > 0;
+    })
+    .sortBy(function (release) {
+      return release.timestamp
     })
     .value();
 }
