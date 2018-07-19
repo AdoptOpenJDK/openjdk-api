@@ -107,7 +107,7 @@ function sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, 
     errorMsg = 'Unknown architecture format';
   }
 
-  if (ROUTErelease !== undefined && ROUTErelease.match(/[a-zA-Z0-9\-]+/) === null) {
+  if (ROUTErelease !== undefined && ROUTErelease.match(/[a-zA-Z0-9-]+/) === null) {
     errorMsg = 'Unknown release format';
   }
 
