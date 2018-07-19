@@ -116,7 +116,7 @@ function sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, 
   }
 
   if (errorMsg !== undefined) {
-    res.status(404);
+    res.status(400);
     res.send(errorMsg);
     return false;
   } else {
