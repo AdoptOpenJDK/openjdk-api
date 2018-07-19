@@ -104,6 +104,8 @@ module.exports = function (req, res) {
       data = filterReleaseOnBinaryProperty(data, 'openjdk_impl', ROUTEopenjdkImpl);
       data = filterReleaseOnBinaryProperty(data, 'os', ROUTEos);
       data = filterReleaseOnBinaryProperty(data, 'architecture', ROUTEarch);
+      data = filterReleaseOnBinaryProperty(data, 'binaryType', ROUTEtype);
+
       data = filterRelease(data, ROUTErelease);
 
       if (ROUTErequestType === 'info') {
