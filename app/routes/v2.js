@@ -97,6 +97,7 @@ module.exports = function (req, res) {
 
   cache.getInfoForVersion(ROUTEversion, ROUTEbuildtype)
     .then(function (data) {
+
       data = githubDataToAdoptApi(data);
 
       data = filterReleaseOnBinaryProperty(data, 'openjdk_impl', ROUTEopenjdkImpl);
@@ -248,10 +249,15 @@ function githubReleaseToAdoptRelease(release) {
 }
 
 function githubDataToAdoptApi(githubApiData) {
-  return _.chain(githubApiData)
-    .map(githubReleaseToAdoptRelease)
+  const newData = _.map(githubApiData.newData, githubReleaseToAdoptRelease);
+  const oldData = _.map(githubApiData.oldData, githubReleaseToAdoptRelease);
+
+  return _.chain(_.union(newData, oldData))
     .filter(function (release) {
       return release.binaries.length > 0;
+    })
+    .sortBy(function (release) {
+      return release.timestamp
     })
     .value();
 }
