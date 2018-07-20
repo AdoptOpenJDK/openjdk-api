@@ -220,12 +220,18 @@ function getOldStyleFileInfo(name, release) {
     tstamp = release.created_at;
   }
 
+  let os = matched[4].toLowerCase();
+
+  if (os === "win") {
+    os = 'windows';
+  }
+
   return {
     version: matched[1].toLowerCase(),
     openjdk_impl: openjdk_impl.toLowerCase(),
     binaryType: 'jdk',
     arch: matched[3].toLowerCase(),
-    os: matched[4].toLowerCase(),
+    os: os,
     tstamp: tstamp,
     extension: matched[6].toLowerCase()
   };
@@ -260,7 +266,6 @@ function getAmberStyleFileInfo(name, release) {
 function formBinaryAssetInfo(asset, release) {
   let fileInfo = getNewStyleFileInfo(asset.name);
 
-
   if (fileInfo === null) {
     fileInfo = getOldStyleFileInfo(asset.name, release)
   }
@@ -272,6 +277,23 @@ function formBinaryAssetInfo(asset, release) {
   if (fileInfo === null) {
     return null;
   }
+
+  const assetUrl = asset.browser_download_url
+    .replace('.zip', '')
+    .repeat('.tar.gz', '');
+
+  const checksum_link = _.chain(release.assets)
+    .filter(function (asset) {
+      return asset.name.endsWith('sha256.txt')
+    })
+    .filter(function (asset) {
+      return asset.name.startsWith(assetUrl);
+    })
+    .map(function (asset) {
+      return asset.browser_download_url;
+    })
+    .first();
+
   return {
     os: fileInfo.os.toLowerCase(),
     architecture: fileInfo.arch.toLowerCase(),
@@ -280,7 +302,7 @@ function formBinaryAssetInfo(asset, release) {
     binary_name: asset.name,
     binary_link: asset.browser_download_url,
     binary_size: asset.size,
-    checksum_link: asset.browser_download_url + '.sha256.txt',
+    checksum_link: checksum_link,
     version: fileInfo.version
   }
 }
