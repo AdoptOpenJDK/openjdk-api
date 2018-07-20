@@ -82,7 +82,7 @@ curl https://api.adoptopenjdk.net/v2/binary/nightly/openjdk8?openjdkImpl=hotspot
 
 #### Release Type
 
-Type of release, i.e `release` for stable builds or `nightly` for most recent build.
+Type of release, i.e `releases` for stable builds or `nightly` for most recent build.
 
 #### Version
 
