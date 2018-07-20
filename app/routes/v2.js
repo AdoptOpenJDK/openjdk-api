@@ -19,12 +19,14 @@ function filterRelease(releases, releaseName) {
   if (releaseName === undefined || releases.length === 0) {
     return releases;
   } else if (releaseName === 'latest') {
+
     return _.chain(releases)
       .sortBy(function (release) {
         return release.timestamp
       })
       .last()
       .value()
+
   } else {
     return _.chain(releases)
       .filter(function (release) {
@@ -51,6 +53,7 @@ function sendData(data, res) {
     res.send('Not found');
   } else {
     const json = JSON.stringify(data, null, 2);
+    res.status(200);
     res.send(json);
   }
 }
