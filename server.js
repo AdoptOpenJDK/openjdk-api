@@ -41,6 +41,11 @@ app.set('views', path.resolve(__dirname, './markdown-layouts'));
 app.set('view engine', 'pug');
 app.use(express.static(path.resolve(__dirname, './markdown-layouts')));
 
+app.use(function (req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  next();
+});
+
 app.get('/', function(req, res){
   res.redirect('./README');
 });
