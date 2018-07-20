@@ -280,7 +280,7 @@ function formBinaryAssetInfo(asset, release) {
 
   const assetUrl = asset.browser_download_url
     .replace('.zip', '')
-    .repeat('.tar.gz', '');
+    .replace('.tar.gz', '');
 
   const checksum_link = _.chain(release.assets)
     .filter(function (asset) {
