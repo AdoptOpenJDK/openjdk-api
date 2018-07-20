@@ -278,7 +278,7 @@ function formBinaryAssetInfo(asset, release) {
     return null;
   }
 
-  const assetUrl = asset.name
+  const assetName = asset.name
     .replace('.zip', '')
     .replace('.tar.gz', '');
 
@@ -287,7 +287,7 @@ function formBinaryAssetInfo(asset, release) {
       return asset.name.endsWith('sha256.txt')
     })
     .filter(function (asset) {
-      return asset.name.startsWith(assetUrl);
+      return asset.name.startsWith(assetName);
     })
     .map(function (asset) {
       return asset.browser_download_url;
