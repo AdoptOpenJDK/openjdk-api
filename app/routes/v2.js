@@ -282,7 +282,6 @@ function formBinaryAssetInfo(asset, release) {
     .replace('.zip', '')
     .replace('.tar.gz', '');
 
-
   const checksum_link = _.chain(release.assets)
     .filter(function (asset) {
       return asset.name.endsWith('sha256.txt')
