@@ -48,6 +48,11 @@ module.exports = function(req, res) {
   var ROUTEbuild = (req.params.build) ? req.params.build : 'allbuilds';
   var ROUTEdatatype = (req.params.datatype) ? req.params.datatype : 'info';
 
+  if(ROUTEvariant === "v2") {
+    console.log("Incorrect match");
+    return
+  }
+
   // set the JSON filename - if the user wants the latest nightly or release, adjust the name to match the actual JSON filename.
   var jsonFilenamePrefix = '';
   var jsonFilename = ROUTEbuildtype;
