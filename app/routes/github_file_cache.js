@@ -28,14 +28,11 @@ function cachedGet(url, cache) {
     }
   };
 
-  if (cache.hasOwnProperty(options.url)) {
+  if (cache.hasOwnProperty(options.url) && Date.now() - cache[options.url].cacheTime < 120000) {
     console.log("cache property present")
-
-    if (Date.now() - cache[options.url].cacheTime < 120000) {
-      // For a given file check at most once every 2 min
-      console.log("cache hit cooldown");
-      deferred.resolve(cache[options.url].body);
-    }
+    // For a given file check at most once every 2 min
+    console.log("cache hit cooldown");
+    deferred.resolve(cache[options.url].body);
   } else {
     console.log("Checking " + options.url);
     request(options, function (error, response, body) {
