@@ -80,7 +80,7 @@ function redirectToBinary(data, res) {
   }
 }
 
-function sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, ROUTEopenjdk_impl, ROUTEos, ROUTEarch, ROUTErelease, ROUTEtype) {
+function sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, ROUTEopenjdkImpl, ROUTEos, ROUTEarch, ROUTErelease, ROUTEtype) {
   let errorMsg = undefined;
 
   const alNum = /[a-zA-Z0-9]+/;
@@ -97,7 +97,7 @@ function sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, 
     errorMsg = 'Unknown version type';
   }
 
-  if (ROUTEopenjdk_impl !== undefined && (ROUTEopenjdk_impl !== 'hotspot' && ROUTEopenjdk_impl !== 'openj9')) {
+  if (ROUTEopenjdkImpl !== undefined && (ROUTEopenjdkImpl !== 'hotspot' && ROUTEopenjdkImpl !== 'openj9')) {
     errorMsg = 'Unknown openjdk_impl';
   }
 
@@ -137,13 +137,13 @@ module.exports = function (req, res) {
     return;
   }
 
-  const ROUTEopenjdk_impl = req.query['openjdk_impl'];
+  const ROUTEopenjdkImpl = req.query['openjdk_impl'];
   const ROUTEos = req.query['os'];
   const ROUTEarch = req.query['arch'];
   const ROUTErelease = req.query['release'];
   const ROUTEtype = req.query['type'];
 
-  if (!sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, ROUTEopenjdk_impl, ROUTEos, ROUTEarch, ROUTErelease, ROUTEtype)) {
+  if (!sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, ROUTEopenjdkImpl, ROUTEos, ROUTEarch, ROUTErelease, ROUTEtype)) {
     return;
   }
 
@@ -153,7 +153,7 @@ module.exports = function (req, res) {
       data = githubDataToAdoptApi(data);
 
 
-      data = filterReleaseOnBinaryProperty(data, 'openjdk_impl', ROUTEopenjdk_impl);
+      data = filterReleaseOnBinaryProperty(data, 'openjdk_impl', ROUTEopenjdkImpl);
       data = filterReleaseOnBinaryProperty(data, 'os', ROUTEos);
       data = filterReleaseOnBinaryProperty(data, 'architecture', ROUTEarch);
       data = filterReleaseOnBinaryProperty(data, 'binary_type', ROUTEtype);
