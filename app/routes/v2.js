@@ -52,9 +52,8 @@ function sendData(data, res) {
     res.status(404);
     res.send('Not found');
   } else {
-    const json = JSON.stringify(data, null, 2);
     res.status(200);
-    res.send(json);
+    res.json(data);
   }
 }
 
@@ -81,7 +80,7 @@ function redirectToBinary(data, res) {
   }
 }
 
-function sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, ROUTEopenjdkImpl, ROUTEos, ROUTEarch, ROUTErelease, ROUTEtype) {
+function sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, ROUTEopenjdk_impl, ROUTEos, ROUTEarch, ROUTErelease, ROUTEtype) {
   let errorMsg = undefined;
 
   const alNum = /[a-zA-Z0-9]+/;
@@ -98,8 +97,8 @@ function sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, 
     errorMsg = 'Unknown version type';
   }
 
-  if (ROUTEopenjdkImpl !== undefined && (ROUTEopenjdkImpl !== 'hotspot' && ROUTEopenjdkImpl !== 'openj9')) {
-    errorMsg = 'Unknown openjdkImpl';
+  if (ROUTEopenjdk_impl !== undefined && (ROUTEopenjdk_impl !== 'hotspot' && ROUTEopenjdk_impl !== 'openj9')) {
+    errorMsg = 'Unknown openjdk_impl';
   }
 
   if (ROUTEos !== undefined && ROUTEos.match(alNum) === null) {
@@ -138,13 +137,13 @@ module.exports = function (req, res) {
     return;
   }
 
-  const ROUTEopenjdkImpl = req.query['openjdkImpl'];
+  const ROUTEopenjdk_impl = req.query['openjdk_impl'];
   const ROUTEos = req.query['os'];
   const ROUTEarch = req.query['arch'];
   const ROUTErelease = req.query['release'];
   const ROUTEtype = req.query['type'];
 
-  if (!sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, ROUTEopenjdkImpl, ROUTEos, ROUTEarch, ROUTErelease, ROUTEtype)) {
+  if (!sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, ROUTEopenjdk_impl, ROUTEos, ROUTEarch, ROUTErelease, ROUTEtype)) {
     return;
   }
 
@@ -154,10 +153,10 @@ module.exports = function (req, res) {
       data = githubDataToAdoptApi(data);
 
 
-      data = filterReleaseOnBinaryProperty(data, 'openjdk_impl', ROUTEopenjdkImpl);
+      data = filterReleaseOnBinaryProperty(data, 'openjdk_impl', ROUTEopenjdk_impl);
       data = filterReleaseOnBinaryProperty(data, 'os', ROUTEos);
       data = filterReleaseOnBinaryProperty(data, 'architecture', ROUTEarch);
-      data = filterReleaseOnBinaryProperty(data, 'binaryType', ROUTEtype);
+      data = filterReleaseOnBinaryProperty(data, 'binary_type', ROUTEtype);
 
       data = filterRelease(data, ROUTErelease);
 
@@ -191,7 +190,7 @@ function getNewStyleFileInfo(name) {
   if (matched != null) {
     return {
       version: matched[1].toLowerCase(),
-      binaryType: (matched[2] !== undefined) ? 'jre' : 'jdk',
+      binary_type: (matched[2] !== undefined) ? 'jre' : 'jdk',
       arch: matched[3].toLowerCase(),
       os: matched[4].toLowerCase(),
       openjdk_impl: matched[5].toLowerCase(),
@@ -232,7 +231,7 @@ function getOldStyleFileInfo(name, release) {
   return {
     version: matched[1].toLowerCase(),
     openjdk_impl: openjdk_impl.toLowerCase(),
-    binaryType: 'jdk',
+    binary_type: 'jdk',
     arch: matched[3].toLowerCase(),
     os: os,
     tstamp: tstamp,
@@ -259,7 +258,7 @@ function getAmberStyleFileInfo(name, release) {
     arch: matched[1],
     os: matched[2],
     tstamp: matched[3],
-    binaryType: 'jdk',
+    binary_type: 'jdk',
     openjdk_impl: 'hotspot',
     version: versionMatcher[1],
     extension: matched[4]
@@ -300,7 +299,7 @@ function formBinaryAssetInfo(asset, release) {
   return {
     os: fileInfo.os.toLowerCase(),
     architecture: fileInfo.arch.toLowerCase(),
-    binaryType: fileInfo.binaryType,
+    binary_type: fileInfo.binary_type,
     openjdk_impl: fileInfo.openjdk_impl.toLowerCase(),
     binary_name: asset.name,
     binary_link: asset.browser_download_url,
