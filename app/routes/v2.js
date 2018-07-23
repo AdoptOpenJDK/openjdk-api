@@ -19,12 +19,14 @@ function filterRelease(releases, releaseName) {
   if (releaseName === undefined || releases.length === 0) {
     return releases;
   } else if (releaseName === 'latest') {
+
     return _.chain(releases)
       .sortBy(function (release) {
         return release.timestamp
       })
       .last()
       .value()
+
   } else {
     return _.chain(releases)
       .filter(function (release) {
@@ -51,6 +53,7 @@ function sendData(data, res) {
     res.send('Not found');
   } else {
     const json = JSON.stringify(data, null, 2);
+    res.status(200);
     res.send(json);
   }
 }
@@ -278,7 +281,7 @@ function formBinaryAssetInfo(asset, release) {
     return null;
   }
 
-  const assetUrl = asset.browser_download_url
+  const assetName = asset.name
     .replace('.zip', '')
     .replace('.tar.gz', '');
 
@@ -287,7 +290,7 @@ function formBinaryAssetInfo(asset, release) {
       return asset.name.endsWith('sha256.txt')
     })
     .filter(function (asset) {
-      return asset.name.startsWith(assetUrl);
+      return asset.name.startsWith(assetName);
     })
     .map(function (asset) {
       return asset.browser_download_url;
