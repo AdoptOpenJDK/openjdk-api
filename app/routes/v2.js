@@ -52,9 +52,8 @@ function sendData(data, res) {
     res.status(404);
     res.send('Not found');
   } else {
-    const json = JSON.stringify(data, null, 2);
     res.status(200);
-    res.send(json);
+    res.json(data);
   }
 }
 
@@ -99,7 +98,7 @@ function sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, 
   }
 
   if (ROUTEopenjdkImpl !== undefined && (ROUTEopenjdkImpl !== 'hotspot' && ROUTEopenjdkImpl !== 'openj9')) {
-    errorMsg = 'Unknown openjdkImpl';
+    errorMsg = 'Unknown openjdk_impl';
   }
 
   if (ROUTEos !== undefined && ROUTEos.match(alNum) === null) {
@@ -138,7 +137,7 @@ module.exports = function (req, res) {
     return;
   }
 
-  const ROUTEopenjdkImpl = req.query['openjdkImpl'];
+  const ROUTEopenjdkImpl = req.query['openjdk_impl'];
   const ROUTEos = req.query['os'];
   const ROUTEarch = req.query['arch'];
   const ROUTErelease = req.query['release'];
@@ -157,7 +156,7 @@ module.exports = function (req, res) {
       data = filterReleaseOnBinaryProperty(data, 'openjdk_impl', ROUTEopenjdkImpl);
       data = filterReleaseOnBinaryProperty(data, 'os', ROUTEos);
       data = filterReleaseOnBinaryProperty(data, 'architecture', ROUTEarch);
-      data = filterReleaseOnBinaryProperty(data, 'binaryType', ROUTEtype);
+      data = filterReleaseOnBinaryProperty(data, 'binary_type', ROUTEtype);
 
       data = filterRelease(data, ROUTErelease);
 
@@ -191,7 +190,7 @@ function getNewStyleFileInfo(name) {
   if (matched != null) {
     return {
       version: matched[1].toLowerCase(),
-      binaryType: (matched[2] !== undefined) ? 'jre' : 'jdk',
+      binary_type: (matched[2] !== undefined) ? 'jre' : 'jdk',
       arch: matched[3].toLowerCase(),
       os: matched[4].toLowerCase(),
       openjdk_impl: matched[5].toLowerCase(),
@@ -232,7 +231,7 @@ function getOldStyleFileInfo(name, release) {
   return {
     version: matched[1].toLowerCase(),
     openjdk_impl: openjdk_impl.toLowerCase(),
-    binaryType: 'jdk',
+    binary_type: 'jdk',
     arch: matched[3].toLowerCase(),
     os: os,
     tstamp: tstamp,
@@ -259,7 +258,7 @@ function getAmberStyleFileInfo(name, release) {
     arch: matched[1],
     os: matched[2],
     tstamp: matched[3],
-    binaryType: 'jdk',
+    binary_type: 'jdk',
     openjdk_impl: 'hotspot',
     version: versionMatcher[1],
     extension: matched[4]
@@ -300,7 +299,7 @@ function formBinaryAssetInfo(asset, release) {
   return {
     os: fileInfo.os.toLowerCase(),
     architecture: fileInfo.arch.toLowerCase(),
-    binaryType: fileInfo.binaryType,
+    binary_type: fileInfo.binary_type,
     openjdk_impl: fileInfo.openjdk_impl.toLowerCase(),
     binary_name: asset.name,
     binary_link: asset.browser_download_url,
