@@ -26,7 +26,7 @@ else {
 
 // limit requests to 100 per hour
 const limiter = new RateLimit({
-  windowMs: 60*60*1000, // 60 minutes
+  windowMs: 60*1000, // 1 minute
   max: 100, // limit each IP to 100 requests per windowMs
   delayMs: 0, // disable delaying - full speed until the max limit is reached
   message: "You have exceeded your api usage, you are allowed 100 requests per hour"
