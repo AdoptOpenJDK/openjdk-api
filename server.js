@@ -24,12 +24,12 @@ else {
   });
 }
 
-// limit requests to 100 per hour
+// limit requests to 600 per hour
 const limiter = new RateLimit({
-  windowMs: 60*1000, // 1 minute
-  max: 100, // limit each IP to 100 requests per windowMs
+  windowMs: 60*60*1000, // 1 hour
+  max: 600, // limit each IP to 600 requests per windowMs
   delayMs: 0, // disable delaying - full speed until the max limit is reached
-  message: "You have exceeded your api usage, you are allowed 100 requests per hour"
+  message: "You have exceeded your api usage, you are allowed 600 requests per hour"
 });
 
 // apply to all requests
