@@ -28,9 +28,9 @@ function cachedGet(url, cache) {
     }
   };
 
-  if (cache.hasOwnProperty(options.url) && Date.now() - cache[options.url].cacheTime < 120000) {
+  if (cache.hasOwnProperty(options.url) && Date.now() - cache[options.url].cacheTime < 600000) {
     console.log("cache property present")
-    // For a given file check at most once every 2 min
+    // For a given file check at most once every 10 min
     console.log("cache hit cooldown");
     deferred.resolve(cache[options.url].body);
   } else {
@@ -55,14 +55,14 @@ function cachedGet(url, cache) {
   return deferred.promise;
 }
 
-function getInfoForNewRepo(version, releaseType) {
-  return cachedGet(`https://raw.githubusercontent.com/AdoptOpenJDK/${version}-binaries/master/${releaseType}.json`, newCache);
+function getInfoForNewRepo(version) {
+  return cachedGet(`https://api.github.com/repos/AdoptOpenJDK/${version}-binaries/releases`, newCache);
 }
 
 function getInfoForOldRepo(version, releaseType) {
   let deferred = Q.defer();
 
-  let hotspotPromise = cachedGet(`https://raw.githubusercontent.com/AdoptOpenJDK/${version}-${releaseType}/master/${releaseType}.json`, oldCache);
+  let hotspotPromise = cachedGet(`https://api.github.com/repos/AdoptOpenJDK/${version}-${releaseType}/releases`, oldCache);
   let openj9Promise;
 
   if (version.indexOf('amber') > 0) {
@@ -70,7 +70,7 @@ function getInfoForOldRepo(version, releaseType) {
       return {}
     });
   } else {
-    openj9Promise = cachedGet(`https://raw.githubusercontent.com/AdoptOpenJDK/${version}-openj9-${releaseType}/master/${releaseType}.json`, oldCache);
+    openj9Promise = cachedGet(`https://api.github.com/repos/AdoptOpenJDK/${version}-openj9-${releaseType}/releases`, oldCache);
   }
 
   Q.allSettled([hotspotPromise, openj9Promise])
@@ -91,11 +91,19 @@ function getInfoForOldRepo(version, releaseType) {
   return deferred.promise;
 }
 
+function markOldReleases(oldReleases) {
+  return _.chain(oldReleases)
+    .map(function (release) {
+      release.oldRepo = true;
+      return release;
+    })
+    .value();
+}
 
 exports.getInfoForVersion = function (version, releaseType) {
   let deferred = Q.defer();
 
-  Q.allSettled([getInfoForOldRepo(version, releaseType), getInfoForNewRepo(version, releaseType)])
+  Q.allSettled([getInfoForOldRepo(version, releaseType), getInfoForNewRepo(version)])
     .then(function (results) {
       let oldData = results[0];
       let newData = results[1];
@@ -105,6 +113,8 @@ exports.getInfoForVersion = function (version, releaseType) {
       } else {
         let oldD = oldData.state === "fulfilled" ? oldData.value : [];
         let newD = newData.state === "fulfilled" ? newData.value : [];
+
+        oldD = markOldReleases(oldD);
 
         const unifiedJson = _.union(oldD, newD);
         deferred.resolve(unifiedJson);
