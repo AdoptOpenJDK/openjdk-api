@@ -197,3 +197,30 @@ describe('binary redirect returns 302', function () {
   })
 });
 
+describe('filters releases correctly', function () {
+  forAllPermutations(function (jdk, release) {
+    const request = mockRequest("info", release, jdk, "hotspot", "linux", "x64", undefined, "jdk");
+
+    var isRelease = release.indexOf("releases") >= 0;
+
+    it('release is set correctly ' + JSON.stringify(request), function () {
+      return performRequest(request, function (code, data) {
+        let releases = JSON.parse(data);
+        _.chain(releases)
+          .each(function (release) {
+
+            var isNightlyRepo = release.html_url.indexOf("-nightly") >= 0;
+            var isBinaryRepo = release.html_url.indexOf("-binaries") >= 0;
+            if (isRelease) {
+              assert.equal(false, isNightlyRepo)
+            } else {
+              assert.equal(true, isNightlyRepo || isBinaryRepo)
+            }
+
+            assert.equal(isRelease, release.release);
+          })
+      })
+    });
+  })
+});
+

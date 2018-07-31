@@ -47,6 +47,39 @@ function filterReleaseOnBinaryProperty(releases, propertyName, property) {
   })
 }
 
+
+function filterReleaseOnProperty(releases, propertyName, property) {
+  if (property === undefined) {
+    return releases;
+  }
+
+  return _.chain(releases)
+    .filter(function (release) {
+      return release.hasOwnProperty(propertyName) && release[propertyName] === property
+    })
+    .value();
+}
+
+
+function filterReleasesOnReleaseType(data, isRelease) {
+  if (isRelease === undefined) {
+    return data;
+  }
+
+  return filterReleaseOnProperty(data, "release", isRelease)
+}
+
+function fixPrereleaseTagOnOldRepoData(data, isRelease) {
+  return _.chain(data)
+    .map(function (release) {
+      if (release.oldRepo) {
+        release.prerelease = !isRelease
+      }
+      return release;
+    })
+    .value();
+}
+
 function sendData(data, res) {
   if (data.length === 0) {
     res.status(404);
@@ -79,6 +112,7 @@ function redirectToBinary(data, res) {
     res.redirect(data.binaries[0].binary_link);
   }
 }
+
 
 function sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, ROUTEopenjdkImpl, ROUTEos, ROUTEarch, ROUTErelease, ROUTEtype) {
   let errorMsg = undefined;
@@ -126,6 +160,7 @@ function sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, 
   }
 }
 
+
 module.exports = function (req, res) {
   const ROUTErequestType = req.params.requestType;
   const ROUTEbuildtype = req.params.buildtype;
@@ -149,9 +184,12 @@ module.exports = function (req, res) {
 
   cache.getInfoForVersion(ROUTEversion, ROUTEbuildtype)
     .then(function (data) {
+      var isRelease = ROUTEbuildtype.indexOf("releases") >= 0;
 
+      data = fixPrereleaseTagOnOldRepoData(data, isRelease);
       data = githubDataToAdoptApi(data);
 
+      data = filterReleasesOnReleaseType(data, isRelease);
 
       data = filterReleaseOnBinaryProperty(data, 'openjdk_impl', ROUTEopenjdkImpl);
       data = filterReleaseOnBinaryProperty(data, 'os', ROUTEos);
@@ -325,6 +363,7 @@ function githubReleaseToAdoptRelease(release) {
   return {
     release_name: release.tag_name,
     timestamp: release.published_at,
+    release: !release.prerelease,
     binaries: binaries
   }
 }
