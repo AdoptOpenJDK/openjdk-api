@@ -28,7 +28,7 @@ function cachedGet(url, cache) {
     }
   };
 
-  if (cache.hasOwnProperty(options.url) && Date.now() - cache[options.url].cacheTime < 600000) {
+  if (cache.hasOwnProperty(options.url) && Date.now() < cache[options.url].cacheTime) {
     // For a given file check at most once every 10 min
     console.log("cache hit cooldown");
     deferred.resolve(cache[options.url].body);
@@ -42,11 +42,18 @@ function cachedGet(url, cache) {
 
       if (response.statusCode === 200) {
         cache[options.url] = {
-          cacheTime: Date.now(),
+          cacheTime: Date.now() + 600000,
           body: JSON.parse(body)
         };
         deferred.resolve(cache[options.url].body)
-      } else {
+      } else if (response.statusCode === 403 && cache.hasOwnProperty(options.url)) {
+        // Hit the rate limit, just serve up old cache
+
+        // do a short cooldown on this
+        cache[options.url].cacheTime = Date.now() + 300000
+        deferred.resolve(cache[options.url].body)
+      }
+      else {
         deferred.reject(formErrorResponse(error, response, body));
       }
     });
