@@ -1,9 +1,12 @@
 const request = require('request');
 const _ = require('underscore');
+const fs = require('fs');
 const Q = require('q');
 
 const newCache = {};
 const oldCache = {};
+
+let auth = undefined;
 
 function formErrorResponse(error, response, body) {
   return {
@@ -13,13 +16,31 @@ function formErrorResponse(error, response, body) {
   };
 }
 
-// Get from url, and store the result into a cache
-// 1. If last check was < 2 min ago, return last result
-// 2. Check if file has been modified
-// 3. If file is not modified return cached value
-// 4. If modified return new data and add it to the cache
-function cachedGet(url, cache) {
-  var deferred = Q.defer();
+function readAuthCreds() {
+  if (auth === undefined) {
+    try {
+      console.log("Reading auth");
+      auth = fs.readFileSync('/home/jenkins/github.auth').toString("ascii").trim();
+      console.log("Auth found")
+    } catch (e) {
+      console.log("No github creds found");
+      auth = null
+    }
+  }
+}
+
+function getCooldown() {
+  if (auth !== undefined && auth !== null) {
+    // 1 min
+    return 6000;
+  } else {
+    // 30 min
+    return 1800000;
+  }
+}
+
+function formRequest(url) {
+  readAuthCreds();
 
   const options = {
     url: url,
@@ -27,6 +48,24 @@ function cachedGet(url, cache) {
       'User-Agent': 'adoptopenjdk-admin openjdk-api'
     }
   };
+
+  if (auth !== undefined && auth !== null) {
+    const authHeader = new Buffer(auth).toString('base64');
+    options.headers['Authorization'] = 'Basic ' + authHeader
+  }
+
+  return options;
+}
+
+
+// Get from url, and store the result into a cache
+// 1. If last check was < 2 min ago, return last result
+// 2. Check if file has been modified
+// 3. If file is not modified return cached value
+// 4. If modified return new data and add it to the cache
+function cachedGet(url, cache) {
+  const deferred = Q.defer();
+  const options = formRequest(url);
 
   if (cache.hasOwnProperty(options.url) && Date.now() < cache[options.url].cacheTime) {
     // For a given file check at most once every 10 min
@@ -41,8 +80,11 @@ function cachedGet(url, cache) {
       }
 
       if (response.statusCode === 200) {
+
+        console.log("Remaining requests: " + response.headers['x-ratelimit-remaining']);
+
         cache[options.url] = {
-          cacheTime: Date.now() + 600000,
+          cacheTime: Date.now() + getCooldown(),
           body: JSON.parse(body)
         };
         deferred.resolve(cache[options.url].body)
@@ -50,7 +92,7 @@ function cachedGet(url, cache) {
         // Hit the rate limit, just serve up old cache
 
         // do a short cooldown on this
-        cache[options.url].cacheTime = Date.now() + 300000
+        cache[options.url].cacheTime = Date.now() + (getCooldown() / 2);
         deferred.resolve(cache[options.url].body)
       }
       else {
