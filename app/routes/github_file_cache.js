@@ -29,7 +29,6 @@ function cachedGet(url, cache) {
   };
 
   if (cache.hasOwnProperty(options.url) && Date.now() - cache[options.url].cacheTime < 600000) {
-    console.log("cache property present")
     // For a given file check at most once every 10 min
     console.log("cache hit cooldown");
     deferred.resolve(cache[options.url].body);
