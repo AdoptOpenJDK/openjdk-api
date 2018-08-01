@@ -208,13 +208,17 @@ describe('filters releases correctly', function () {
         let releases = JSON.parse(data);
         _.chain(releases)
           .each(function (release) {
-
-            var isNightlyRepo = release.html_url.indexOf("-nightly") >= 0;
-            var isBinaryRepo = release.html_url.indexOf("-binaries") >= 0;
-            if (isRelease) {
-              assert.equal(false, isNightlyRepo)
-            } else {
-              assert.equal(true, isNightlyRepo || isBinaryRepo)
+            if (release.hasOwnProperty('binaries')) {
+              _.chain(releases.binaries)
+                .each(function (binary) {
+                  var isNightlyRepo = binary.binary_link.indexOf("-nightly") >= 0;
+                  var isBinaryRepo = binary.binary_link.indexOf("-binaries") >= 0;
+                  if (isRelease) {
+                    assert.equal(false, isNightlyRepo)
+                  } else {
+                    assert.equal(true, isNightlyRepo || isBinaryRepo)
+                  }
+                })
             }
 
             assert.equal(isRelease, release.release);
