@@ -30,7 +30,7 @@ function readAuthCreds() {
 }
 
 function getCooldown() {
-  if (auth !== undefined && auth !== null) {
+  if (auth !== undefined && auth !== null && auth.length > 0) {
     // 1 min
     return 6000;
   } else {
@@ -49,7 +49,7 @@ function formRequest(url) {
     }
   };
 
-  if (auth !== undefined && auth !== null) {
+  if (auth !== undefined && auth !== null && auth.length > 0) {
     const authHeader = new Buffer(auth).toString('base64');
     options.headers['Authorization'] = 'Basic ' + authHeader
   }
