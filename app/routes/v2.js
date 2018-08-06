@@ -1,5 +1,5 @@
 const _ = require('underscore');
-const cache = require('../lib/github_file_cache');
+const cache = require('../lib/github_file_cache')();
 
 function filterReleaseBinaries(releases, filterFunction) {
   return releases
