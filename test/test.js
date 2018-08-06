@@ -1,7 +1,22 @@
 const assert = require('assert');
 const _ = require('underscore');
 const v2 = require('../app/routes/v2');
+const fs = require('fs');
 const Q = require('q');
+
+setUpTestCache();
+
+
+function setUpTestCache() {
+
+  if (!fs.existsSync('cache')) {
+    fs.mkdirSync('cache');
+  }
+  fs.copyFileSync('./test/asset/cache/newCache.cache.json', './cache/newCache.cache.json');
+  fs.copyFileSync('./test/asset/cache/oldCache.cache.json', './cache/oldCache.cache.json');
+  console.log('Test cache setup')
+}
+
 
 function mockRequest(requestType, buildtype, version, openjdk_impl, os, arch, release, type) {
   return {
