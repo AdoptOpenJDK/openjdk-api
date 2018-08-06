@@ -6,7 +6,7 @@ const Q = require('q');
 const newCache = loadCacheFromDisk("newCache");
 const oldCache = loadCacheFromDisk("oldCache");
 
-let auth = undefined;
+const auth = readAuthCreds();
 
 function loadCacheFromDisk(cacheName) {
   try {
@@ -52,15 +52,12 @@ function formErrorResponse(error, response, body) {
 }
 
 function readAuthCreds() {
-  if (auth === undefined) {
-    try {
-      console.log("Reading auth");
-      auth = fs.readFileSync('/home/jenkins/github.auth').toString("ascii").trim();
-      console.log("Auth found")
-    } catch (e) {
-      console.log("No github creds found");
-      auth = null
-    }
+  try {
+    console.log("Reading auth");
+    return fs.readFileSync('/home/jenkins/github.auth').toString("ascii").trim();
+  } catch (e) {
+    console.log("No github creds found");
+    return null;
   }
 }
 
@@ -75,8 +72,6 @@ function getCooldown() {
 }
 
 function formRequest(url) {
-  readAuthCreds();
-
   const options = {
     url: url,
     headers: {
