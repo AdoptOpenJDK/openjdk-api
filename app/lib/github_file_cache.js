@@ -3,10 +3,10 @@ const _ = require('underscore');
 const fs = require('fs');
 const Q = require('q');
 
+const auth = readAuthCreds();
+
 const newCache = loadCacheFromDisk("newCache");
 const oldCache = loadCacheFromDisk("oldCache");
-
-const auth = readAuthCreds();
 
 function loadCacheFromDisk(cacheName) {
   try {
