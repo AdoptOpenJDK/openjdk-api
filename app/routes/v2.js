@@ -255,7 +255,7 @@ function getOldStyleFileInfo(name, release) {
     openjdk_impl = matched[2].replace('-', '');
   }
 
-  let tstamp = matched[5]
+  let tstamp = matched[5];
   if (tstamp === undefined) {
     tstamp = release.created_at;
   }
