@@ -1,8 +1,8 @@
 const _ = require('underscore');
-const cache = require('./github_file_cache');
+const cache = require('../lib/github_file_cache');
 
 function filterReleaseBinaries(releases, filterFunction) {
-  return _.chain(releases)
+  return releases
     .map(function (release) {
       release.binaries = _.chain(release.binaries)
         .filter(filterFunction)
@@ -11,8 +11,7 @@ function filterReleaseBinaries(releases, filterFunction) {
     })
     .filter(function (release) {
       return release.binaries.length > 0
-    })
-    .value();
+    });
 }
 
 function filterRelease(releases, releaseName) {
@@ -20,19 +19,17 @@ function filterRelease(releases, releaseName) {
     return releases;
   } else if (releaseName === 'latest') {
 
-    return _.chain(releases)
+    return releases
       .sortBy(function (release) {
         return release.timestamp
       })
       .last()
-      .value()
 
   } else {
-    return _.chain(releases)
+    return releases
       .filter(function (release) {
         return release.release_name.toLowerCase() === releaseName.toLowerCase()
-      })
-      .value();
+      });
   }
 }
 
@@ -53,11 +50,10 @@ function filterReleaseOnProperty(releases, propertyName, property) {
     return releases;
   }
 
-  return _.chain(releases)
+  return releases
     .filter(function (release) {
       return release.hasOwnProperty(propertyName) && release[propertyName] === property
-    })
-    .value();
+    });
 }
 
 
@@ -70,14 +66,13 @@ function filterReleasesOnReleaseType(data, isRelease) {
 }
 
 function fixPrereleaseTagOnOldRepoData(data, isRelease) {
-  return _.chain(data)
+  return data
     .map(function (release) {
       if (release.oldRepo) {
         release.prerelease = !isRelease
       }
       return release;
-    })
-    .value();
+    });
 }
 
 function sendData(data, res) {
@@ -103,6 +98,7 @@ function redirectToBinary(data, res) {
     }
     data = data[0];
   }
+
 
   if (data.binaries.length > 1) {
     res.status(400);
@@ -183,8 +179,10 @@ module.exports = function (req, res) {
   }
 
   cache.getInfoForVersion(ROUTEversion, ROUTEbuildtype)
-    .then(function (data) {
-      var isRelease = ROUTEbuildtype.indexOf("releases") >= 0;
+    .then(function (apiData) {
+      let isRelease = ROUTEbuildtype.indexOf("releases") >= 0;
+
+      let data = _.chain(apiData);
 
       data = fixPrereleaseTagOnOldRepoData(data, isRelease);
       data = githubDataToAdoptApi(data);
@@ -197,6 +195,8 @@ module.exports = function (req, res) {
       data = filterReleaseOnBinaryProperty(data, 'binary_type', ROUTEtype);
 
       data = filterRelease(data, ROUTErelease);
+
+      data = data.value();
 
       if (ROUTErequestType === 'info') {
         sendData(data, res);
@@ -370,13 +370,12 @@ function githubReleaseToAdoptRelease(release) {
 
 function githubDataToAdoptApi(githubApiData) {
 
-  return _.chain(githubApiData)
+  return githubApiData
     .map(githubReleaseToAdoptRelease)
     .filter(function (release) {
       return release.binaries.length > 0;
     })
     .sortBy(function (release) {
       return release.timestamp
-    })
-    .value();
+    });
 }

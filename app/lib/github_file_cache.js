@@ -3,10 +3,45 @@ const _ = require('underscore');
 const fs = require('fs');
 const Q = require('q');
 
-const newCache = {};
-const oldCache = {};
+const newCache = loadCacheFromDisk("newCache");
+const oldCache = loadCacheFromDisk("oldCache");
 
 let auth = undefined;
+
+function loadCacheFromDisk(cacheName) {
+  try {
+    console.log("Looking for cache");
+    let cache = fs.readFileSync('cache/' + cacheName + '.cache.json');
+    console.log("cache found");
+    return JSON.parse(cache);
+  } catch (e) {
+    console.log("No cache found");
+    let cache = {};
+    saveCacheToDisk(cacheName, cache);
+    return cache;
+  }
+}
+
+function saveCacheToDisk(cacheName, cache) {
+  if (auth !== undefined && auth !== null && auth.length > 0) {
+    // we have auth credentials so there is no real benefit to disk caching
+    return
+  }
+
+  try {
+    if (!fs.existsSync('cache')) {
+      fs.mkdirSync('cache');
+    }
+
+    fs.writeFile('cache/' + cacheName + '.cache.json', JSON.stringify(cache), function (err) {
+      if (err) {
+        console.log("cache not saved", err)
+      }
+    });
+  } catch (e) {
+    console.log("cache not saved", e)
+  }
+}
 
 function formErrorResponse(error, response, body) {
   return {
@@ -63,7 +98,7 @@ function formRequest(url) {
 // 2. Check if file has been modified
 // 3. If file is not modified return cached value
 // 4. If modified return new data and add it to the cache
-function cachedGet(url, cache) {
+function cachedGet(url, cacheName, cache) {
   const deferred = Q.defer();
   const options = formRequest(url);
 
@@ -87,6 +122,9 @@ function cachedGet(url, cache) {
           cacheTime: Date.now() + getCooldown(),
           body: JSON.parse(body)
         };
+
+        saveCacheToDisk(cacheName, cache);
+
         deferred.resolve(cache[options.url].body)
       } else if (response.statusCode === 403 && cache.hasOwnProperty(options.url)) {
         // Hit the rate limit, just serve up old cache
@@ -104,13 +142,13 @@ function cachedGet(url, cache) {
 }
 
 function getInfoForNewRepo(version) {
-  return cachedGet(`https://api.github.com/repos/AdoptOpenJDK/${version}-binaries/releases`, newCache);
+  return cachedGet(`https://api.github.com/repos/AdoptOpenJDK/${version}-binaries/releases`, 'newCache', newCache);
 }
 
 function getInfoForOldRepo(version, releaseType) {
   let deferred = Q.defer();
 
-  let hotspotPromise = cachedGet(`https://api.github.com/repos/AdoptOpenJDK/${version}-${releaseType}/releases`, oldCache);
+  let hotspotPromise = cachedGet(`https://api.github.com/repos/AdoptOpenJDK/${version}-${releaseType}/releases`, 'oldCache', oldCache);
   let openj9Promise;
 
   if (version.indexOf('amber') > 0) {
@@ -118,7 +156,7 @@ function getInfoForOldRepo(version, releaseType) {
       return {}
     });
   } else {
-    openj9Promise = cachedGet(`https://api.github.com/repos/AdoptOpenJDK/${version}-openj9-${releaseType}/releases`, oldCache);
+    openj9Promise = cachedGet(`https://api.github.com/repos/AdoptOpenJDK/${version}-openj9-${releaseType}/releases`, 'oldCache', oldCache);
   }
 
   Q.allSettled([hotspotPromise, openj9Promise])
