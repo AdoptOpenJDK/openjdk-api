@@ -1,9 +1,9 @@
+const request = require('request');
+const _ = require('underscore');
+const fs = require('fs');
+const Q = require('q');
 
 module.exports = function () {
-  const request = require('request');
-  const _ = require('underscore');
-  const fs = require('fs');
-  const Q = require('q');
 
   const auth = readAuthCreds();
 
@@ -207,7 +207,6 @@ module.exports = function () {
       });
     return deferred.promise;
   }
-
 
   return {
     getInfoForVersion: getInfoForVersion
