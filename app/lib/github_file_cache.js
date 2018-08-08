@@ -14,7 +14,7 @@ module.exports = function () {
   function loadCacheFromDisk(cacheName) {
     try {
       console.log("Looking for cache");
-      let cache = fs.readFileSync('cache/' + cacheName + '.cache.json');
+      let cache = fs.readFileSync('/tmp/openjdk-api-cache/' + cacheName + '.cache.json');
       console.log("cache found");
       return JSON.parse(cache);
     } catch (e) {
@@ -32,11 +32,11 @@ module.exports = function () {
     }
 
     try {
-      if (!fs.existsSync('cache')) {
-        fs.mkdirSync('cache');
+      if (!fs.existsSync('/tmp/openjdk-api-cache/')) {
+        fs.mkdirSync('/tmp/openjdk-api-cache/');
       }
 
-      fs.writeFile('cache/' + cacheName + '.cache.json', JSON.stringify(cache), function (err) {
+      fs.writeFile('/tmp/openjdk-api-cache/' + cacheName + '.cache.json', JSON.stringify(cache), function (err) {
         if (err) {
           console.log("cache not saved", err)
         }
