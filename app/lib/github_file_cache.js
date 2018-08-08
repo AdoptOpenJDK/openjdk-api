@@ -3,6 +3,7 @@ const _ = require('underscore');
 const fs = require('fs');
 const Q = require('q');
 
+// This caches data returned by the github api to speed up response time and avoid going over github api rate limiting
 module.exports = function () {
 
   const auth = readAuthCreds();
@@ -90,17 +91,16 @@ module.exports = function () {
   }
 
 
-// Get from url, and store the result into a cache
-// 1. If last check was < 2 min ago, return last result
-// 2. Check if file has been modified
-// 3. If file is not modified return cached value
-// 4. If modified return new data and add it to the cache
+  // Get from url, and store the result into a cache
+  // 1. If last check was < 2 min ago, return last result
+  // 2. Check if file has been modified
+  // 3. If file is not modified return cached value
+  // 4. If modified return new data and add it to the cache
   function cachedGet(url, cacheName, cache) {
     const deferred = Q.defer();
     const options = formRequest(url);
 
     if (cache.hasOwnProperty(options.url) && Date.now() < cache[options.url].cacheTime) {
-      // For a given file check at most once every 10 min
       console.log("cache hit cooldown");
       deferred.resolve(cache[options.url].body);
     } else {
