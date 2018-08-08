@@ -24,21 +24,21 @@ module.exports = function (app) {
     // Examples:
     //      /info/releases/openjdk8
     //      /info/nightly/openjdk8
-    //      /info/nightly/openjdk8?openjdkImpl=hotspot&os=windows&arch=x64
+    //      /info/nightly/openjdk8?openjdk_impl=hotspot&os=windows&arch=x64
 
     //      /binary/releases/openjdk8
     //      /binary/nightly/openjdk8
 
     // optional query parameters:
     //
-    //  openjdkImpl ::= "hotspot" | "openj9"
+    //  openjdk_impl ::= "hotspot" | "openj9"
     //  os ::= "windows" | "linux"
     //  arch ::= "x64" | "x32" | "ppc64"
     //  release ::= "latest"| <jdk_version>
     //  type ::= "jdk" | "jre"
     //
-    // curl "http://127.0.0.1:3000/v2/binary/nightly/openjdk8?openjdkImpl=hotspot&os=windows&arch=x64&release=latest&type=jdk"
-    // curl "http://127.0.0.1:3000/v2/info/releases/openjdk10?openjdkImpl=hotspot&type=jdk"
+    // curl "http://127.0.0.1:3000/v2/binary/nightly/openjdk8?openjdk_impl=hotspot&os=windows&arch=x64&release=latest&type=jdk"
+    // curl "http://127.0.0.1:3000/v2/info/releases/openjdk10?openjdk_impl=hotspot&type=jdk"
 
     function handleRequest(req, res, next) {
       app.set('json spaces', 2);

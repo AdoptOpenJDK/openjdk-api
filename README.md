@@ -9,7 +9,7 @@ The AdoptOpenJDK API provides a way to consume JSON information about the AdoptO
 Here is an example using `curl` (see the [curl documentation](https://curl.haxx.se/docs/tooldocs.html)):
 
 ```bash
-curl https://api.adoptopenjdk.net/v2/releases/openjdk8
+curl https://api.adoptopenjdk.net/v2/info/releases/openjdk8
 ```
 
 This command returns information about all 'OpenJDK' releases, and defaults to the latest version of the API.
@@ -33,7 +33,7 @@ function Get-RedirectedUrl
     }
 }
 
-$url= "https://api.adoptopenjdk.net/v2/binary/nightly/openjdk8?openjdkImpl=hotspot&os=windows&arch=x64&release=latest&type=jdk"
+$url= "https://api.adoptopenjdk.net/v2/binary/nightly/openjdk8?openjdk_impl=hotspot&os=windows&arch=x64&release=latest&type=jdk"
 
 $fUrl = Get-RedirectedUrl $url
 $filename = [System.IO.Path]::GetFileName($fUrl); 
@@ -70,14 +70,14 @@ curl https://api.adoptopenjdk.net/v2/info/nightly/openjdk10
 List of information about builds that match the current query
 
 ```
-curl https://api.adoptopenjdk.net/v2/info/nightly/openjdk8?openjdkImpl=hotspot
+curl https://api.adoptopenjdk.net/v2/info/nightly/openjdk8?openjdk_impl=hotspot
 ```
 
 ##### binary
 Redirects to the binary that matches your current query. If multiple or no binarys match the query, an error code will be returned
 
 ```
-curl https://api.adoptopenjdk.net/v2/binary/nightly/openjdk8?openjdkImpl=hotspot&os=windows&arch=x64&release=latest&type=jdk
+curl https://api.adoptopenjdk.net/v2/binary/nightly/openjdk8?openjdk_impl=hotspot&os=windows&arch=x64&release=latest&type=jdk
 ```
 
 #### Release Type
@@ -94,7 +94,7 @@ The data that can be returned can then be filtered to find builds of a specific 
 
 | Parameter | Query Parameter Name | Examples |
 |-----------|----------------------|----------|
-| Open Jdk Implementation | openjdkImpl | hotspot, openj9 |
+| Open Jdk Implementation | openjdk_impl | hotspot, openj9 |
 | Operating System | os | windows, linux, mac |
 | Architecture | arch | x64, x32, ppc64, s390x, ppc64le, aarch64 |
 | Release | release | latest, jdk8u172-b00-201807161800 |
@@ -104,5 +104,5 @@ In the absence of a given parameter, it will return all elements.
 
 To return latest, hotspot, windows, x64, jdk:
 ```
-curl https://api.adoptopenjdk.net/v2/binary/nightly/openjdk8?openjdkImpl=hotspot&os=windows&arch=x64&release=latest&type=jdk
+curl https://api.adoptopenjdk.net/v2/binary/nightly/openjdk8?openjdk_impl=hotspot&os=windows&arch=x64&release=latest&type=jdk
 ```
