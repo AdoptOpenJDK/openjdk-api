@@ -76,7 +76,7 @@ function fixPrereleaseTagOnOldRepoData(data, isRelease) {
 }
 
 function sendData(data, res) {
-  if (data.length === 0) {
+  if (data === undefined || data.length === 0) {
     res.status(404);
     res.send('Not found');
   } else {
