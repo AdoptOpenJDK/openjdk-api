@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon server.js",
+    "start": "nodemon --ignore cache/ server.js",
     "lint": "eslint *.js app/routes/*.js",
     "test": "mocha && npm run lint"
   },

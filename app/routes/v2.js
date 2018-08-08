@@ -1,8 +1,8 @@
 const _ = require('underscore');
-const cache = require('./github_file_cache');
+const cache = require('../lib/github_file_cache')();
 
 function filterReleaseBinaries(releases, filterFunction) {
-  return _.chain(releases)
+  return releases
     .map(function (release) {
       release.binaries = _.chain(release.binaries)
         .filter(filterFunction)
@@ -11,8 +11,7 @@ function filterReleaseBinaries(releases, filterFunction) {
     })
     .filter(function (release) {
       return release.binaries.length > 0
-    })
-    .value();
+    });
 }
 
 function filterRelease(releases, releaseName) {
@@ -20,19 +19,17 @@ function filterRelease(releases, releaseName) {
     return releases;
   } else if (releaseName === 'latest') {
 
-    return _.chain(releases)
+    return releases
       .sortBy(function (release) {
         return release.timestamp
       })
       .last()
-      .value()
 
   } else {
-    return _.chain(releases)
+    return releases
       .filter(function (release) {
         return release.release_name.toLowerCase() === releaseName.toLowerCase()
-      })
-      .value();
+      });
   }
 }
 
@@ -45,6 +42,37 @@ function filterReleaseOnBinaryProperty(releases, propertyName, property) {
   return filterReleaseBinaries(releases, function (binary) {
     return binary[propertyName].toLowerCase() === property;
   })
+}
+
+
+function filterReleaseOnProperty(releases, propertyName, property) {
+  if (property === undefined) {
+    return releases;
+  }
+
+  return releases
+    .filter(function (release) {
+      return release.hasOwnProperty(propertyName) && release[propertyName] === property
+    });
+}
+
+
+function filterReleasesOnReleaseType(data, isRelease) {
+  if (isRelease === undefined) {
+    return data;
+  }
+
+  return filterReleaseOnProperty(data, "release", isRelease)
+}
+
+function fixPrereleaseTagOnOldRepoData(data, isRelease) {
+  return data
+    .map(function (release) {
+      if (release.oldRepo) {
+        release.prerelease = !isRelease
+      }
+      return release;
+    });
 }
 
 function sendData(data, res) {
@@ -71,6 +99,7 @@ function redirectToBinary(data, res) {
     data = data[0];
   }
 
+
   if (data.binaries.length > 1) {
     res.status(400);
     res.send('Multiple binaries match request: ' + JSON.stringify(data.binaries, null, 2));
@@ -79,6 +108,7 @@ function redirectToBinary(data, res) {
     res.redirect(data.binaries[0].binary_link);
   }
 }
+
 
 function sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, ROUTEopenjdkImpl, ROUTEos, ROUTEarch, ROUTErelease, ROUTEtype) {
   let errorMsg = undefined;
@@ -126,6 +156,7 @@ function sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, 
   }
 }
 
+
 module.exports = function (req, res) {
   const ROUTErequestType = req.params.requestType;
   const ROUTEbuildtype = req.params.buildtype;
@@ -148,10 +179,15 @@ module.exports = function (req, res) {
   }
 
   cache.getInfoForVersion(ROUTEversion, ROUTEbuildtype)
-    .then(function (data) {
+    .then(function (apiData) {
+      let isRelease = ROUTEbuildtype.indexOf("releases") >= 0;
 
+      let data = _.chain(apiData);
+
+      data = fixPrereleaseTagOnOldRepoData(data, isRelease);
       data = githubDataToAdoptApi(data);
 
+      data = filterReleasesOnReleaseType(data, isRelease);
 
       data = filterReleaseOnBinaryProperty(data, 'openjdk_impl', ROUTEopenjdkImpl);
       data = filterReleaseOnBinaryProperty(data, 'os', ROUTEos);
@@ -159,6 +195,8 @@ module.exports = function (req, res) {
       data = filterReleaseOnBinaryProperty(data, 'binary_type', ROUTEtype);
 
       data = filterRelease(data, ROUTErelease);
+
+      data = data.value();
 
       if (ROUTErequestType === 'info') {
         sendData(data, res);
@@ -217,7 +255,7 @@ function getOldStyleFileInfo(name, release) {
     openjdk_impl = matched[2].replace('-', '');
   }
 
-  let tstamp = matched[5]
+  let tstamp = matched[5];
   if (tstamp === undefined) {
     tstamp = release.created_at;
   }
@@ -325,19 +363,19 @@ function githubReleaseToAdoptRelease(release) {
   return {
     release_name: release.tag_name,
     timestamp: release.published_at,
+    release: !release.prerelease,
     binaries: binaries
   }
 }
 
 function githubDataToAdoptApi(githubApiData) {
 
-  return _.chain(githubApiData)
+  return githubApiData
     .map(githubReleaseToAdoptRelease)
     .filter(function (release) {
       return release.binaries.length > 0;
     })
     .sortBy(function (release) {
       return release.timestamp
-    })
-    .value();
+    });
 }

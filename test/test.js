@@ -1,7 +1,23 @@
 const assert = require('assert');
 const _ = require('underscore');
-const v2 = require('../app/routes/v2');
+const fs = require('fs');
 const Q = require('q');
+
+setUpTestCache();
+
+
+function setUpTestCache() {
+
+  if (!fs.existsSync('cache')) {
+    fs.mkdirSync('cache');
+  }
+  fs.writeFileSync('./cache/newCache.cache.json', fs.readFileSync('./test/asset/cache/newCache.cache.json'));
+  fs.writeFileSync('./cache/oldCache.cache.json', fs.readFileSync('./test/asset/cache/oldCache.cache.json'));
+  console.log('Test cache setup')
+}
+
+const v2 = require('../app/routes/v2');
+
 
 function mockRequest(requestType, buildtype, version, openjdk_impl, os, arch, release, type) {
   return {
@@ -192,6 +208,37 @@ describe('binary redirect returns 302', function () {
     it('returns 302 for redirect ' + JSON.stringify(request), function () {
       return performRequest(request, function (code, msg) {
         assert.equal(302, code);
+      })
+    });
+  })
+});
+
+describe('filters releases correctly', function () {
+  forAllPermutations(function (jdk, release) {
+    const request = mockRequest("info", release, jdk, "hotspot", "linux", "x64", undefined, "jdk");
+
+    var isRelease = release.indexOf("releases") >= 0;
+
+    it('release is set correctly ' + JSON.stringify(request), function () {
+      return performRequest(request, function (code, data) {
+        let releases = JSON.parse(data);
+        _.chain(releases)
+          .each(function (release) {
+            if (release.hasOwnProperty('binaries')) {
+              _.chain(releases.binaries)
+                .each(function (binary) {
+                  var isNightlyRepo = binary.binary_link.indexOf("-nightly") >= 0;
+                  var isBinaryRepo = binary.binary_link.indexOf("-binaries") >= 0;
+                  if (isRelease) {
+                    assert.equal(false, isNightlyRepo)
+                  } else {
+                    assert.equal(true, isNightlyRepo || isBinaryRepo)
+                  }
+                })
+            }
+
+            assert.equal(isRelease, release.release);
+          })
       })
     });
   })
