@@ -9,7 +9,7 @@ The AdoptOpenJDK API provides a way to consume JSON information about the AdoptO
 Here is an example using `curl` (see the [curl documentation](https://curl.haxx.se/docs/tooldocs.html)):
 
 ```bash
-curl https://api.adoptopenjdk.net/v2/releases/openjdk8
+curl https://api.adoptopenjdk.net/v2/info/releases/openjdk8
 ```
 
 This command returns information about all 'OpenJDK' releases, and defaults to the latest version of the API.
