@@ -99,6 +99,7 @@ The data that can be returned can then be filtered to find builds of a specific 
 | Architecture | arch | x64, x32, ppc64, s390x, ppc64le, aarch64 |
 | Release | release | latest, jdk8u172-b00-201807161800 |
 | Binary Type | type | jdk, jre |
+| Heap Size | heap_size | normal, large |
 
 In the absence of a given parameter, it will return all elements. 
 

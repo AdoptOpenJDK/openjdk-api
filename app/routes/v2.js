@@ -40,6 +40,7 @@ function filterReleaseOnBinaryProperty(releases, propertyName, property) {
   property = property.toLowerCase();
 
   return filterReleaseBinaries(releases, function (binary) {
+    if (binary[propertyName] === undefined) return false;
     return binary[propertyName].toLowerCase() === property;
   })
 }
@@ -110,7 +111,7 @@ function redirectToBinary(data, res) {
 }
 
 
-function sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, ROUTEopenjdkImpl, ROUTEos, ROUTEarch, ROUTErelease, ROUTEtype) {
+function sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, ROUTEopenjdkImpl, ROUTEos, ROUTEarch, ROUTErelease, ROUTEtype, ROUTEheapSize) {
   let errorMsg = undefined;
 
   const alNum = /[a-zA-Z0-9]+/;
@@ -147,6 +148,10 @@ function sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, 
     errorMsg = 'Unknown type format';
   }
 
+  if (ROUTEheapSize !== undefined && (ROUTEheapSize.toLowerCase() !== 'large' && ROUTEheapSize.toLowerCase() !== 'normal')) {
+    errorMsg = 'Unknown heap size';
+  }
+
   if (errorMsg !== undefined) {
     res.status(400);
     res.send(errorMsg);
@@ -173,8 +178,9 @@ module.exports = function (req, res) {
   const ROUTEarch = req.query['arch'];
   const ROUTErelease = req.query['release'];
   const ROUTEtype = req.query['type'];
+  const ROUTEheapSize = req.query['heap_size'];
 
-  if (!sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, ROUTEopenjdkImpl, ROUTEos, ROUTEarch, ROUTErelease, ROUTEtype)) {
+  if (!sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, ROUTEopenjdkImpl, ROUTEos, ROUTEarch, ROUTErelease, ROUTEtype, ROUTEheapSize)) {
     return;
   }
 
@@ -193,6 +199,7 @@ module.exports = function (req, res) {
       data = filterReleaseOnBinaryProperty(data, 'os', ROUTEos);
       data = filterReleaseOnBinaryProperty(data, 'architecture', ROUTEarch);
       data = filterReleaseOnBinaryProperty(data, 'binary_type', ROUTEtype);
+      data = filterReleaseOnBinaryProperty(data, 'heap_size', ROUTEheapSize);
 
       data = filterRelease(data, ROUTErelease);
 
@@ -222,18 +229,26 @@ module.exports = function (req, res) {
 
 function getNewStyleFileInfo(name) {
   let timestampRegex = '[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}';
-  let regex = 'OpenJDK([0-9]+)U?(-jre)?_([0-9a-zA-Z]+)_([0-9a-zA-Z]+)_([0-9a-zA-Z]+).*_(' + timestampRegex + ').(tar.gz|zip)';
+  let regex = 'OpenJDK([0-9]+)U?(-jre)?_([0-9a-zA-Z]+)_([0-9a-zA-Z]+)_([0-9a-zA-Z]+)_?([0-9a-zA-Z]+)?.*_(' + timestampRegex + ').(tar.gz|zip)';
   let matched = name.match(new RegExp(regex));
 
   if (matched != null) {
+
+    let heap_size = 'normal';
+
+    if ((matched[6] !== undefined) && matched[6].toLowerCase() === 'linuxxl') {
+      heap_size = 'large';
+    }
+
     return {
       version: matched[1].toLowerCase(),
       binary_type: (matched[2] !== undefined) ? 'jre' : 'jdk',
       arch: matched[3].toLowerCase(),
       os: matched[4].toLowerCase(),
       openjdk_impl: matched[5].toLowerCase(),
-      tstamp: matched[6].toLowerCase(),
-      extension: matched[7].toLowerCase()
+      heap_size: heap_size,
+      tstamp: matched[7].toLowerCase(),
+      extension: matched[8].toLowerCase(),
     }
   } else {
     return null;
@@ -273,7 +288,8 @@ function getOldStyleFileInfo(name, release) {
     arch: matched[3].toLowerCase(),
     os: os,
     tstamp: tstamp,
-    extension: matched[6].toLowerCase()
+    extension: matched[6].toLowerCase(),
+    heap_size: 'normal'
   };
 }
 
@@ -299,7 +315,8 @@ function getAmberStyleFileInfo(name, release) {
     binary_type: 'jdk',
     openjdk_impl: 'hotspot',
     version: versionMatcher[1],
-    extension: matched[4]
+    extension: matched[4],
+    heap_size: 'normal'
   };
 }
 
@@ -343,7 +360,8 @@ function formBinaryAssetInfo(asset, release) {
     binary_link: asset.browser_download_url,
     binary_size: asset.size,
     checksum_link: checksum_link,
-    version: fileInfo.version
+    version: fileInfo.version,
+    heap_size: fileInfo.heap_size
   }
 }
 
