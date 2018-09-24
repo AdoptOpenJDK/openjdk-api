@@ -152,6 +152,7 @@ describe('has all expected properties on binary assets', function () {
               "binary_link",
               "binary_size",
               "checksum_link",
+              "heap_size",
               "version"])
               .each(function (property) {
                 assert.equal(true, binary.hasOwnProperty(property), "failed for: " + JSON.stringify(binary));
