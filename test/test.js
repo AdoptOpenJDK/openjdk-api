@@ -248,7 +248,7 @@ describe('filters releases correctly', function () {
 
 describe('filters heap_size', function () {
   const request = mockRequest("info", "nightly", "openjdk8", undefined, undefined, undefined, undefined, undefined, "large");
-  it('release is set correctly ', function () {
+  it('only large heaps are returned', function () {
     return performRequest(request, function (code, data) {
       let releases = JSON.parse(data);
       _.chain(releases)
