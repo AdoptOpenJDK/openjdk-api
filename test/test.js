@@ -143,19 +143,17 @@ describe('has all expected properties on binary assets', function () {
           .each(function (binary) {
 
             _.chain([
-              "os",
               "architecture",
-              "binary_type",
-              "openjdk_impl",
-              "binary_name",
-              "checksum_link",
               "binary_link",
+              "binary_name",
               "binary_size",
-              "checksum_link",
+              "binary_type",
               "heap_size",
+              "openjdk_impl",
+              "os",
               "version"])
               .each(function (property) {
-                assert.equal(true, binary.hasOwnProperty(property), "failed for: " + JSON.stringify(binary));
+                assert.equal(true, binary.hasOwnProperty(property), "missing property " + property + " on json: " + JSON.stringify(binary));
               });
           })
       });
