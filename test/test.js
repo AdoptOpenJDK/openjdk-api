@@ -155,7 +155,7 @@ describe('has all expected properties on binary assets', function () {
               "heap_size",
               "version"])
               .each(function (property) {
-                assert.equal(true, binary.hasOwnProperty(property), "failed for: " + JSON.stringify(binary));
+                assert.equal(true, binary.hasOwnProperty(property), "missing property " + property + " on json: " + JSON.stringify(binary));
               });
           })
       });
