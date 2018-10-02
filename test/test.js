@@ -19,7 +19,7 @@ function setUpTestCache() {
 const v2 = require('../app/routes/v2');
 
 
-function mockRequest(requestType, buildtype, version, openjdk_impl, os, arch, release, type) {
+function mockRequest(requestType, buildtype, version, openjdk_impl, os, arch, release, type, heap_size) {
   return {
     params: {
       requestType: requestType,
@@ -33,6 +33,7 @@ function mockRequest(requestType, buildtype, version, openjdk_impl, os, arch, re
       arch: arch,
       release: release,
       type: type,
+      heap_size: heap_size,
     }
   }
 }
@@ -142,18 +143,17 @@ describe('has all expected properties on binary assets', function () {
           .each(function (binary) {
 
             _.chain([
-              "os",
               "architecture",
-              "binary_type",
-              "openjdk_impl",
-              "binary_name",
-              "checksum_link",
               "binary_link",
+              "binary_name",
               "binary_size",
-              "checksum_link",
+              "binary_type",
+              "heap_size",
+              "openjdk_impl",
+              "os",
               "version"])
               .each(function (property) {
-                assert.equal(true, binary.hasOwnProperty(property), "failed for: " + JSON.stringify(binary));
+                assert.equal(true, binary.hasOwnProperty(property), "missing property " + property + " on json: " + JSON.stringify(binary));
               });
           })
       });
@@ -242,5 +242,24 @@ describe('filters releases correctly', function () {
       })
     });
   })
+});
+
+describe('filters heap_size', function () {
+  const request = mockRequest("info", "nightly", "openjdk8", undefined, undefined, undefined, undefined, undefined, "large");
+  it('only large heaps are returned', function () {
+    return performRequest(request, function (code, data) {
+      let releases = JSON.parse(data);
+      _.chain(releases)
+        .each(function (release) {
+          if (release.hasOwnProperty('binaries')) {
+            _.chain(releases.binaries)
+              .each(function (binary) {
+                assert.equal(true, binary.binary_link.indexOf("linuxXL") >= 0);
+                assert.equal("large", binary.heap_size);
+              })
+          }
+        })
+    })
+  });
 });
 

@@ -2,7 +2,7 @@
 
 For v1 docs see: [README.v1.md](README.v1.md)
 
-The AdoptOpenJDK API provides a way to consume JSON information about the AdoptOpenJDK releases and nightly builds.  Sign up to the [mailing list](http://mail.openjdk.java.net/mailman/listinfo/adoption-discuss) where major API updates will be announced, and visit [adoptopenjdk.net](https://adoptopenjdk.net) to find out more about the community.
+The AdoptOpenJDK API provides a way to consume JSON information about the AdoptOpenJDK releases and nightly builds.  Sign up to the [mailing list](https://mail.openjdk.java.net/mailman/listinfo/adoption-discuss) where major API updates will be announced, and visit [adoptopenjdk.net](https://adoptopenjdk.net) to find out more about the community.
 
 ## Usage
 
@@ -99,6 +99,7 @@ The data that can be returned can then be filtered to find builds of a specific 
 | Architecture | arch | x64, x32, ppc64, s390x, ppc64le, aarch64 |
 | Release | release | latest, jdk8u172-b00-201807161800 |
 | Binary Type | type | jdk, jre |
+| Heap Size | heap_size | normal, large |
 
 In the absence of a given parameter, it will return all elements. 
 
