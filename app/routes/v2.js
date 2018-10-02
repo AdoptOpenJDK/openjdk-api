@@ -243,11 +243,6 @@ function getNewStyleFileInfo(name, release) {
       heap_size = 'large';
     }
 
-    let timestamp = matched[7].toLowerCase();
-    if (timestamp.match(new RegExp(timestampRegex)) == null) {
-      timestamp = release.created_at;
-    }
-
     let type = "jdk";
     if (matched[2] !== undefined) {
       type = matched[2].replace("-", "");
@@ -260,7 +255,6 @@ function getNewStyleFileInfo(name, release) {
       os: matched[4].toLowerCase(),
       openjdk_impl: matched[5].toLowerCase(),
       heap_size: heap_size,
-      tstamp: timestamp,
       extension: matched[8].toLowerCase(),
     }
   } else {
@@ -283,11 +277,6 @@ function getOldStyleFileInfo(name, release) {
     openjdk_impl = matched[2].replace('-', '');
   }
 
-  let tstamp = matched[5];
-  if (tstamp === undefined) {
-    tstamp = release.created_at;
-  }
-
   let os = matched[4].toLowerCase();
 
   if (os === "win") {
@@ -300,7 +289,6 @@ function getOldStyleFileInfo(name, release) {
     binary_type: 'jdk',
     arch: matched[3].toLowerCase(),
     os: os,
-    tstamp: tstamp,
     extension: matched[6].toLowerCase(),
     heap_size: 'normal'
   };
@@ -324,7 +312,6 @@ function getAmberStyleFileInfo(name, release) {
   return {
     arch: matched[1],
     os: matched[2],
-    tstamp: matched[3],
     binary_type: 'jdk',
     openjdk_impl: 'hotspot',
     version: versionMatcher[1],
