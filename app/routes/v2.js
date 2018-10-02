@@ -227,7 +227,7 @@ module.exports = function (req, res) {
     });
 };
 
-function getNewStyleFileInfo(name, release) {
+function getNewStyleFileInfo(name) {
   let timestampRegex = '[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}';
 
   //                  11 style       | 8 Style        | 9/10 style
@@ -321,7 +321,7 @@ function getAmberStyleFileInfo(name, release) {
 }
 
 function formBinaryAssetInfo(asset, release) {
-  let fileInfo = getNewStyleFileInfo(asset.name, release);
+  let fileInfo = getNewStyleFileInfo(asset.name);
 
   if (fileInfo === null) {
     fileInfo = getOldStyleFileInfo(asset.name, release)
