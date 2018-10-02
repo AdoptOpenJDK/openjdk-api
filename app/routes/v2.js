@@ -229,7 +229,7 @@ module.exports = function (req, res) {
 
 function getNewStyleFileInfo(name, release) {
   let timestampRegex = '[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}';
-  let versionRegex = '[0-9]{2}_[0-9]{2}|8u[0-9]+-b[0-9]+';
+  let versionRegex = '[0-9]{2}_[0-9]+|8u[0-9]+-b[0-9]+';
   let regex = 'OpenJDK([0-9]+)U?(-jre|-jdk)?_([0-9a-zA-Z]+)_([0-9a-zA-Z]+)_([0-9a-zA-Z]+)_?([0-9a-zA-Z]+)?.*_(' + timestampRegex + '|' + versionRegex + ').(tar.gz|zip)';
   let matched = name.match(new RegExp(regex));
 
