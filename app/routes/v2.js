@@ -241,14 +241,19 @@ function getNewStyleFileInfo(name, release) {
       heap_size = 'large';
     }
 
-    let timestamp = matched[7].toLowerCase()
-    if(timestamp.match(new RegExp(timestampRegex)) == null) {
+    let timestamp = matched[7].toLowerCase();
+    if (timestamp.match(new RegExp(timestampRegex)) == null) {
       timestamp = release.created_at;
+    }
+
+    let type = "jdk";
+    if (matched[2] !== undefined) {
+      type = matched[2].replace("-", "");
     }
 
     return {
       version: matched[1].toLowerCase(),
-      binary_type: (matched[2] !== undefined) ? 'jre' : 'jdk',
+      binary_type: type,
       arch: matched[3].toLowerCase(),
       os: matched[4].toLowerCase(),
       openjdk_impl: matched[5].toLowerCase(),
