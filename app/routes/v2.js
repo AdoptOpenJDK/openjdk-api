@@ -332,7 +332,7 @@ function getAmberStyleFileInfo(name, release) {
 }
 
 function formBinaryAssetInfo(asset, release) {
-  let fileInfo = getNewStyleFileInfo(asset.name, timestamp);
+  let fileInfo = getNewStyleFileInfo(asset.name, release);
 
   if (fileInfo === null) {
     fileInfo = getOldStyleFileInfo(asset.name, release)
