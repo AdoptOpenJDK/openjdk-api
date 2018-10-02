@@ -227,9 +227,12 @@ module.exports = function (req, res) {
     });
 };
 
-function getNewStyleFileInfo(name) {
+function getNewStyleFileInfo(name, release) {
   let timestampRegex = '[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}';
-  let regex = 'OpenJDK([0-9]+)U?(-jre)?_([0-9a-zA-Z]+)_([0-9a-zA-Z]+)_([0-9a-zA-Z]+)_?([0-9a-zA-Z]+)?.*_(' + timestampRegex + ').(tar.gz|zip)';
+
+  //                  11 style       | 8 Style        | 9/10 style
+  let versionRegex = '[0-9]{2}_[0-9]+|8u[0-9]+-b[0-9]+|[0-9]+\.[0-9]+\.[0-9]+_[0-9]+';
+  let regex = 'OpenJDK([0-9]+)U?(-jre|-jdk)?_([0-9a-zA-Z]+)_([0-9a-zA-Z]+)_([0-9a-zA-Z]+)_?([0-9a-zA-Z]+)?.*_(' + timestampRegex + '|' + versionRegex + ').(tar.gz|zip)';
   let matched = name.match(new RegExp(regex));
 
   if (matched != null) {
@@ -240,14 +243,24 @@ function getNewStyleFileInfo(name) {
       heap_size = 'large';
     }
 
+    let timestamp = matched[7].toLowerCase();
+    if (timestamp.match(new RegExp(timestampRegex)) == null) {
+      timestamp = release.created_at;
+    }
+
+    let type = "jdk";
+    if (matched[2] !== undefined) {
+      type = matched[2].replace("-", "");
+    }
+
     return {
       version: matched[1].toLowerCase(),
-      binary_type: (matched[2] !== undefined) ? 'jre' : 'jdk',
+      binary_type: type,
       arch: matched[3].toLowerCase(),
       os: matched[4].toLowerCase(),
       openjdk_impl: matched[5].toLowerCase(),
       heap_size: heap_size,
-      tstamp: matched[7].toLowerCase(),
+      tstamp: timestamp,
       extension: matched[8].toLowerCase(),
     }
   } else {
@@ -321,7 +334,7 @@ function getAmberStyleFileInfo(name, release) {
 }
 
 function formBinaryAssetInfo(asset, release) {
-  let fileInfo = getNewStyleFileInfo(asset.name);
+  let fileInfo = getNewStyleFileInfo(asset.name, release);
 
   if (fileInfo === null) {
     fileInfo = getOldStyleFileInfo(asset.name, release)
