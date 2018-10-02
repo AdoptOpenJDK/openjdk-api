@@ -242,7 +242,7 @@ function getNewStyleFileInfo(name, release) {
     }
 
     let timestamp = matched[7].toLowerCase()
-    if(timestamp.match(new RegExp(timestampRegex)) != null) {
+    if(timestamp.match(new RegExp(timestampRegex)) == null) {
       timestamp = release.created_at;
     }
 
