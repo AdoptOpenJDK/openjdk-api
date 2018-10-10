@@ -281,6 +281,11 @@ function getOldStyleFileInfo(name, release) {
     os = 'windows';
   }
 
+  let heap_size = "normal";
+  if (name.contains("LinuxLH")) {
+    heap_size = "large";
+  }
+
   return {
     version: matched[1].toLowerCase(),
     openjdk_impl: openjdk_impl.toLowerCase(),
@@ -289,7 +294,7 @@ function getOldStyleFileInfo(name, release) {
     os: os,
     tstamp: tstamp,
     extension: matched[6].toLowerCase(),
-    heap_size: 'normal'
+    heap_size: heap_size
   };
 }
 
