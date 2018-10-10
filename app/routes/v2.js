@@ -283,6 +283,11 @@ function getOldStyleFileInfo(name) {
     os = 'windows';
   }
 
+  let heap_size = "normal";
+  if (name.indexOf("LinuxLH") >= 0) {
+    heap_size = "large";
+  }
+
   return {
     version: matched[1].toLowerCase(),
     openjdk_impl: openjdk_impl.toLowerCase(),
@@ -290,7 +295,7 @@ function getOldStyleFileInfo(name) {
     arch: matched[3].toLowerCase(),
     os: os,
     extension: matched[6].toLowerCase(),
-    heap_size: 'normal'
+    heap_size: heap_size
   };
 }
 
