@@ -229,7 +229,10 @@ module.exports = function (req, res) {
 
 function getNewStyleFileInfo(name) {
   let timestampRegex = '[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}';
-  let regex = 'OpenJDK([0-9]+)U?(-jre)?_([0-9a-zA-Z]+)_([0-9a-zA-Z]+)_([0-9a-zA-Z]+)_?([0-9a-zA-Z]+)?.*_(' + timestampRegex + ').(tar.gz|zip)';
+
+  //                  11 style       | 8 Style        | 9/10 style
+  let versionRegex = '[0-9]{2}_[0-9]+|8u[0-9]+-b[0-9]+|[0-9]+\\.[0-9]+\\.[0-9]+_[0-9]+';
+  let regex = 'OpenJDK([0-9]+)U?(-jre|-jdk)?_([0-9a-zA-Z]+)_([0-9a-zA-Z]+)_([0-9a-zA-Z]+)_?([0-9a-zA-Z]+)?.*_(' + timestampRegex + '|' + versionRegex + ').(tar.gz|zip)';
   let matched = name.match(new RegExp(regex));
 
   if (matched != null) {
@@ -240,14 +243,18 @@ function getNewStyleFileInfo(name) {
       heap_size = 'large';
     }
 
+    let type = "jdk";
+    if (matched[2] !== undefined) {
+      type = matched[2].replace("-", "");
+    }
+
     return {
       version: matched[1].toLowerCase(),
-      binary_type: (matched[2] !== undefined) ? 'jre' : 'jdk',
+      binary_type: type,
       arch: matched[3].toLowerCase(),
       os: matched[4].toLowerCase(),
       openjdk_impl: matched[5].toLowerCase(),
       heap_size: heap_size,
-      tstamp: matched[7].toLowerCase(),
       extension: matched[8].toLowerCase(),
     }
   } else {
@@ -255,7 +262,7 @@ function getNewStyleFileInfo(name) {
   }
 }
 
-function getOldStyleFileInfo(name, release) {
+function getOldStyleFileInfo(name) {
   let timestampRegex = '[0-9]{4}[0-9]{2}[0-9]{2}[0-9]{2}[0-9]{2}';
   let regex = 'OpenJDK([0-9]+)U?(-[0-9a-zA-Z]+)?_([0-9a-zA-Z]+)_([0-9a-zA-Z]+).*_?(' + timestampRegex + ')?.(tar.gz|zip)';
 
@@ -268,11 +275,6 @@ function getOldStyleFileInfo(name, release) {
   let openjdk_impl = 'hotspot';
   if (matched[2] !== undefined) {
     openjdk_impl = matched[2].replace('-', '');
-  }
-
-  let tstamp = matched[5];
-  if (tstamp === undefined) {
-    tstamp = release.created_at;
   }
 
   let os = matched[4].toLowerCase();
@@ -292,7 +294,6 @@ function getOldStyleFileInfo(name, release) {
     binary_type: 'jdk',
     arch: matched[3].toLowerCase(),
     os: os,
-    tstamp: tstamp,
     extension: matched[6].toLowerCase(),
     heap_size: heap_size
   };
@@ -316,7 +317,6 @@ function getAmberStyleFileInfo(name, release) {
   return {
     arch: matched[1],
     os: matched[2],
-    tstamp: matched[3],
     binary_type: 'jdk',
     openjdk_impl: 'hotspot',
     version: versionMatcher[1],
@@ -329,7 +329,7 @@ function formBinaryAssetInfo(asset, release) {
   let fileInfo = getNewStyleFileInfo(asset.name);
 
   if (fileInfo === null) {
-    fileInfo = getOldStyleFileInfo(asset.name, release)
+    fileInfo = getOldStyleFileInfo(asset.name)
   }
 
   if (fileInfo === null) {
