@@ -284,7 +284,7 @@ function getOldStyleFileInfo(name) {
   }
 
   let heap_size = "normal";
-  if (name.contains("LinuxLH")) {
+  if (name.indexOf("LinuxLH") >= 0) {
     heap_size = "large";
   }
 
