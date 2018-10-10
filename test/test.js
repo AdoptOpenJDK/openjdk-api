@@ -2,7 +2,6 @@ const assert = require('assert');
 const _ = require('underscore');
 const fs = require('fs');
 const Q = require('q');
-const Q = require('q');
 
 setUpTestCache();
 
