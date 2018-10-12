@@ -110,7 +110,7 @@ function redirectToBinary(data, res) {
 }
 
 
-function findAssets(data, res) {
+function findLatestAssets(data, res) {
   if (data !== null && data !== undefined) {
     let assetInfo = _
       .chain(data)
@@ -242,7 +242,7 @@ module.exports = function (req, res) {
       } else if (ROUTErequestType === 'binary') {
         redirectToBinary(data, res);
       } else if (ROUTErequestType === 'latestAssets') {
-        findAssets(data, res);
+        findLatestAssets(data, res);
       } else {
         res.status(404);
         res.send('Not found');
