@@ -5,7 +5,6 @@ const Q = require('q');
 
 setUpTestCache();
 
-
 function setUpTestCache() {
 
   if (!fs.existsSync('cache')) {
@@ -17,7 +16,6 @@ function setUpTestCache() {
 }
 
 const v2 = require('../app/routes/v2');
-
 
 function mockRequest(requestType, buildtype, version, openjdk_impl, os, arch, release, type, heap_size) {
   return {
@@ -37,7 +35,6 @@ function mockRequest(requestType, buildtype, version, openjdk_impl, os, arch, re
     }
   }
 }
-
 
 function mockRequestWithSingleQuery(requestType, buildtype, version, queryName, queryValue) {
   let request = mockRequest(requestType, buildtype, version);
@@ -74,7 +71,6 @@ function performRequest(request, doAssert) {
     });
 }
 
-
 function forAllPermutations(doTest) {
   _
     .chain(["openjdk8", "openjdk9", "openjdk10"])
@@ -92,9 +88,7 @@ function forAllPermutations(doTest) {
     });
 }
 
-
 /*
-
 TODO: uncomment when fixed
 describe('dinoguns binary request works', function () {
   it("works", function () {
@@ -106,7 +100,7 @@ describe('dinoguns binary request works', function () {
 });
 */
 
-//request http://localhost:3000/info/release/openjdk8
+// request http://localhost:3000/info/release/openjdk8
 describe('200 for simple case', function () {
   forAllPermutations(function (jdk, release) {
     it(jdk + ' ' + release, function () {
@@ -118,8 +112,7 @@ describe('200 for simple case', function () {
   });
 });
 
-
-//request http://localhost:3000/info/release/openjdk8
+// request http://localhost:3000/info/release/openjdk8
 describe('has all expected properties on binary assets', function () {
   forAllPermutations(function (jdk, release) {
     it(jdk + ' ' + release, function () {
@@ -181,22 +174,22 @@ function checkCanFilterOnProperty(propertyName, returnedPropertyName, propertyVa
   });
 }
 
-//request http://localhost:3000/info/release/openjdk8?os=windows
+// request http://localhost:3000/info/release/openjdk8?os=windows
 describe('can filter on os', function () {
   checkCanFilterOnProperty("os", "os", "windows");
 });
 
-//request http://localhost:3000/info/release/openjdk8?openjdk_impl=hotspot
+// request http://localhost:3000/info/release/openjdk8?openjdk_impl=hotspot
 describe('can filter on openjdk_impl', function () {
   checkCanFilterOnProperty("openjdk_impl", "openjdk_impl", "hotspot")
 });
 
-//request http://localhost:3000/info/release/openjdk8?arch=x64
+// request http://localhost:3000/info/release/openjdk8?arch=x64
 describe('can filter on arch', function () {
   checkCanFilterOnProperty("arch", "architecture", "x64")
 });
 
-//request http://localhost:3000/info/release/openjdk8?type=jdk
+// request http://localhost:3000/info/release/openjdk8?type=jdk
 describe('can filter on type', function () {
   checkCanFilterOnProperty("type", "binary_type", "jdk")
 });
@@ -298,3 +291,4 @@ describe('latestAssets returns correct results', function () {
     })
   });
 });
+
