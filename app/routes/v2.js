@@ -136,6 +136,9 @@ function findLatestAssets(data, res) {
       .value();
 
     sendData(assetInfo, res);
+  } else {
+    res.status(404);
+    res.send('Not found');
   }
 }
 
