@@ -281,6 +281,8 @@ function getOldStyleFileInfo(name) {
 
   if (os === "win") {
     os = 'windows';
+  } else if (os === "linuxlh") {
+    os = 'linux';
   }
 
   let heap_size = "normal";

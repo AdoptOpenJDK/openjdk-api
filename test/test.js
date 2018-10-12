@@ -263,3 +263,20 @@ describe('filters heap_size', function () {
   });
 });
 
+describe('does not show linuxlh as an os', function () {
+  it("is not linuxlh", function () {
+    const request = mockRequest("info", "releases", "openjdk8", "openj9", undefined, undefined, undefined, undefined, undefined);
+    return performRequest(request, function (code, data) {
+      let releases = JSON.parse(data);
+      _.chain(releases)
+        .each(function (release) {
+          if (release.hasOwnProperty('binaries')) {
+            _.chain(releases.binaries)
+              .each(function (binary) {
+                assert.notEqual("linuxlh", binary.os);
+              })
+          }
+        })
+    });
+  })
+});
