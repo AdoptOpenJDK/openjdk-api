@@ -80,6 +80,44 @@ Redirects to the binary that matches your current query. If multiple or no binar
 curl https://api.adoptopenjdk.net/v2/binary/nightly/openjdk8?openjdk_impl=hotspot&os=windows&arch=x64&release=latest&type=jdk
 ```
 
+##### latestAssets
+Returns the latest binary asset for every matching combination of os, architecture, binary_type, openjdk_impl, version, heap_size.
+
+i.e to find the latest jdk/jre for linux, x64, normal heap, hotspot:
+
+```
+curl https://api.adoptopenjdk.net/v2/latestAssets/nightly/openjdk8?os=linux&arch=x64&heap_size=normal&openjdk_impl=hotspot
+
+[
+  {
+    "os": "linux",
+    "architecture": "x64",
+    "binary_type": "jre",
+    "openjdk_impl": "hotspot",
+    "binary_name": "OpenJDK8U-jre_x64_linux_hotspot_2018-10-12-04-26.tar.gz",
+    "binary_link": "https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u-2018-10-12-04-26/OpenJDK8U-jre_x64_linux_hotspot_2018-10-12-04-26.tar.gz",
+    "binary_size": 40564422,
+    "checksum_link": "https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u-2018-10-12-04-26/OpenJDK8U-jre_x64_linux_hotspot_2018-10-12-04-26.tar.gz.sha256.txt",
+    "version": "8",
+    "heap_size": "normal",
+    "timestamp": "2018-10-12T04:26:10Z"
+  },
+  {
+    "os": "linux",
+    "architecture": "x64",
+    "binary_type": "jdk",
+    "openjdk_impl": "hotspot",
+    "binary_name": "OpenJDK8U-jdk_x64_linux_hotspot_2018-10-12-04-26.tar.gz",
+    "binary_link": "https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u-2018-10-12-04-26/OpenJDK8U-jdk_x64_linux_hotspot_2018-10-12-04-26.tar.gz",
+    "binary_size": 78327417,
+    "checksum_link": "https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u-2018-10-12-04-26/OpenJDK8U-jdk_x64_linux_hotspot_2018-10-12-04-26.tar.gz.sha256.txt",
+    "version": "8",
+    "heap_size": "normal",
+    "timestamp": "2018-10-12T04:26:10Z"
+  }
+]
+```
+
 #### Release Type
 
 Type of release, i.e `releases` for stable builds or `nightly` for most recent build.

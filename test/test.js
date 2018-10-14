@@ -273,3 +273,22 @@ describe('does not show linuxlh as an os', function () {
     });
   })
 });
+
+describe('latestAssets returns correct results', function () {
+  forAllPermutations(function (jdk, release) {
+    const request = mockRequest("latestAssets", release, jdk, "hotspot", "linux", "x64", undefined, undefined, undefined);
+
+    it("returns correct assets", function () {
+      return performRequest(request, function (code, data) {
+        let binaries = JSON.parse(data);
+        _.chain(binaries)
+          .each(function (binary) {
+            assert.equal(binary.openjdk_impl, "hotspot");
+            assert.equal(binary.os, "linux");
+            assert.equal(binary.architecture, "x64");
+          })
+      });
+    })
+  });
+});
+

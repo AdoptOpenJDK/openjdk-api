@@ -100,7 +100,6 @@ function redirectToBinary(data, res) {
     data = data[0];
   }
 
-
   if (data.binaries.length > 1) {
     res.status(400);
     res.send('Multiple binaries match request: ' + JSON.stringify(data.binaries, null, 2));
@@ -111,12 +110,45 @@ function redirectToBinary(data, res) {
 }
 
 
+function findLatestAssets(data, res) {
+  if (data !== null && data !== undefined) {
+    let assetInfo = _
+      .chain(data)
+      .map(function (release) {
+        return _.map(release.binaries, function (binary) {
+          binary.timestamp = release.timestamp;
+          return binary;
+        })
+      })
+      .flatten()
+      .sortBy(function (binary) {
+        return binary.timestamp
+      })
+      .reverse()
+      .uniq(false, function (binary) {
+        return binary.os + ':' +
+          binary.architecture + ':' +
+          binary.binary_type + ':' +
+          binary.openjdk_impl + ':' +
+          binary.version + ':' +
+          binary.heap_size;
+      })
+      .value();
+
+    sendData(assetInfo, res);
+  } else {
+    res.status(404);
+    res.send('Not found');
+  }
+}
+
+
 function sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, ROUTEopenjdkImpl, ROUTEos, ROUTEarch, ROUTErelease, ROUTEtype, ROUTEheapSize) {
   let errorMsg = undefined;
 
   const alNum = /[a-zA-Z0-9]+/;
 
-  if (ROUTErequestType !== 'info' && ROUTErequestType !== 'binary') {
+  if (ROUTErequestType !== 'info' && ROUTErequestType !== 'binary' && ROUTErequestType !== 'latestAssets') {
     errorMsg = 'Unknown request type';
   }
 
@@ -124,7 +156,7 @@ function sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, 
     errorMsg = 'Unknown build type';
   }
 
-  if (ROUTEversion.match(/openjdk(([0-9]+)|-amber)/) === null) {
+  if (ROUTEversion.match(/^openjdk(([0-9]+)|-amber)$/) === null) {
     errorMsg = 'Unknown version type';
   }
 
@@ -201,7 +233,10 @@ module.exports = function (req, res) {
       data = filterReleaseOnBinaryProperty(data, 'binary_type', ROUTEtype);
       data = filterReleaseOnBinaryProperty(data, 'heap_size', ROUTEheapSize);
 
-      data = filterRelease(data, ROUTErelease);
+      //dont look at only the latest release for the latestAssets call
+      if (ROUTErequestType !== 'latestAssets') {
+        data = filterRelease(data, ROUTErelease);
+      }
 
       data = data.value();
 
@@ -209,6 +244,8 @@ module.exports = function (req, res) {
         sendData(data, res);
       } else if (ROUTErequestType === 'binary') {
         redirectToBinary(data, res);
+      } else if (ROUTErequestType === 'latestAssets') {
+        findLatestAssets(data, res);
       } else {
         res.status(404);
         res.send('Not found');
