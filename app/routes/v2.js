@@ -146,7 +146,7 @@ function findLatestAssets(data, res) {
 function sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, ROUTEopenjdkImpl, ROUTEos, ROUTEarch, ROUTErelease, ROUTEtype, ROUTEheapSize) {
   let errorMsg = undefined;
 
-  const alNum = /[a-zA-Z0-9]+/;
+  const alNum = /^[a-zA-Z0-9]+$/;
 
   if (ROUTErequestType !== 'info' && ROUTErequestType !== 'binary' && ROUTErequestType !== 'latestAssets') {
     errorMsg = 'Unknown request type';
@@ -172,7 +172,7 @@ function sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, 
     errorMsg = 'Unknown architecture format';
   }
 
-  if (ROUTErelease !== undefined && ROUTErelease.match(/[a-zA-Z0-9-]+/) === null) {
+  if (ROUTErelease !== undefined && ROUTErelease.match(/^[a-zA-Z0-9-]+$/) === null) {
     errorMsg = 'Unknown release format';
   }
 
@@ -267,8 +267,10 @@ module.exports = function (req, res) {
 function getNewStyleFileInfo(name) {
   let timestampRegex = '[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}';
 
-  //                  11 style       | 8 Style        | 9/10 style
-  let versionRegex = '[0-9]{2}_[0-9]+|8u[0-9]+-b[0-9]+|[0-9]+\\.[0-9]+\\.[0-9]+_[0-9]+';
+  //                  11 style       | 8 Style         | 9/10 style
+  let versionRegex = '[0-9]{2}_[0-9]+|8u[0-9]+-?b[0-9]+|[0-9]+\\.[0-9]+\\.[0-9]+_[0-9]+';
+
+  //                   1) num   2) jre/jdk    3) arch        4) OS          5) impl         6)heap             7) timestamp/version                         8) extension
   let regex = 'OpenJDK([0-9]+)U?(-jre|-jdk)?_([0-9a-zA-Z]+)_([0-9a-zA-Z]+)_([0-9a-zA-Z]+)_?([0-9a-zA-Z]+)?.*_(' + timestampRegex + '|' + versionRegex + ').(tar.gz|zip)';
   let matched = name.match(new RegExp(regex));
 
