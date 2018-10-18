@@ -271,7 +271,7 @@ function getNewStyleFileInfo(name) {
   let versionRegex = '[0-9]{2}_[0-9]+|8u[0-9]+-?b[0-9]+|[0-9]+\\.[0-9]+\\.[0-9]+_[0-9]+';
 
   //                   1) num   2) jre/jdk    3) arch        4) OS          5) impl         6)heap             7) timestamp/version                         8) extension
-  let regex = 'OpenJDK([0-9]+)U?(-jre|-jdk)?_([0-9a-zA-Z]+)_([0-9a-zA-Z]+)_([0-9a-zA-Z]+)_?([0-9a-zA-Z]+)?.*_(' + timestampRegex + '|' + versionRegex + ').(tar.gz|zip)';
+  let regex = 'OpenJDK([0-9]+)U?(-jre|-jdk)?_([0-9a-zA-Z\-]+)_([0-9a-zA-Z]+)_([0-9a-zA-Z]+)_?([0-9a-zA-Z]+)?.*_(' + timestampRegex + '|' + versionRegex + ').(tar.gz|zip)';
   let matched = name.match(new RegExp(regex));
 
   if (matched != null) {
@@ -287,10 +287,16 @@ function getNewStyleFileInfo(name) {
       type = matched[2].replace("-", "");
     }
 
+    let arch = matched[3].toLowerCase();
+
+    if (arch === "x86-32") {
+      arch = "x32";
+    }
+
     return {
       version: matched[1].toLowerCase(),
       binary_type: type,
-      arch: matched[3].toLowerCase(),
+      arch: arch,
       os: matched[4].toLowerCase(),
       openjdk_impl: matched[5].toLowerCase(),
       heap_size: heap_size,
