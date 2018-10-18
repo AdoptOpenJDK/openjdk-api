@@ -272,7 +272,7 @@ function getNewStyleFileInfo(name) {
 
   // IF YOU ARE MODIFYING THIS THEN THE FILE MATCHING IS PROBABLY WRONG, MAKE SURE openjdk-website-backend, Release.sh IS UPDATED TOO
   //                   1) num   2) jre/jdk    3) arch        4) OS          5) impl         6)heap             7) timestamp/version                         8) extension
-  let regex = 'OpenJDK([0-9]+)U?(-jre|-jdk)?_([0-9a-zA-Z\-]+)_([0-9a-zA-Z]+)_([0-9a-zA-Z]+)_?([0-9a-zA-Z]+)?.*_(' + timestampRegex + '|' + versionRegex + ').(tar.gz|zip)';
+  let regex = 'OpenJDK([0-9]+)U?(-jre|-jdk)?_([0-9a-zA-Z-]+)_([0-9a-zA-Z]+)_([0-9a-zA-Z]+)_?([0-9a-zA-Z]+)?.*_(' + timestampRegex + '|' + versionRegex + ').(tar.gz|zip)';
   let matched = name.match(new RegExp(regex));
 
   if (matched != null) {
