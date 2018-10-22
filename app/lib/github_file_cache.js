@@ -66,10 +66,10 @@ module.exports = function () {
 
   function getCooldown() {
     if (auth !== undefined && auth !== null && auth.length > 0) {
-      // 1 min
-      return 6000;
+      // 1 min (in ms)
+      return 60000;
     } else {
-      // 30 min
+      // 30 min (in ms)
       return 1800000;
     }
   }
