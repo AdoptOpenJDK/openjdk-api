@@ -110,6 +110,7 @@ module.exports = function () {
   function formRequest(url) {
     const options = {
       url: url,
+      timeout: 15000, // 15 seconds
       headers: {
         'User-Agent': 'adoptopenjdk-admin openjdk-api'
       }
