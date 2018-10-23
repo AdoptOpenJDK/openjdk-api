@@ -23,10 +23,7 @@ module.exports = function () {
       if (response.statusCode === 200) {
         console.log("Remaining requests: %d", response.headers['x-ratelimit-remaining']);
 
-        task.cache[task.options.url] = {
-          cacheTime: Date.now() + getCooldown(),
-          body: JSON.parse(body)
-        };
+        task.cache[task.options.url].body = JSON.parse(body);
 
         saveCacheToDisk(task.cacheName, task.cache);
 
@@ -141,6 +138,11 @@ module.exports = function () {
         console.log("Cache hit cooldown: %s", options.url);
       } else {
         console.log("Queuing cache update: %s", options.url)
+
+        // Bump the cacheTime to prevent subsequent requests from
+        // queuing cache updates.
+        cache[options.url].cacheTime = Date.now() + getCooldown();
+
         cacheUpdateQueue.push({
           options: options,
           cacheName: cacheName,
@@ -151,6 +153,10 @@ module.exports = function () {
       deferred.resolve(cache[options.url].body);
     } else {
       console.log("Cache miss... immediately updating cache: %s", options.url);
+
+      // Bump the cacheTime to prevent subsequent requests from
+      // queuing cache updates.
+      cache[options.url].cacheTime = Date.now() + getCooldown();
 
       cacheUpdateQueue.push({
         options: options,
