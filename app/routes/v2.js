@@ -148,39 +148,23 @@ function sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, 
 
   const alNum = /^[a-zA-Z0-9]+$/;
 
-  if (ROUTErequestType !== 'info' && ROUTErequestType !== 'binary' && ROUTErequestType !== 'latestAssets') {
+  if (!['info', 'binary', 'latestAssets'].includes(ROUTErequestType)) {
     errorMsg = 'Unknown request type';
-  }
-
-  if (ROUTEbuildtype !== 'releases' && ROUTEbuildtype !== 'nightly') {
+  } else if (!['releases', 'nightly'].includes(ROUTEbuildtype)) {
     errorMsg = 'Unknown build type';
-  }
-
-  if (ROUTEversion.match(/^openjdk(([0-9]+)|-amber)$/) === null) {
+  } else if (!/^openjdk(?:[0-9]+|-amber)$/.test(ROUTEversion)) {
     errorMsg = 'Unknown version type';
-  }
-
-  if (ROUTEopenjdkImpl !== undefined && (ROUTEopenjdkImpl !== 'hotspot' && ROUTEopenjdkImpl !== 'openj9')) {
+  } else if (_.isString(ROUTEopenjdkImpl) && !['hotspot', 'openjdk'].includes(ROUTEopenjdkImpl.toLowerCase())) {
     errorMsg = 'Unknown openjdk_impl';
-  }
-
-  if (ROUTEos !== undefined && ROUTEos.match(alNum) === null) {
+  } else if (_.isString(ROUTEos) && !alNum.test(ROUTEos)) {
     errorMsg = 'Unknown os format';
-  }
-
-  if (ROUTEarch !== undefined && ROUTEarch.match(alNum) === null) {
+  } else if (_.isString(ROUTEarch) && !alNum.test(ROUTEarch)) {
     errorMsg = 'Unknown architecture format';
-  }
-
-  if (ROUTErelease !== undefined && ROUTErelease.match(/[a-zA-Z0-9-]+/) === null) {
+  } else if (_.isString(ROUTErelease) && !/^[a-zA-Z0-9-]+$/.test(ROUTErelease.toLowerCase())) {
     errorMsg = 'Unknown release format';
-  }
-
-  if (ROUTEtype !== undefined && (ROUTEtype !== 'jdk' && ROUTEtype !== 'jre')) {
+  } else if (_.isString(ROUTEtype) && !['jdk', 'jre'].includes(ROUTEtype.toLowerCase())) {
     errorMsg = 'Unknown type format';
-  }
-
-  if (ROUTEheapSize !== undefined && (ROUTEheapSize.toLowerCase() !== 'large' && ROUTEheapSize.toLowerCase() !== 'normal')) {
+  } else if (_.isString(ROUTEheapSize) && !['large', 'normal'].includes(ROUTEheapSize.toLowerCase())) {
     errorMsg = 'Unknown heap size';
   }
 
