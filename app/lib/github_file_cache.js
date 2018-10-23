@@ -13,31 +13,31 @@ module.exports = function () {
   const oldCache = loadCacheFromDisk("oldCache");
 
   const cacheUpdateQueue = async.queue((task, callback) => {
-    request(task.options, (error, response, body) => {
+    request(formRequest(task.url), (error, response, body) => {
       if (error !== null) {
         if (task.deferred) task.deferred.reject(formErrorResponse(error, response, body));
-        console.error("Early error getting: %s", task.options.url);
+        console.error("Early error getting: %s", task.url);
         return;
       }
 
       if (response.statusCode === 200) {
         console.log("Remaining requests: %d", response.headers['x-ratelimit-remaining']);
 
-        task.cache[task.options.url].body = JSON.parse(body);
+        task.cache[task.url].body = JSON.parse(body);
 
         saveCacheToDisk(task.cacheName, task.cache);
 
-        if (task.deferred) task.deferred.resolve(task.cache[task.options.url].body)
-      } else if (response.statusCode === 403 && task.cache.hasOwnProperty(task.options.url)) {
+        if (task.deferred) task.deferred.resolve(task.cache[task.url].body)
+      } else if (response.statusCode === 403 && task.cache.hasOwnProperty(task.url)) {
         // Hit the rate limit, just serve up old cache
 
         // do a short cooldown on this
-        task.cache[task.options.url].cacheTime = Date.now() + (getCooldown() / 2);
-        if (task.deferred) task.deferred.resolve(task.cache[task.options.url].body)
+        task.cache[task.url].cacheTime = Date.now() + (getCooldown() / 2);
+        if (task.deferred) task.deferred.resolve(task.cache[task.url].body)
       }
       else {
         if (task.deferred) task.deferred.reject(formErrorResponse(error, response, body));
-        console.error("Error getting: %s", task.options.url);
+        console.error("Error getting: %s", task.url);
       }
 
       callback();
@@ -131,35 +131,34 @@ module.exports = function () {
   // 4. If modified return new data and add it to the cache
   function cachedGet(url, cacheName, cache) {
     const deferred = Q.defer();
-    const options = formRequest(url);
 
-    if (cache.hasOwnProperty(options.url)) {
-      if (Date.now() < cache[options.url].cacheTime) {
-        console.log("Cache hit cooldown: %s", options.url);
+    if (cache.hasOwnProperty(url)) {
+      if (Date.now() < cache[url].cacheTime) {
+        console.log("Cache hit cooldown: %s", url);
       } else {
-        console.log("Queuing cache update: %s", options.url)
+        console.log("Queuing cache update: %s", url)
 
         // Bump the cacheTime to prevent subsequent requests from
         // queuing cache updates.
-        cache[options.url].cacheTime = Date.now() + getCooldown();
+        cache[url].cacheTime = Date.now() + getCooldown();
 
         cacheUpdateQueue.push({
-          options: options,
+          url: url,
           cacheName: cacheName,
           cache: cache
         });
       }
 
-      deferred.resolve(cache[options.url].body);
+      deferred.resolve(cache[url].body);
     } else {
-      console.log("Cache miss... immediately updating cache: %s", options.url);
+      console.log("Cache miss... immediately updating cache: %s", url);
 
       // Bump the cacheTime to prevent subsequent requests from
       // queuing cache updates.
-      cache[options.url].cacheTime = Date.now() + getCooldown();
+      cache[url].cacheTime = Date.now() + getCooldown();
 
       cacheUpdateQueue.push({
-        options: options,
+        url: url,
         cacheName: cacheName,
         cache: cache,
         deferred: deferred
