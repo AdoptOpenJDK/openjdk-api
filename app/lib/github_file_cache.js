@@ -15,8 +15,8 @@ module.exports = function () {
   const cacheUpdateQueue = async.queue((task, callback) => {
     request(formRequest(task.url), (error, response, body) => {
       if (error !== null) {
+        console.error("Error getting: %s", task.url, error, body);
         if (task.deferred) task.deferred.reject(formErrorResponse(error, response, body));
-        console.error("Early error getting: %s", task.url);
       } else if (response.statusCode === 200) {
         console.log("Remaining requests: %d", response.headers['x-ratelimit-remaining']);
 
@@ -27,14 +27,15 @@ module.exports = function () {
         if (task.deferred) task.deferred.resolve(task.cache[task.url].body)
       } else if (response.statusCode === 403 && task.cache.hasOwnProperty(task.url)) {
         // Hit the rate limit, just serve up old cache
+        console.log("The GitHub API rate limit has been reached.")
 
         // do a short cooldown on this
         task.cache[task.url].cacheTime = Date.now() + (getCooldown() / 2);
         if (task.deferred) task.deferred.resolve(task.cache[task.url].body)
       }
       else {
+        console.error("Error getting: %s", task.url, error, body);
         if (task.deferred) task.deferred.reject(formErrorResponse(error, response, body));
-        console.error("Error getting: %s", task.url);
       }
 
       callback();
