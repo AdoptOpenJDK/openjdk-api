@@ -154,7 +154,7 @@ function sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, 
     errorMsg = 'Unknown build type';
   } else if (!/^openjdk(?:[0-9]+|-amber)$/.test(ROUTEversion)) {
     errorMsg = 'Unknown version type';
-  } else if (_.isString(ROUTEopenjdkImpl) && !['hotspot', 'openjdk'].includes(ROUTEopenjdkImpl.toLowerCase())) {
+  } else if (_.isString(ROUTEopenjdkImpl) && !['hotspot', 'openj9'].includes(ROUTEopenjdkImpl.toLowerCase())) {
     errorMsg = 'Unknown openjdk_impl';
   } else if (_.isString(ROUTEos) && !alNum.test(ROUTEos)) {
     errorMsg = 'Unknown os format';
