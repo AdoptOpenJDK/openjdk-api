@@ -17,10 +17,7 @@ module.exports = function () {
       if (error !== null) {
         if (task.deferred) task.deferred.reject(formErrorResponse(error, response, body));
         console.error("Early error getting: %s", task.url);
-        return;
-      }
-
-      if (response.statusCode === 200) {
+      } else if (response.statusCode === 200) {
         console.log("Remaining requests: %d", response.headers['x-ratelimit-remaining']);
 
         task.cache[task.url].body = JSON.parse(body);
