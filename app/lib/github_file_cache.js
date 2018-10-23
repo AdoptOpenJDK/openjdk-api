@@ -158,6 +158,9 @@ module.exports = function () {
       // queuing cache updates.
       cache[url].cacheTime = Date.now() + getCooldown();
 
+      // Default response until the cache is populated for the first time.
+      cache[url].body = [];
+
       cacheUpdateQueue.push({
         url: url,
         cacheName: cacheName,
