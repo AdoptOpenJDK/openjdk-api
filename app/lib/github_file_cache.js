@@ -156,9 +156,10 @@ module.exports = function () {
 
       // Bump the cacheTime to prevent subsequent requests from
       // queuing cache updates.
-      cache[url].cacheTime = Date.now() + getCooldown();
+      cache[url] = {cacheTime: Date.now() + getCooldown()};
 
-      // Default response until the cache is populated for the first time.
+      // Default response (for other users) until the cache
+      // is populated for the first time.
       cache[url].body = [];
 
       cacheUpdateQueue.push({
