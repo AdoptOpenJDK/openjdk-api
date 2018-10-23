@@ -2,6 +2,7 @@ const request = require('request');
 const _ = require('underscore');
 const fs = require('fs');
 const Q = require('q');
+const async = require('async');
 
 // This caches data returned by the github api to speed up response time and avoid going over github api rate limiting
 module.exports = function () {
@@ -10,6 +11,41 @@ module.exports = function () {
 
   const newCache = loadCacheFromDisk("newCache");
   const oldCache = loadCacheFromDisk("oldCache");
+
+  const cacheUpdateQueue = async.queue((task, callback) => {
+    request(task.options, (error, response, body) => {
+      if (error !== null) {
+        if (task.deferred) task.deferred.reject(formErrorResponse(error, response, body));
+        console.error("Early error getting: %s", task.options.url);
+        return;
+      }
+
+      if (response.statusCode === 200) {
+        console.log("Remaining requests: %d", response.headers['x-ratelimit-remaining']);
+
+        task.cache[task.options.url] = {
+          cacheTime: Date.now() + getCooldown(),
+          body: JSON.parse(body)
+        };
+
+        saveCacheToDisk(task.cacheName, task.cache);
+
+        if (task.deferred) task.deferred.resolve(task.cache[task.options.url].body)
+      } else if (response.statusCode === 403 && task.cache.hasOwnProperty(task.options.url)) {
+        // Hit the rate limit, just serve up old cache
+
+        // do a short cooldown on this
+        task.cache[task.options.url].cacheTime = Date.now() + (getCooldown() / 2);
+        if (task.deferred) task.deferred.resolve(task.cache[task.options.url].body)
+      }
+      else {
+        if (task.deferred) task.deferred.reject(formErrorResponse(error, response, body));
+        console.error("Error getting: %s", task.options.url);
+      }
+
+      callback();
+    });
+  }, 3);
 
   function loadCacheFromDisk(cacheName) {
     try {
@@ -100,39 +136,27 @@ module.exports = function () {
     const deferred = Q.defer();
     const options = formRequest(url);
 
-    if (cache.hasOwnProperty(options.url) && Date.now() < cache[options.url].cacheTime) {
-      console.log("cache hit cooldown");
+    if (cache.hasOwnProperty(options.url)) {
+      if (Date.now() < cache[options.url].cacheTime) {
+        console.log("Cache hit cooldown: %s", options.url);
+      } else {
+        console.log("Queuing cache update: %s", options.url)
+        cacheUpdateQueue.push({
+          options: options,
+          cacheName: cacheName,
+          cache: cache
+        });
+      }
+
       deferred.resolve(cache[options.url].body);
     } else {
-      console.log("Checking " + options.url);
-      request(options, function (error, response, body) {
-        if (error !== null) {
-          deferred.reject(formErrorResponse(error, response, body));
-          return;
-        }
+      console.log("Cache miss... immediately updating cache: %s", options.url);
 
-        if (response.statusCode === 200) {
-
-          console.log("Remaining requests: " + response.headers['x-ratelimit-remaining']);
-
-          cache[options.url] = {
-            cacheTime: Date.now() + getCooldown(),
-            body: JSON.parse(body)
-          };
-
-          saveCacheToDisk(cacheName, cache);
-
-          deferred.resolve(cache[options.url].body)
-        } else if (response.statusCode === 403 && cache.hasOwnProperty(options.url)) {
-          // Hit the rate limit, just serve up old cache
-
-          // do a short cooldown on this
-          cache[options.url].cacheTime = Date.now() + (getCooldown() / 2);
-          deferred.resolve(cache[options.url].body)
-        }
-        else {
-          deferred.reject(formErrorResponse(error, response, body));
-        }
+      cacheUpdateQueue.push({
+        options: options,
+        cacheName: cacheName,
+        cache: cache,
+        deferred: deferred
       });
     }
     return deferred.promise;
