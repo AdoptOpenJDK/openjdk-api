@@ -33,9 +33,11 @@ module.exports = function () {
 
         if (task.deferred) task.deferred.resolve(task.cache[task.url].body)
       } else if (response.statusCode === 404) {
-        console.error("Preventing future checks due to 404 Not Found for: %s", task.url);
+        console.error("Delaying future checks due to 404 Not Found for: %s", task.url);
 
-        task.cache[task.url].cacheTime = new Date(2077, 01, 01);
+        // Wait 1 hour before retrying something that returned 404.
+        // It's possible a new repo was checked before it existed.
+        task.cache[task.url].cacheTime = Date.now() + (60 * 60 * 1000);
         saveCacheToDisk(task.cacheName, task.cache);
 
         if (task.deferred) task.deferred.reject(formErrorResponse(error, response, body));
@@ -129,7 +131,7 @@ module.exports = function () {
   }
 
 
-  // Try to get a cached response, and if needed (due to new URL or or expired data)
+  // Try to get a cached response, and if needed (due to new URL or expired data)
   // asynchronously enqueue a request to fill/update the cache.
   function cachedGet(url, cacheName, cache) {
     const deferred = Q.defer();
