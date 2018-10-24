@@ -21,20 +21,26 @@ module.exports = function () {
         console.log("Remaining requests: %d", response.headers['x-ratelimit-remaining']);
 
         task.cache[task.url].body = JSON.parse(body);
-
         saveCacheToDisk(task.cacheName, task.cache);
 
         if (task.deferred) task.deferred.resolve(task.cache[task.url].body)
-      } else if (response.statusCode === 403 && task.cache.hasOwnProperty(task.url)) {
+      } else if (response.statusCode === 403) {
         // Hit the rate limit, just serve up old cache
         console.log("The GitHub API rate limit has been reached.")
 
         // do a short cooldown on this
         task.cache[task.url].cacheTime = Date.now() + (getCooldown() / 2);
+
         if (task.deferred) task.deferred.resolve(task.cache[task.url].body)
-      }
-      else {
-        console.error("Error getting: %s", task.url, error, body);
+      } else if (response.statusCode === 404) {
+        console.error("Preventing future checks due to 404 Not Found for: %s", task.url);
+
+        task.cache[task.url].cacheTime = new Date(2077, 01, 01);
+        saveCacheToDisk(task.cacheName, task.cache);
+
+        if (task.deferred) task.deferred.reject(formErrorResponse(error, response, body));
+      } else {
+        console.error("Error (statusCode %d) getting: %s", response.statusCode, task.url, error, body);
         if (task.deferred) task.deferred.reject(formErrorResponse(error, response, body));
       }
 
