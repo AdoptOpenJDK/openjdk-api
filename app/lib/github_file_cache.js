@@ -129,11 +129,8 @@ module.exports = function () {
   }
 
 
-  // Get from url, and store the result into a cache
-  // 1. If last check was < 2 min ago, return last result
-  // 2. Check if file has been modified
-  // 3. If file is not modified return cached value
-  // 4. If modified return new data and add it to the cache
+  // Try to get a cached response, and if needed (due to new URL or or expired data)
+  // asynchronously enqueue a request to fill/update the cache.
   function cachedGet(url, cacheName, cache) {
     const deferred = Q.defer();
 
