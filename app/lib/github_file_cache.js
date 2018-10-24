@@ -12,6 +12,11 @@ module.exports = function () {
   const newCache = loadCacheFromDisk("newCache");
   const oldCache = loadCacheFromDisk("oldCache");
 
+  // How many tasks can run in parallel.
+  // 3 was chosen for the common 1 new repo, 2 old repo calls, but realistically the queue length
+  // will vary over time.
+  const QUEUE_WORKER_CONCURRENCY = 3;
+
   const cacheUpdateQueue = async.queue((task, callback) => {
     request(formRequest(task.url), (error, response, body) => {
       if (error !== null) {
@@ -49,7 +54,7 @@ module.exports = function () {
 
       callback();
     });
-  }, 3);
+  }, QUEUE_WORKER_CONCURRENCY);
 
   function loadCacheFromDisk(cacheName) {
     try {
