@@ -144,7 +144,6 @@ module.exports = function () {
 
     if (cache.hasOwnProperty(url)) {
       if (Date.now() < cache[url].cacheTime) {
-        console.log("Cache hit cooldown: %s", url);
         deferred.resolve(cache[url].body);
       } else {
         console.log("Queuing cache update: %s", url);
