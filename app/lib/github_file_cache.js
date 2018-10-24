@@ -18,6 +18,7 @@ module.exports = function () {
         console.error("Error getting: %s", task.url, error, body);
         if (task.deferred) task.deferred.reject(formErrorResponse(error, response, body));
       } else if (response.statusCode === 200) {
+        console.log("Updating cached: %s", task.url);
         console.log("Remaining requests: %d", response.headers['x-ratelimit-remaining']);
 
         task.cache[task.url].body = JSON.parse(body);
@@ -139,21 +140,33 @@ module.exports = function () {
     if (cache.hasOwnProperty(url)) {
       if (Date.now() < cache[url].cacheTime) {
         console.log("Cache hit cooldown: %s", url);
+        deferred.resolve(cache[url].body);
       } else {
-        console.log("Queuing cache update: %s", url)
+        console.log("Queuing cache update: %s", url);
+
+        let task = {
+          url: url,
+          cacheName: cacheName,
+          cache: cache
+        };
+
+        // If we're past the cooldown period by some time (e.g. 15m),
+        // go ahead and try to get the client the latest content despite
+        // introducing a delay.  If we're still within the window, just
+        // send the current content as "close enough".  Regardless, queue
+        // up a cache update further below.
+        if (Date.now() - cache[url].cacheTime > 900000) {
+          task.deferred = deferred;
+        } else {
+          deferred.resolve(cache[url].body);
+        }
 
         // Bump the cacheTime to prevent subsequent requests from
         // queuing cache updates.
         cache[url].cacheTime = Date.now() + getCooldown();
 
-        cacheUpdateQueue.push({
-          url: url,
-          cacheName: cacheName,
-          cache: cache
-        });
+        cacheUpdateQueue.push(task);
       }
-
-      deferred.resolve(cache[url].body);
     } else {
       console.log("Cache miss... immediately updating cache: %s", url);
 
