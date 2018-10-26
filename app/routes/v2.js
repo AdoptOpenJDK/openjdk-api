@@ -63,7 +63,7 @@ function filterReleasesOnReleaseType(data, isRelease) {
     return data;
   }
 
-  return filterReleaseOnProperty(data, "release", isRelease)
+  return filterReleaseOnProperty(data, 'release', isRelease);
 }
 
 function fixPrereleaseTagOnOldRepoData(data, isRelease) {
@@ -87,7 +87,7 @@ function sendData(data, res) {
 }
 
 function redirectToBinary(data, res) {
-  if (data.constructor === Array) {
+  if (Array.isArray(data)) {
     if (data.length === 0) {
       res.status(404);
       res.send('Not found');
@@ -202,7 +202,7 @@ module.exports = function (req, res) {
 
   cache.getInfoForVersion(ROUTEversion, ROUTEbuildtype)
     .then(function (apiData) {
-      let isRelease = ROUTEbuildtype.indexOf("releases") >= 0;
+      let isRelease = ROUTEbuildtype === 'releases';
 
       let data = _.chain(apiData);
 
@@ -217,26 +217,25 @@ module.exports = function (req, res) {
       data = filterReleaseOnBinaryProperty(data, 'binary_type', ROUTEtype);
       data = filterReleaseOnBinaryProperty(data, 'heap_size', ROUTEheapSize);
 
-      //dont look at only the latest release for the latestAssets call
+      // don't look at only the latest release for the latestAssets call
       if (ROUTErequestType !== 'latestAssets') {
         data = filterRelease(data, ROUTErelease);
       }
 
       data = data.value();
 
-      if (ROUTErequestType === 'info') {
-        sendData(data, res);
-      } else if (ROUTErequestType === 'binary') {
-        redirectToBinary(data, res);
-      } else if (ROUTErequestType === 'latestAssets') {
-        findLatestAssets(data, res);
-      } else {
-        res.status(404);
-        res.send('Not found');
+      switch (ROUTErequestType) {
+        case 'info':
+          return sendData(data, res);
+        case 'binary':
+          return redirectToBinary(data, res);
+        case 'latestAssets':
+          return findLatestAssets(data, res);
+        default:
+          return res.status(404).send('Not found');
       }
     })
     .catch(function (err) {
-
       console.log(err);
       if (err.err) {
         res.status(500);
@@ -260,22 +259,12 @@ function getNewStyleFileInfo(name) {
   let matched = name.match(new RegExp(regex));
 
   if (matched != null) {
-
-    let heap_size = 'normal';
-
-    if ((matched[6] !== undefined) && matched[6].toLowerCase() === 'linuxxl') {
-      heap_size = 'large';
-    }
-
-    let type = "jdk";
-    if (matched[2] !== undefined) {
-      type = matched[2].replace("-", "");
-    }
+    let heap_size = (matched[6] !== undefined && matched[6].toLowerCase() === 'linuxxl') ? 'large' : 'normal';
+    let type = matched[2] !== undefined ? matched[2].replace('-', '') : 'jdk';
 
     let arch = matched[3].toLowerCase();
-
-    if (arch === "x86-32") {
-      arch = "x32";
+    if (arch === 'x86-32') {
+      arch = 'x32';
     }
 
     return {
@@ -297,28 +286,20 @@ function getOldStyleFileInfo(name) {
   let regex = 'OpenJDK([0-9]+)U?(-[0-9a-zA-Z]+)?_([0-9a-zA-Z]+)_([0-9a-zA-Z]+).*_?(' + timestampRegex + ')?.(tar.gz|zip)';
 
   let matched = name.match(new RegExp(regex));
-
   if (matched === null) {
     return null;
   }
 
-  let openjdk_impl = 'hotspot';
-  if (matched[2] !== undefined) {
-    openjdk_impl = matched[2].replace('-', '');
-  }
+  let openjdk_impl = matched[2] !== undefined ? matched[2].replace('-', '') : 'hotspot';
 
   let os = matched[4].toLowerCase();
-
-  if (os === "win") {
+  if (os === 'win') {
     os = 'windows';
-  } else if (os === "linuxlh") {
+  } else if (os === 'linuxlh') {
     os = 'linux';
   }
 
-  let heap_size = "normal";
-  if (name.indexOf("LinuxLH") >= 0) {
-    heap_size = "large";
-  }
+  let heap_size = name.indexOf('LinuxLH') >= 0 ? 'large' : 'normal';
 
   return {
     version: matched[1].toLowerCase(),
@@ -334,14 +315,13 @@ function getOldStyleFileInfo(name) {
 function getAmberStyleFileInfo(name, release) {
   let timestampRegex = '[0-9]{4}[0-9]{2}[0-9]{2}[0-9]{2}[0-9]{2}';
   let regex = 'OpenJDK-AMBER_([0-9a-zA-Z]+)_([0-9a-zA-Z]+)_(' + timestampRegex + ').(tar.gz|zip)';
-  let matched = name.match(new RegExp(regex));
 
+  let matched = name.match(new RegExp(regex));
   if (matched === null) {
     return null;
   }
 
   let versionMatcher = release.tag_name.match(new RegExp('jdk-([0-9]+).*'));
-
   if (versionMatcher === null) {
     return null;
   }
@@ -358,16 +338,7 @@ function getAmberStyleFileInfo(name, release) {
 }
 
 function formBinaryAssetInfo(asset, release) {
-  let fileInfo = getNewStyleFileInfo(asset.name);
-
-  if (fileInfo === null) {
-    fileInfo = getOldStyleFileInfo(asset.name)
-  }
-
-  if (fileInfo === null) {
-    fileInfo = getAmberStyleFileInfo(asset.name, release)
-  }
-
+  let fileInfo = getNewStyleFileInfo(asset.name) || getOldStyleFileInfo(asset.name) || getAmberStyleFileInfo(asset.name, release);
   if (fileInfo === null) {
     return null;
   }
@@ -424,7 +395,6 @@ function githubReleaseToAdoptRelease(release) {
 }
 
 function githubDataToAdoptApi(githubApiData) {
-
   return githubApiData
     .map(githubReleaseToAdoptRelease)
     .filter(function (release) {
