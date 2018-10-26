@@ -152,7 +152,7 @@ function sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, 
     errorMsg = 'Unknown request type';
   } else if (!['releases', 'nightly'].includes(ROUTEbuildtype)) {
     errorMsg = 'Unknown build type';
-  } else if (!/^openjdk(?:[0-9]+|-amber)$/.test(ROUTEversion)) {
+  } else if (!/^openjdk(?:\d{1,2}|-amber)$/.test(ROUTEversion)) {
     errorMsg = 'Unknown version type';
   } else if (_.isString(ROUTEopenjdkImpl) && !['hotspot', 'openj9'].includes(ROUTEopenjdkImpl.toLowerCase())) {
     errorMsg = 'Unknown openjdk_impl';
