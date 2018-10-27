@@ -251,11 +251,11 @@ function getNewStyleFileInfo(name) {
   let timestampRegex = '[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}';
 
   //                  11 style       | 8 Style         | 9/10 style
-  let versionRegex = '[0-9]{2}_[0-9]+|8u[0-9]+-?b[0-9]+|[0-9]+\\.[0-9]+\\.[0-9]+_[0-9]+';
+  let versionRegex = '[0-9]{2}_[0-9]+|8u[0-9]+-?b[0-9X]+|[0-9]+\\.[0-9]+\\.[0-9]+_[0-9]+';
 
   // IF YOU ARE MODIFYING THIS THEN THE FILE MATCHING IS PROBABLY WRONG, MAKE SURE openjdk-website-backend, Release.sh IS UPDATED TOO
-  //                   1) num   2) jre/jdk    3) arch        4) OS          5) impl         6)heap             7) timestamp/version                         8) extension
-  let regex = 'OpenJDK([0-9]+)U?(-jre|-jdk)?_([0-9a-zA-Z-]+)_([0-9a-zA-Z]+)_([0-9a-zA-Z]+)_?([0-9a-zA-Z]+)?.*_(' + timestampRegex + '|' + versionRegex + ').(tar.gz|zip)';
+  //                   1) num   2) jre/jdk    3) arch        4) OS          5) impl         6)heap             7) timestamp/version                         8) Random suffix 9) extension
+  let regex = 'OpenJDK([0-9]+)U?(-jre|-jdk)?_([0-9a-zA-Z-]+)_([0-9a-zA-Z]+)_([0-9a-zA-Z]+)_?([0-9a-zA-Z]+)?.*_(' + timestampRegex + '|' + versionRegex + ')([-0-9A-Za-z]+)?.(tar.gz|zip)';
   let matched = name.match(new RegExp(regex));
 
   if (matched != null) {
@@ -274,7 +274,7 @@ function getNewStyleFileInfo(name) {
       os: matched[4].toLowerCase(),
       openjdk_impl: matched[5].toLowerCase(),
       heap_size: heap_size,
-      extension: matched[8].toLowerCase(),
+      extension: matched[9].toLowerCase(),
     }
   } else {
     return null;
