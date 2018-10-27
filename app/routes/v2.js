@@ -388,6 +388,7 @@ function githubReleaseToAdoptRelease(release) {
 
   return {
     release_name: release.tag_name,
+    release_link: release.html_url,
     timestamp: release.published_at,
     release: !release.prerelease,
     binaries: binaries

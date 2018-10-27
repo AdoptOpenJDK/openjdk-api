@@ -162,6 +162,7 @@ function processJSON(importedJSON, ROUTEplatform, ROUTEbuild, ROUTEbuildtype) {
       if(atLeastOneAsset) {
         var releaseObj = new Object();
         releaseObj.release_name = eachRelease.name;
+        releaseObj.release_link = eachRelease.html_url;
         releaseObj.timestamp = eachRelease.published_at;
         releaseObj.binaries = assetArray;
         exportedJSON.push(releaseObj);
