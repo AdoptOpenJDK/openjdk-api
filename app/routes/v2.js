@@ -250,31 +250,31 @@ module.exports = function (req, res) {
 function getNewStyleFileInfo(name) {
   let timestampRegex = '[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}';
 
-  //                  11 style       | 8 Style         | 9/10 style
+  //                  11 style       | 8 Style          | 9/10 style
   let versionRegex = '[0-9]{2}_[0-9]+|8u[0-9]+-?b[0-9X]+|[0-9]+\\.[0-9]+\\.[0-9]+_[0-9]+';
 
   // IF YOU ARE MODIFYING THIS THEN THE FILE MATCHING IS PROBABLY WRONG, MAKE SURE openjdk-website-backend, Release.sh IS UPDATED TOO
-  //                   1) num   2) jre/jdk    3) arch        4) OS          5) impl         6)heap             7) timestamp/version                         8) Random suffix 9) extension
-  let regex = 'OpenJDK([0-9]+)U?(-jre|-jdk)?_([0-9a-zA-Z-]+)_([0-9a-zA-Z]+)_([0-9a-zA-Z]+)_?([0-9a-zA-Z]+)?.*_(' + timestampRegex + '|' + versionRegex + ')([-0-9A-Za-z]+)?.(tar.gz|zip)';
+  //                  1) num          2) jre/jdk          3) arch                4) OS               5) impl                6)heap                   7) timestamp/version                                         8) Random suffix               9) extension
+  let regex = 'OpenJDK(?<num>[0-9]+)U?(?<type>-jre|-jdk)?_(?<arch>[0-9a-zA-Z-]+)_(?<os>[0-9a-zA-Z]+)_(?<impl>[0-9a-zA-Z]+)_?(?<heap>[0-9a-zA-Z]+)?.*_(?<ts_or_version>' + timestampRegex + '|' + versionRegex + ')(?<rand_suffix>[-0-9A-Za-z]+)?.(?<extension>tar.gz|zip)';
   let matched = name.match(new RegExp(regex));
 
   if (matched != null) {
-    let heap_size = (matched[6] !== undefined && matched[6].toLowerCase() === 'linuxxl') ? 'large' : 'normal';
-    let type = matched[2] !== undefined ? matched[2].replace('-', '') : 'jdk';
+    let heap_size = (matched.groups.heap && matched.groups.heap.toLowerCase() === 'linuxxl') ? 'large' : 'normal';
+    let type = matched.groups.type ? matched.groups.type.replace('-', '') : 'jdk';
 
-    let arch = matched[3].toLowerCase();
+    let arch = matched.groups.arch.toLowerCase();
     if (arch === 'x86-32') {
       arch = 'x32';
     }
 
     return {
-      version: matched[1].toLowerCase(),
+      version: matched.groups.num,
       binary_type: type,
       arch: arch,
-      os: matched[4].toLowerCase(),
-      openjdk_impl: matched[5].toLowerCase(),
+      os: matched.groups.os.toLowerCase(),
+      openjdk_impl: matched.groups.impl.toLowerCase(),
       heap_size: heap_size,
-      extension: matched[9].toLowerCase(),
+      extension: matched.groups.extension.toLowerCase(),
     }
   } else {
     return null;
@@ -283,16 +283,16 @@ function getNewStyleFileInfo(name) {
 
 function getOldStyleFileInfo(name) {
   let timestampRegex = '[0-9]{4}[0-9]{2}[0-9]{2}[0-9]{2}[0-9]{2}';
-  let regex = 'OpenJDK([0-9]+)U?(-[0-9a-zA-Z]+)?_([0-9a-zA-Z]+)_([0-9a-zA-Z]+).*_?(' + timestampRegex + ')?.(tar.gz|zip)';
+  let regex = 'OpenJDK(?<num>[0-9]+)U?(?<type>-[0-9a-zA-Z]+)?_(?<arch>[0-9a-zA-Z]+)_(?<os>[0-9a-zA-Z]+).*_?(?<ts>' + timestampRegex + ')?.(?<extension>tar.gz|zip)';
 
   let matched = name.match(new RegExp(regex));
   if (matched === null) {
     return null;
   }
 
-  let openjdk_impl = matched[2] !== undefined ? matched[2].replace('-', '') : 'hotspot';
+  let openjdk_impl = matched.groups.type ? matched.groups.type.replace('-', '') : 'hotspot';
 
-  let os = matched[4].toLowerCase();
+  let os = matched.groups.os.toLowerCase();
   if (os === 'win') {
     os = 'windows';
   } else if (os === 'linuxlh') {
@@ -302,37 +302,37 @@ function getOldStyleFileInfo(name) {
   let heap_size = name.indexOf('LinuxLH') >= 0 ? 'large' : 'normal';
 
   return {
-    version: matched[1].toLowerCase(),
+    version: matched.groups.num,
     openjdk_impl: openjdk_impl.toLowerCase(),
     binary_type: 'jdk',
-    arch: matched[3].toLowerCase(),
+    arch: matched.groups.arch.toLowerCase(),
     os: os,
-    extension: matched[6].toLowerCase(),
+    extension: matched.groups.extension.toLowerCase(),
     heap_size: heap_size
   };
 }
 
 function getAmberStyleFileInfo(name, release) {
   let timestampRegex = '[0-9]{4}[0-9]{2}[0-9]{2}[0-9]{2}[0-9]{2}';
-  let regex = 'OpenJDK-AMBER_([0-9a-zA-Z]+)_([0-9a-zA-Z]+)_(' + timestampRegex + ').(tar.gz|zip)';
+  let regex = 'OpenJDK-AMBER_(?<arch>[0-9a-zA-Z]+)_(?<os>[0-9a-zA-Z]+)_(?<ts>' + timestampRegex + ').(?<extension>tar.gz|zip)';
 
   let matched = name.match(new RegExp(regex));
   if (matched === null) {
     return null;
   }
 
-  let versionMatcher = release.tag_name.match(new RegExp('jdk-([0-9]+).*'));
+  let versionMatcher = release.tag_name.match(new RegExp('jdk-(?<num>[0-9]+).*'));
   if (versionMatcher === null) {
     return null;
   }
 
   return {
-    arch: matched[1],
-    os: matched[2],
+    arch: matched.groups.arch,
+    os: matched.groups.os,
     binary_type: 'jdk',
     openjdk_impl: 'hotspot',
-    version: versionMatcher[1],
-    extension: matched[4],
+    version: versionMatcher.groups.num,
+    extension: matched.groups.extension,
     heap_size: 'normal'
   };
 }
