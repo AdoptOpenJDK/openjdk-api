@@ -160,7 +160,19 @@ function sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, 
     errorMsg = 'Unknown os format';
   } else if (_.isString(ROUTEarch) && !alNum.test(ROUTEarch)) {
     errorMsg = 'Unknown architecture format';
-  } else if (_.isString(ROUTErelease) && !/^[a-zA-Z0-9-]+$/.test(ROUTErelease.toLowerCase())) {
+  } else if (_.isString(ROUTErelease) && !/^[a-z0-9_.+-]+$/.test(ROUTErelease.toLowerCase())) {
+    // possible release formats, make sure the regex matches these:
+    // jdk8u162-b12_openj9-0.8.0
+    // jdk8u181-b13_openj9-0.9.0
+    // jdk8u192-b13-0.11.0
+    // jdk-9.0.4+11
+    // jdk-9.0.4+12_openj9-0.9.0
+    // jdk-9+181
+    // jdk-10.0.1+10
+    // jdk-10.0.2+13_openj9-0.9.0
+    // jdk-10.0.2+13
+    // jdk-11+28
+    // jdk-11.0.1+13
     errorMsg = 'Unknown release format';
   } else if (_.isString(ROUTEtype) && !['jdk', 'jre'].includes(ROUTEtype.toLowerCase())) {
     errorMsg = 'Unknown type format';
@@ -256,6 +268,7 @@ function getNewStyleFileInfo(name) {
   // IF YOU ARE MODIFYING THIS THEN THE FILE MATCHING IS PROBABLY WRONG, MAKE SURE openjdk-website-backend, Release.sh IS UPDATED TOO
   //                  1) num          2) jre/jdk          3) arch                4) OS               5) impl                6)heap                   7) timestamp/version                                         8) Random suffix               9) extension
   let regex = 'OpenJDK(?<num>[0-9]+)U?(?<type>-jre|-jdk)?_(?<arch>[0-9a-zA-Z-]+)_(?<os>[0-9a-zA-Z]+)_(?<impl>[0-9a-zA-Z]+)_?(?<heap>[0-9a-zA-Z]+)?.*_(?<ts_or_version>' + timestampRegex + '|' + versionRegex + ')(?<rand_suffix>[-0-9A-Za-z]+)?.(?<extension>tar.gz|zip)';
+
   let matched = name.match(new RegExp(regex));
 
   if (matched != null) {
