@@ -1,5 +1,4 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const RateLimit = require('express-rate-limit');
 const mds = require('markdown-serve');
 const path = require('path');
@@ -34,7 +33,6 @@ const limiter = new RateLimit({
 
 // apply to all requests
 app.use(limiter);
-app.use(bodyParser.urlencoded({ extended: true }));
 
 // markdown serving
 app.set('views', path.resolve(__dirname, './markdown-layouts'));
