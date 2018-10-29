@@ -44,18 +44,19 @@ app.use(function (req, res, next) {
   next();
 });
 
-app.get('/', function(req, res){
-  res.redirect('./README');
-});
+app.get('/', (req, res) => res.redirect('./README'));
+app.get('/README.v1.md', (req, res) => res.redirect('./README.v1'));
 
-app.get('/README.v1.md', function(req, res){
-  res.redirect('./README.v1');
+const mdServer = new mds.MarkdownServer(path.resolve(__dirname, ''));
+app.get(['/README', '/README.v1'], (req, res, next) => {
+  mdServer.get(req.path, (err, result) => {
+    if (err) {
+      console.error(err);
+      return next();
+    }
+    res.render('layout', { markdownFile: result });
+  });
 });
-
-app.use('/', mds.middleware({
-  rootDirectory: path.resolve(__dirname, ''),
-  view: 'layout'
-}));
 
 // import all of the 'routes' JS files
 require('./app/routes')(app, {});
