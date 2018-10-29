@@ -160,7 +160,19 @@ function sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, 
     errorMsg = 'Unknown os format';
   } else if (_.isString(ROUTEarch) && !alNum.test(ROUTEarch)) {
     errorMsg = 'Unknown architecture format';
-  } else if (_.isString(ROUTErelease) && !/^[a-zA-Z0-9-]+$/.test(ROUTErelease.toLowerCase())) {
+  } else if (_.isString(ROUTErelease) && !/^[a-z0-9_.+-]+$/.test(ROUTErelease.toLowerCase())) {
+    // possible release formats, make sure the regex matches these:
+    // jdk8u162-b12_openj9-0.8.0
+    // jdk8u181-b13_openj9-0.9.0
+    // jdk8u192-b13-0.11.0
+    // jdk-9.0.4+11
+    // jdk-9.0.4+12_openj9-0.9.0
+    // jdk-9+181
+    // jdk-10.0.1+10
+    // jdk-10.0.2+13_openj9-0.9.0
+    // jdk-10.0.2+13
+    // jdk-11+28
+    // jdk-11.0.1+13
     errorMsg = 'Unknown release format';
   } else if (_.isString(ROUTEtype) && !['jdk', 'jre'].includes(ROUTEtype.toLowerCase())) {
     errorMsg = 'Unknown type format';
