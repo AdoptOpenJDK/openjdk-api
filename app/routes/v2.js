@@ -63,7 +63,7 @@ function filterReleasesOnReleaseType(data, isRelease) {
     return data;
   }
 
-  return filterReleaseOnProperty(data, "release", isRelease)
+  return filterReleaseOnProperty(data, 'release', isRelease);
 }
 
 function fixPrereleaseTagOnOldRepoData(data, isRelease) {
@@ -87,7 +87,7 @@ function sendData(data, res) {
 }
 
 function redirectToBinary(data, res) {
-  if (data.constructor === Array) {
+  if (Array.isArray(data)) {
     if (data.length === 0) {
       res.status(404);
       res.send('Not found');
@@ -152,7 +152,7 @@ function sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, 
     errorMsg = 'Unknown request type';
   } else if (!['releases', 'nightly'].includes(ROUTEbuildtype)) {
     errorMsg = 'Unknown build type';
-  } else if (!/^openjdk(?:[0-9]+|-amber)$/.test(ROUTEversion)) {
+  } else if (!/^openjdk(?:\d{1,2}|-amber)$/.test(ROUTEversion)) {
     errorMsg = 'Unknown version type';
   } else if (_.isString(ROUTEopenjdkImpl) && !['hotspot', 'openj9'].includes(ROUTEopenjdkImpl.toLowerCase())) {
     errorMsg = 'Unknown openjdk_impl';
@@ -214,7 +214,7 @@ module.exports = function (req, res) {
 
   cache.getInfoForVersion(ROUTEversion, ROUTEbuildtype)
     .then(function (apiData) {
-      let isRelease = ROUTEbuildtype.indexOf("releases") >= 0;
+      let isRelease = ROUTEbuildtype === 'releases';
 
       let data = _.chain(apiData);
 
@@ -229,26 +229,25 @@ module.exports = function (req, res) {
       data = filterReleaseOnBinaryProperty(data, 'binary_type', ROUTEtype);
       data = filterReleaseOnBinaryProperty(data, 'heap_size', ROUTEheapSize);
 
-      //dont look at only the latest release for the latestAssets call
+      // don't look at only the latest release for the latestAssets call
       if (ROUTErequestType !== 'latestAssets') {
         data = filterRelease(data, ROUTErelease);
       }
 
       data = data.value();
 
-      if (ROUTErequestType === 'info') {
-        sendData(data, res);
-      } else if (ROUTErequestType === 'binary') {
-        redirectToBinary(data, res);
-      } else if (ROUTErequestType === 'latestAssets') {
-        findLatestAssets(data, res);
-      } else {
-        res.status(404);
-        res.send('Not found');
+      switch (ROUTErequestType) {
+        case 'info':
+          return sendData(data, res);
+        case 'binary':
+          return redirectToBinary(data, res);
+        case 'latestAssets':
+          return findLatestAssets(data, res);
+        default:
+          return res.status(404).send('Not found');
       }
     })
     .catch(function (err) {
-
       console.log(err);
       if (err.err) {
         res.status(500);
@@ -263,41 +262,32 @@ module.exports = function (req, res) {
 function getNewStyleFileInfo(name) {
   let timestampRegex = '[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}';
 
-  //                  11 style       | 8 Style         | 9/10 style
+  //                  11 style       | 8 Style          | 9/10 style
   let versionRegex = '[0-9]{2}_[0-9]+|8u[0-9]+-?b[0-9X]+|[0-9]+\\.[0-9]+\\.[0-9]+_[0-9]+';
 
   // IF YOU ARE MODIFYING THIS THEN THE FILE MATCHING IS PROBABLY WRONG, MAKE SURE openjdk-website-backend, Release.sh IS UPDATED TOO
-  //                   1) num   2) jre/jdk    3) arch        4) OS          5) impl         6)heap             7) timestamp/version                         8) Random suffix 9) extension
-  let regex = 'OpenJDK([0-9]+)U?(-jre|-jdk)?_([0-9a-zA-Z-]+)_([0-9a-zA-Z]+)_([0-9a-zA-Z]+)_?([0-9a-zA-Z]+)?.*_(' + timestampRegex + '|' + versionRegex + ')([-0-9A-Za-z]+)?.(tar.gz|zip)';
+  //                  1) num          2) jre/jdk          3) arch                4) OS               5) impl                6)heap                   7) timestamp/version                                         8) Random suffix               9) extension
+  let regex = 'OpenJDK(?<num>[0-9]+)U?(?<type>-jre|-jdk)?_(?<arch>[0-9a-zA-Z-]+)_(?<os>[0-9a-zA-Z]+)_(?<impl>[0-9a-zA-Z]+)_?(?<heap>[0-9a-zA-Z]+)?.*_(?<ts_or_version>' + timestampRegex + '|' + versionRegex + ')(?<rand_suffix>[-0-9A-Za-z]+)?.(?<extension>tar.gz|zip)';
+
   let matched = name.match(new RegExp(regex));
 
   if (matched != null) {
+    let heap_size = (matched.groups.heap && matched.groups.heap.toLowerCase() === 'linuxxl') ? 'large' : 'normal';
+    let type = matched.groups.type ? matched.groups.type.replace('-', '') : 'jdk';
 
-    let heap_size = 'normal';
-
-    if ((matched[6] !== undefined) && matched[6].toLowerCase() === 'linuxxl') {
-      heap_size = 'large';
-    }
-
-    let type = "jdk";
-    if (matched[2] !== undefined) {
-      type = matched[2].replace("-", "");
-    }
-
-    let arch = matched[3].toLowerCase();
-
-    if (arch === "x86-32") {
-      arch = "x32";
+    let arch = matched.groups.arch.toLowerCase();
+    if (arch === 'x86-32') {
+      arch = 'x32';
     }
 
     return {
-      version: matched[1].toLowerCase(),
+      version: matched.groups.num,
       binary_type: type,
       arch: arch,
-      os: matched[4].toLowerCase(),
-      openjdk_impl: matched[5].toLowerCase(),
+      os: matched.groups.os.toLowerCase(),
+      openjdk_impl: matched.groups.impl.toLowerCase(),
       heap_size: heap_size,
-      extension: matched[9].toLowerCase(),
+      extension: matched.groups.extension.toLowerCase(),
     }
   } else {
     return null;
@@ -306,80 +296,62 @@ function getNewStyleFileInfo(name) {
 
 function getOldStyleFileInfo(name) {
   let timestampRegex = '[0-9]{4}[0-9]{2}[0-9]{2}[0-9]{2}[0-9]{2}';
-  let regex = 'OpenJDK([0-9]+)U?(-[0-9a-zA-Z]+)?_([0-9a-zA-Z]+)_([0-9a-zA-Z]+).*_?(' + timestampRegex + ')?.(tar.gz|zip)';
+  let regex = 'OpenJDK(?<num>[0-9]+)U?(?<type>-[0-9a-zA-Z]+)?_(?<arch>[0-9a-zA-Z]+)_(?<os>[0-9a-zA-Z]+).*_?(?<ts>' + timestampRegex + ')?.(?<extension>tar.gz|zip)';
 
   let matched = name.match(new RegExp(regex));
-
   if (matched === null) {
     return null;
   }
 
-  let openjdk_impl = 'hotspot';
-  if (matched[2] !== undefined) {
-    openjdk_impl = matched[2].replace('-', '');
-  }
+  let openjdk_impl = matched.groups.type ? matched.groups.type.replace('-', '') : 'hotspot';
 
-  let os = matched[4].toLowerCase();
-
-  if (os === "win") {
+  let os = matched.groups.os.toLowerCase();
+  if (os === 'win') {
     os = 'windows';
-  } else if (os === "linuxlh") {
+  } else if (os === 'linuxlh') {
     os = 'linux';
   }
 
-  let heap_size = "normal";
-  if (name.indexOf("LinuxLH") >= 0) {
-    heap_size = "large";
-  }
+  let heap_size = name.indexOf('LinuxLH') >= 0 ? 'large' : 'normal';
 
   return {
-    version: matched[1].toLowerCase(),
+    version: matched.groups.num,
     openjdk_impl: openjdk_impl.toLowerCase(),
     binary_type: 'jdk',
-    arch: matched[3].toLowerCase(),
+    arch: matched.groups.arch.toLowerCase(),
     os: os,
-    extension: matched[6].toLowerCase(),
+    extension: matched.groups.extension.toLowerCase(),
     heap_size: heap_size
   };
 }
 
 function getAmberStyleFileInfo(name, release) {
   let timestampRegex = '[0-9]{4}[0-9]{2}[0-9]{2}[0-9]{2}[0-9]{2}';
-  let regex = 'OpenJDK-AMBER_([0-9a-zA-Z]+)_([0-9a-zA-Z]+)_(' + timestampRegex + ').(tar.gz|zip)';
-  let matched = name.match(new RegExp(regex));
+  let regex = 'OpenJDK-AMBER_(?<arch>[0-9a-zA-Z]+)_(?<os>[0-9a-zA-Z]+)_(?<ts>' + timestampRegex + ').(?<extension>tar.gz|zip)';
 
+  let matched = name.match(new RegExp(regex));
   if (matched === null) {
     return null;
   }
 
-  let versionMatcher = release.tag_name.match(new RegExp('jdk-([0-9]+).*'));
-
+  let versionMatcher = release.tag_name.match(new RegExp('jdk-(?<num>[0-9]+).*'));
   if (versionMatcher === null) {
     return null;
   }
 
   return {
-    arch: matched[1],
-    os: matched[2],
+    arch: matched.groups.arch,
+    os: matched.groups.os,
     binary_type: 'jdk',
     openjdk_impl: 'hotspot',
-    version: versionMatcher[1],
-    extension: matched[4],
+    version: versionMatcher.groups.num,
+    extension: matched.groups.extension,
     heap_size: 'normal'
   };
 }
 
 function formBinaryAssetInfo(asset, release) {
-  let fileInfo = getNewStyleFileInfo(asset.name);
-
-  if (fileInfo === null) {
-    fileInfo = getOldStyleFileInfo(asset.name)
-  }
-
-  if (fileInfo === null) {
-    fileInfo = getAmberStyleFileInfo(asset.name, release)
-  }
-
+  let fileInfo = getNewStyleFileInfo(asset.name) || getOldStyleFileInfo(asset.name) || getAmberStyleFileInfo(asset.name, release);
   if (fileInfo === null) {
     return null;
   }
@@ -429,6 +401,7 @@ function githubReleaseToAdoptRelease(release) {
 
   return {
     release_name: release.tag_name,
+    release_link: release.html_url,
     timestamp: release.published_at,
     release: !release.prerelease,
     binaries: binaries
@@ -436,7 +409,6 @@ function githubReleaseToAdoptRelease(release) {
 }
 
 function githubDataToAdoptApi(githubApiData) {
-
   return githubApiData
     .map(githubReleaseToAdoptRelease)
     .filter(function (release) {
