@@ -51,7 +51,7 @@ app.get(['/', '/README', '/README.v1'], (req, res, next) => {
       console.error(err);
       return next();
     }
-    res.render('layout', { markdownFile: result });
+    res.render('layout', {markdownFile: result});
   });
 });
 
