@@ -6,11 +6,11 @@ module.exports = function (app) {
 
   // API version 2
   // Examples:
-  //      /info/releases/openjdk8
-  //      /info/nightly/openjdk8
-  //      /info/nightly/openjdk8?openjdk_impl=hotspot&os=windows&arch=x64
-  //      /binary/releases/openjdk8
-  //      /binary/nightly/openjdk8
+  //  /v2/info/releases/openjdk8
+  //  /v2/info/nightly/openjdk8
+  //  /v2/info/nightly/openjdk8?openjdk_impl=hotspot&os=windows&arch=x64
+  //  /v2/binary/releases/openjdk8
+  //  /v2/binary/nightly/openjdk8
   //
   // Optional query parameters:
   //  openjdk_impl ::= "hotspot" | "openj9"
