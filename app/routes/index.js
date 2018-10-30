@@ -5,6 +5,11 @@ const v2 = require('./v2');
 // add future versions here. Also add to the routesVersioning object below.
 
 module.exports = function (app) {
+  app.use((req, res, next) => {
+    app.set('json spaces', req.query.pretty === 'false' ? false : 2);
+    next();
+  });
+
   app.get([
       //these 3 paths dont make sense and are not valid, but if you dont have them then the matching will fall through to the v1 api
       '/v2',
@@ -33,14 +38,6 @@ module.exports = function (app) {
     //
     // curl "http://127.0.0.1:3000/v2/binary/nightly/openjdk8?openjdk_impl=hotspot&os=windows&arch=x64&release=latest&type=jdk"
     // curl "http://127.0.0.1:3000/v2/info/releases/openjdk10?openjdk_impl=hotspot&type=jdk"
-
-    function handleRequest(req, res, next) {
-      app.set('json spaces', 2);
-      if (req.query.pretty === 'false') {
-        app.disable('json spaces')
-      }
-      next()
-    },
     routesVersioning({
       '^2.0.0': v2
     })
@@ -58,13 +55,6 @@ module.exports = function (app) {
       '/:variant/:buildtype/:platform/:build',
       '/:variant/:buildtype/:platform/:build/:datatype',
     ],
-    function (req, res, next) {
-      app.set('json spaces', 2);
-      if (req.query.pretty === 'false') {
-        app.disable('json spaces')
-      }
-      next()
-    },
     routesVersioning({
       '^1.0.0': v1
       // add future versions here, with a comma ( , ) after the previous line. Also add the require(); above.
