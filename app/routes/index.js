@@ -5,12 +5,6 @@ const v2 = require('./v2');
 // add future versions here. Also add to the routesVersioning object below.
 
 module.exports = function (app) {
-
-  app.get('/favicon.ico', function (req, res) {
-    res.status(204);
-  });
-
-
   app.get([
       //these 3 paths dont make sense and are not valid, but if you dont have them then the matching will fall through to the v1 api
       '/v2',
