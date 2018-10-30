@@ -12,7 +12,6 @@
   "license": "ISC",
   "dependencies": {
     "async": "^2.6.1",
-    "body-parser": "^1.18.3",
     "express": "^4.16.4",
     "express-rate-limit": "^3.2.1",
     "markdown-serve": "^0.5.0",
