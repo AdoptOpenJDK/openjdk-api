@@ -193,13 +193,13 @@ module.exports = function () {
   }
 
   function getInfoForNewRepo(version) {
-    return cachedGet(`https://api.github.com/repos/AdoptOpenJDK/${version}-binaries/releases`, 'newCache', newCache);
+    return cachedGet(`https://api.github.com/repos/AdoptOpenJDK/${version}-binaries/releases?per_page=10000`, 'newCache', newCache);
   }
 
   function getInfoForOldRepo(version, releaseType) {
     let deferred = Q.defer();
 
-    let hotspotPromise = cachedGet(`https://api.github.com/repos/AdoptOpenJDK/${version}-${releaseType}/releases`, 'oldCache', oldCache);
+    let hotspotPromise = cachedGet(`https://api.github.com/repos/AdoptOpenJDK/${version}-${releaseType}/releases?per_page=10000`, 'oldCache', oldCache);
     let openj9Promise;
 
     if (version.indexOf('amber') > 0) {
@@ -207,7 +207,7 @@ module.exports = function () {
         return {}
       });
     } else {
-      openj9Promise = cachedGet(`https://api.github.com/repos/AdoptOpenJDK/${version}-openj9-${releaseType}/releases`, 'oldCache', oldCache);
+      openj9Promise = cachedGet(`https://api.github.com/repos/AdoptOpenJDK/${version}-openj9-${releaseType}/releases?per_page=10000`, 'oldCache', oldCache);
     }
 
     Q.allSettled([hotspotPromise, openj9Promise])
