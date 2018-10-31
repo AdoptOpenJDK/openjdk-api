@@ -6,7 +6,7 @@
   "scripts": {
     "start": "nodemon --ignore cache/ server.js",
     "lint": "eslint *.js app/routes/*.js",
-    "test": "mocha && npm run lint"
+    "test": "mocha --timeout 10000 && npm run lint"
   },
   "author": "",
   "license": "ISC",
