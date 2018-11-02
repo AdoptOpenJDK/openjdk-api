@@ -144,10 +144,10 @@ module.exports = function () {
 
     if (cache.hasOwnProperty(url)) {
       if (Date.now() < cache[url].cacheTime) {
-        if(cache[url].hasOwnProperty("deferred")) {
-          deferred = cache[url].deferred;
-        } else {
+        if(cache[url].hasOwnProperty("body")) {
           deferred.resolve(cache[url].body);
+        } else {
+          deferred = cache[url].deferred;
         }
       } else {
         console.log("Queuing cache update: %s", url);
@@ -183,9 +183,7 @@ module.exports = function () {
       cache[url] = {cacheTime: Date.now() + getCooldown()};
 
       // Store the promise so others can get the result
-      cache[url].body = {
-        deferred: deferred
-      };
+      cache[url].deferred = deferred;
 
       cacheUpdateQueue.push({
         url: url,
