@@ -10,8 +10,24 @@ function setUpTestCache() {
   if (!fs.existsSync('cache')) {
     fs.mkdirSync('cache');
   }
-  fs.writeFileSync('./cache/newCache.cache.json', fs.readFileSync('./test/asset/cache/newCache.cache.json'));
-  fs.writeFileSync('./cache/oldCache.cache.json', fs.readFileSync('./test/asset/cache/oldCache.cache.json'));
+
+  function updateCacheTimes(cacheData) {
+    for (var cacheEntry in cacheData) {
+      if (cacheData[cacheEntry].hasOwnProperty("cacheTime")) {
+        cacheData[cacheEntry].cacheTime = Date.now() + 60 * 1000;
+      }
+    }
+  }
+
+  var cacheData = JSON.parse(fs.readFileSync('./test/asset/cache/newCache.cache.json'));
+  updateCacheTimes(cacheData);
+  fs.writeFileSync('./cache/newCache.cache.json', JSON.stringify(cacheData));
+
+
+  cacheData = JSON.parse(fs.readFileSync('./test/asset/cache/oldCache.cache.json'));
+  updateCacheTimes(cacheData);
+  fs.writeFileSync('./cache/oldCache.cache.json', JSON.stringify(cacheData));
+
   console.log('Test cache setup')
 }
 

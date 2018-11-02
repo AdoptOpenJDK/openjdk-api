@@ -61,7 +61,17 @@ module.exports = function () {
       console.log("Looking for cache");
       let cache = fs.readFileSync('cache/' + cacheName + '.cache.json');
       console.log("cache found");
-      return JSON.parse(cache);
+      let cacheData = JSON.parse(cache);
+
+      // Removed any serialised promises
+      for (var cacheEntry in cacheData) {
+        if (cacheData[cacheEntry].hasOwnProperty("deferred")) {
+          delete cacheData[cacheEntry].deferred
+        }
+      }
+
+      return cacheData;
+
     } catch (e) {
       console.log("No cache found");
       let cache = {};

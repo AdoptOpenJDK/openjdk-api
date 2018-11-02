@@ -382,7 +382,8 @@ function formBinaryAssetInfo(asset, release) {
     binary_size: asset.size,
     checksum_link: checksum_link,
     version: fileInfo.version,
-    heap_size: fileInfo.heap_size
+    heap_size: fileInfo.heap_size,
+    download_count: asset.download_count
   }
 }
 
@@ -399,12 +400,21 @@ function githubReleaseToAdoptRelease(release) {
     })
     .value();
 
+  const downloadCount = _.chain(binaries)
+    .map(asset => {
+      return asset.download_count
+    })
+    .reduce(function (sum, num) {
+      return sum + num;
+    }, 0);
+
   return {
     release_name: release.tag_name,
     release_link: release.html_url,
     timestamp: release.published_at,
     release: !release.prerelease,
-    binaries: binaries
+    binaries: binaries,
+    download_count: downloadCount,
   }
 }
 
