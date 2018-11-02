@@ -140,11 +140,15 @@ module.exports = function () {
   // Try to get a cached response, and if needed (due to new URL or expired data)
   // asynchronously enqueue a request to fill/update the cache.
   function cachedGet(url, cacheName, cache) {
-    const deferred = Q.defer();
+    let deferred = Q.defer();
 
     if (cache.hasOwnProperty(url)) {
       if (Date.now() < cache[url].cacheTime) {
-        deferred.resolve(cache[url].body);
+        if(cache[url].hasOwnProperty("deferred")) {
+          deferred = cache[url].deferred;
+        } else {
+          deferred.resolve(cache[url].body);
+        }
       } else {
         console.log("Queuing cache update: %s", url);
 
@@ -178,9 +182,10 @@ module.exports = function () {
       // queuing cache updates.
       cache[url] = {cacheTime: Date.now() + getCooldown()};
 
-      // Default response (for other users) until the cache
-      // is populated for the first time.
-      cache[url].body = [];
+      // Store the promise so others can get the result
+      cache[url].body = {
+        deferred: deferred
+      };
 
       cacheUpdateQueue.push({
         url: url,
@@ -189,7 +194,7 @@ module.exports = function () {
         deferred: deferred
       });
     }
-    return deferred.promise;
+    return deferred.promise
   }
 
   function getInfoForNewRepo(version) {
