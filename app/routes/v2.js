@@ -267,7 +267,7 @@ function getNewStyleFileInfo(name) {
 
   // IF YOU ARE MODIFYING THIS THEN THE FILE MATCHING IS PROBABLY WRONG, MAKE SURE openjdk-website-backend, Release.sh IS UPDATED TOO
   //                  1) num          2) jre/jdk          3) arch                4) OS               5) impl                6)heap                   7) timestamp/version                                         8) Random suffix               9) extension
-  let regex = 'OpenJDK(?<num>[0-9]+)U?(?<type>-jre|-jdk)?_(?<arch>[0-9a-zA-Z-]+)_(?<os>[0-9a-zA-Z]+)_(?<impl>[0-9a-zA-Z]+)_?(?<heap>[0-9a-zA-Z]+)?.*_(?<ts_or_version>' + timestampRegex + '|' + versionRegex + ')(?<rand_suffix>[-0-9A-Za-z]+)?.(?<extension>tar.gz|zip)';
+  let regex = 'OpenJDK(?<num>[0-9]+)U?(?<type>-jre|-jdk)?_(?<arch>[0-9a-zA-Z-]+)_(?<os>[0-9a-zA-Z]+)_(?<impl>[0-9a-zA-Z]+)_?(?<heap>[0-9a-zA-Z]+)?.*_(?<ts_or_version>' + timestampRegex + '|' + versionRegex + ')(?<rand_suffix>[-0-9A-Za-z\\.]+)?\\.(?<extension>tar\\.gz|zip)';
 
   let matched = name.match(new RegExp(regex));
 
@@ -382,7 +382,8 @@ function formBinaryAssetInfo(asset, release) {
     binary_size: asset.size,
     checksum_link: checksum_link,
     version: fileInfo.version,
-    heap_size: fileInfo.heap_size
+    heap_size: fileInfo.heap_size,
+    download_count: asset.download_count
   }
 }
 
@@ -399,12 +400,21 @@ function githubReleaseToAdoptRelease(release) {
     })
     .value();
 
+  const downloadCount = _.chain(binaries)
+    .map(asset => {
+      return asset.download_count
+    })
+    .reduce(function (sum, num) {
+      return sum + num;
+    }, 0);
+
   return {
     release_name: release.tag_name,
     release_link: release.html_url,
     timestamp: release.published_at,
     release: !release.prerelease,
-    binaries: binaries
+    binaries: binaries,
+    download_count: downloadCount,
   }
 }
 
