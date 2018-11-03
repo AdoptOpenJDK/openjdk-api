@@ -23,9 +23,8 @@ module.exports = function (app) {
   // curl "http://127.0.0.1:3000/v2/info/releases/openjdk10?openjdk_impl=hotspot&type=jdk"
   app.get('/v2/:requestType?/:buildtype?/:version?', require('./v2'));
 
-  // API version 1
-  app.get([
-    '/v1/:variant/:buildtype?/:platform?/:build?/:datatype?',
-    '/:variant/:buildtype?/:platform?/:build?/:datatype?' // Maintain backwards compatibility for a while
-  ], require('./v1'));
+  // Anything else (e.g. v1 routes)
+  app.all('*', (req, res) => {
+    res.status(404).json({message: 'Not Found', documentation_url: 'https://api.adoptopenjdk.net/'});
+  });
 };

@@ -1,7 +1,5 @@
 # AdoptOpenJDK API
 
-For v1 docs see: [README.v1.md](README.v1.md)
-
 The AdoptOpenJDK API provides a way to consume JSON information about the AdoptOpenJDK releases and nightly builds.  Sign up to the [mailing list](https://mail.openjdk.java.net/mailman/listinfo/adoption-discuss) where major API updates will be announced, and visit [adoptopenjdk.net](https://adoptopenjdk.net) to find out more about the community.
 
 ## Usage
@@ -36,7 +34,7 @@ function Get-RedirectedUrl
 $url= "https://api.adoptopenjdk.net/v2/binary/nightly/openjdk8?openjdk_impl=hotspot&os=windows&arch=x64&release=latest&type=jdk"
 
 $fUrl = Get-RedirectedUrl $url
-$filename = [System.IO.Path]::GetFileName($fUrl); 
+$filename = [System.IO.Path]::GetFileName($fUrl);
 
 Write-Host "Downloading $filename"
 
@@ -139,7 +137,7 @@ The data that can be returned can then be filtered to find builds of a specific 
 | Binary Type | type | jdk, jre |
 | Heap Size | heap_size | normal, large |
 
-In the absence of a given parameter, it will return all elements. 
+In the absence of a given parameter, it will return all elements.
 
 To return latest, hotspot, windows, x64, jdk:
 ```
