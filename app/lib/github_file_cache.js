@@ -152,12 +152,16 @@ module.exports = function () {
   function cachedGet(url, cacheName, cache) {
     let deferred = Q.defer();
 
+    let performHit = false;
+
     if (cache.hasOwnProperty(url)) {
       if (Date.now() < cache[url].cacheTime) {
         if(cache[url].hasOwnProperty("body")) {
           deferred.resolve(cache[url].body);
-        } else {
+        } else if(cache[url].hasOwnProperty("deferred") && cache[url].deferred !== undefined) {
           deferred = cache[url].deferred;
+        } else {
+          performHit = true;
         }
       } else {
         console.log("Queuing cache update: %s", url);
@@ -186,6 +190,10 @@ module.exports = function () {
         cacheUpdateQueue.push(task);
       }
     } else {
+      performHit = true;
+    }
+
+    if (performHit) {
       console.log("Cache miss... immediately updating cache: %s", url);
 
       // Bump the cacheTime to prevent subsequent requests from
