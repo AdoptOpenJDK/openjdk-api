@@ -308,3 +308,12 @@ describe('latestAssets returns correct results', function () {
   });
 });
 
+describe('gives 404 for invalid version', function () {
+  it("returns 404", function () {
+    const request = mockRequest("info", "releases", "openjdk50", "hotspot", undefined, undefined, undefined, undefined, undefined);
+    return performRequest(request, function (code, data) {
+      assert.equal(404, code);
+    });
+  })
+});
+
