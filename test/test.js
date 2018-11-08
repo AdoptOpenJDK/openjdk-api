@@ -10,8 +10,24 @@ function setUpTestCache() {
   if (!fs.existsSync('cache')) {
     fs.mkdirSync('cache');
   }
-  fs.writeFileSync('./cache/newCache.cache.json', fs.readFileSync('./test/asset/cache/newCache.cache.json'));
-  fs.writeFileSync('./cache/oldCache.cache.json', fs.readFileSync('./test/asset/cache/oldCache.cache.json'));
+
+  function updateCacheTimes(cacheData) {
+    for (var cacheEntry in cacheData) {
+      if (cacheData[cacheEntry].hasOwnProperty("cacheTime")) {
+        cacheData[cacheEntry].cacheTime = Date.now() + 60 * 1000;
+      }
+    }
+  }
+
+  var cacheData = JSON.parse(fs.readFileSync('./test/asset/cache/newCache.cache.json'));
+  updateCacheTimes(cacheData);
+  fs.writeFileSync('./cache/newCache.cache.json', JSON.stringify(cacheData));
+
+
+  cacheData = JSON.parse(fs.readFileSync('./test/asset/cache/oldCache.cache.json'));
+  updateCacheTimes(cacheData);
+  fs.writeFileSync('./cache/oldCache.cache.json', JSON.stringify(cacheData));
+
   console.log('Test cache setup')
 }
 
@@ -290,5 +306,14 @@ describe('latestAssets returns correct results', function () {
       });
     })
   });
+});
+
+describe('gives 404 for invalid version', function () {
+  it("returns 404", function () {
+    const request = mockRequest("info", "releases", "openjdk50", "hotspot", undefined, undefined, undefined, undefined, undefined);
+    return performRequest(request, function (code, data) {
+      assert.equal(404, code);
+    });
+  })
 });
 

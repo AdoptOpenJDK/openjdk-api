@@ -61,7 +61,17 @@ module.exports = function () {
       console.log("Looking for cache");
       let cache = fs.readFileSync('cache/' + cacheName + '.cache.json');
       console.log("cache found");
-      return JSON.parse(cache);
+      let cacheData = JSON.parse(cache);
+
+      // Removed any serialised promises
+      for (var cacheEntry in cacheData) {
+        if (cacheData[cacheEntry].hasOwnProperty("deferred")) {
+          delete cacheData[cacheEntry].deferred
+        }
+      }
+
+      return cacheData;
+
     } catch (e) {
       console.log("No cache found");
       let cache = {};
@@ -140,11 +150,19 @@ module.exports = function () {
   // Try to get a cached response, and if needed (due to new URL or expired data)
   // asynchronously enqueue a request to fill/update the cache.
   function cachedGet(url, cacheName, cache) {
-    const deferred = Q.defer();
+    let deferred = Q.defer();
+
+    let performCacheMiss = false;
 
     if (cache.hasOwnProperty(url)) {
       if (Date.now() < cache[url].cacheTime) {
-        deferred.resolve(cache[url].body);
+        if(cache[url].hasOwnProperty("body")) {
+          deferred.resolve(cache[url].body);
+        } else if(cache[url].hasOwnProperty("deferred") && cache[url].deferred !== undefined) {
+          deferred = cache[url].deferred;
+        } else {
+          performCacheMiss = true;
+        }
       } else {
         console.log("Queuing cache update: %s", url);
 
@@ -172,15 +190,18 @@ module.exports = function () {
         cacheUpdateQueue.push(task);
       }
     } else {
+      performCacheMiss = true;
+    }
+
+    if (performCacheMiss) {
       console.log("Cache miss... immediately updating cache: %s", url);
 
       // Bump the cacheTime to prevent subsequent requests from
       // queuing cache updates.
       cache[url] = {cacheTime: Date.now() + getCooldown()};
 
-      // Default response (for other users) until the cache
-      // is populated for the first time.
-      cache[url].body = [];
+      // Store the promise so others can get the result
+      cache[url].deferred = deferred;
 
       cacheUpdateQueue.push({
         url: url,
@@ -189,17 +210,17 @@ module.exports = function () {
         deferred: deferred
       });
     }
-    return deferred.promise;
+    return deferred.promise
   }
 
   function getInfoForNewRepo(version) {
-    return cachedGet(`https://api.github.com/repos/AdoptOpenJDK/${version}-binaries/releases`, 'newCache', newCache);
+    return cachedGet(`https://api.github.com/repos/AdoptOpenJDK/${version}-binaries/releases?per_page=10000`, 'newCache', newCache);
   }
 
   function getInfoForOldRepo(version, releaseType) {
     let deferred = Q.defer();
 
-    let hotspotPromise = cachedGet(`https://api.github.com/repos/AdoptOpenJDK/${version}-${releaseType}/releases`, 'oldCache', oldCache);
+    let hotspotPromise = cachedGet(`https://api.github.com/repos/AdoptOpenJDK/${version}-${releaseType}/releases?per_page=10000`, 'oldCache', oldCache);
     let openj9Promise;
 
     if (version.indexOf('amber') > 0) {
@@ -207,7 +228,7 @@ module.exports = function () {
         return {}
       });
     } else {
-      openj9Promise = cachedGet(`https://api.github.com/repos/AdoptOpenJDK/${version}-openj9-${releaseType}/releases`, 'oldCache', oldCache);
+      openj9Promise = cachedGet(`https://api.github.com/repos/AdoptOpenJDK/${version}-openj9-${releaseType}/releases?per_page=10000`, 'oldCache', oldCache);
     }
 
     Q.allSettled([hotspotPromise, openj9Promise])
