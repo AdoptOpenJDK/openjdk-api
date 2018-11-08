@@ -117,6 +117,8 @@ function findLatestAssets(data, res) {
       .map(function (release) {
         return _.map(release.binaries, function (binary) {
           binary.timestamp = release.timestamp;
+          binary.release_name = release.release_name;
+          binary.release_link = release.release_link;
           return binary;
         })
       })
