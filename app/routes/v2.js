@@ -21,7 +21,7 @@ function filterRelease(releases, releaseName) {
 
     return releases
       .sortBy(function (release) {
-        return release.timestamp
+        return release.release ? release.release_name : release.timestamp
       })
       .last()
 
@@ -427,6 +427,6 @@ function githubDataToAdoptApi(githubApiData) {
       return release.binaries.length > 0;
     })
     .sortBy(function (release) {
-      return release.timestamp
+      return release.release ? release.release_name : release.timestamp
     });
 }
