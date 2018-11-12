@@ -76,7 +76,7 @@ function performRequest(request, doAssert) {
     }
   };
 
-  v2(request, res);
+  v2.get(request, res);
 
   return Q
     .allSettled([codePromise.promise, msgPromise.promise])
@@ -314,6 +314,47 @@ describe('gives 404 for invalid version', function () {
     return performRequest(request, function (code, data) {
       assert.equal(404, code);
     });
+  })
+});
+
+
+describe('sort order is correct', function () {
+  function assertSortsCorrectly(data, javaVersion, expectedOrder) {
+    let sorted = v2._testExport.sortReleases(javaVersion, _.chain(data)).value();
+
+    let isSorted = _.chain(sorted)
+      .map(function (release) {
+        return release.release_name;
+      })
+      .isEqual(expectedOrder);
+
+    assert.equal(true, isSorted);
+  }
+
+  it("java 8 is sorted", function () {
+    assertSortsCorrectly([
+        {"release_name": "jdk8u100-b10", "timestamp": 1},
+        {"release_name": "jdk8u100-b2", "timestamp": 2},
+        {"release_name": "jdk8u20-b1", "timestamp": 3},
+        {"release_name": "jdk8u100-b1_openj9-0.8.0", "timestamp": 4},
+        {"release_name": "jdk8u20-b1_openj9-0.8.0", "timestamp": 5}
+      ],
+      "openjdk8",
+      ["jdk8u20-b1", "jdk8u20-b1_openj9-0.8.0", "jdk8u100-b1_openj9-0.8.0", "jdk8u100-b2", "jdk8u100-b10"]);
+  });
+
+
+  it("java 11 is sorted", function () {
+    assertSortsCorrectly(
+      [
+        {"release_name": "jdk-11+100", "timestamp": 1},
+        {"release_name": "jdk-11+2", "timestamp": 2},
+        {"release_name": "jdk-11.10.1+2", "timestamp": 3},
+        {"release_name": "jdk-11.2.1+10", "timestamp": 4},
+        {"release_name": "jdk-11.2.1+2", "timestamp": 5},
+      ],
+      "openjdk11",
+      ["jdk-11+2", "jdk-11+100", "jdk-11.2.1+2", "jdk-11.2.1+10", "jdk-11.10.1+2"]);
   })
 });
 

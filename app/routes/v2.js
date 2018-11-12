@@ -192,7 +192,7 @@ function sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, 
 }
 
 
-module.exports = function (req, res) {
+module.exports.get = function (req, res) {
   const ROUTErequestType = req.params.requestType;
   const ROUTEbuildtype = req.params.buildtype;
   const ROUTEversion = req.params.version;
@@ -221,7 +221,7 @@ module.exports = function (req, res) {
       let data = _.chain(apiData);
 
       data = fixPrereleaseTagOnOldRepoData(data, isRelease);
-      data = githubDataToAdoptApi(data);
+      data = githubDataToAdoptApi(data, ROUTEversion, isRelease);
 
       data = filterReleasesOnReleaseType(data, isRelease);
 
@@ -420,13 +420,78 @@ function githubReleaseToAdoptRelease(release) {
   }
 }
 
-function githubDataToAdoptApi(githubApiData) {
-  return githubApiData
+function sortByGroup(regex, groupName) {
+  return function (release) {
+    let matched = release.release_name.match(new RegExp(regex));
+    if (matched != null) {
+      if (matched.groups[groupName] === undefined) {
+        return 0;
+      } else {
+        return parseInt(matched.groups[groupName])
+      }
+    }
+    return 0;
+  }
+}
+
+function java8ReleaseSorter(data) {
+  let regex = 'jdk(?<num>[0-9]+)u?(?<update>[0-9]+)-b(?<build>[0-9]+).*';
+  return data
+    .sortBy(sortByGroup(regex, 'build'))
+    .sortBy(sortByGroup(regex, 'update'))
+}
+
+function java11ReleaseSorter(data) {
+  //jdk-11.0.1+13
+  //jdk-11+28
+  let regex = 'jdk-(?<major>[0-9]+)(?:\\.(?<minor>[0-9]+))?(?:\\.(?<security>[0-9]+))?(?:\\+(?<build>[0-9]+))?';
+
+  return data
+    .sortBy(sortByGroup(regex, 'build'))
+    .sortBy(sortByGroup(regex, 'security'))
+    .sortBy(sortByGroup(regex, 'minor'))
+}
+
+function defaultSort(data) {
+  return data
+    .sortBy(function (release) {
+      return release.timestamp
+    })
+    .sortBy(function (release) {
+      return release.release_name
+    })
+}
+
+function sortReleases(javaVersion, data) {
+  data = defaultSort(data);
+
+  if (javaVersion === 'openjdk8') {
+    return java8ReleaseSorter(data);
+  } else if (javaVersion === 'openjdk11') {
+    return java11ReleaseSorter(data);
+  } else {
+    return data
+  }
+}
+
+function githubDataToAdoptApi(githubApiData, javaVersion, isReleases) {
+  let data = githubApiData
     .map(githubReleaseToAdoptRelease)
     .filter(function (release) {
       return release.binaries.length > 0;
-    })
-    .sortBy(function (release) {
-      return release.release ? release.release_name : release.timestamp
     });
+
+  if (isReleases) {
+    return sortReleases(javaVersion, data)
+  } else {
+    return data
+      .sortBy(function (release) {
+        return release.timestamp
+      });
+  }
 }
+
+// Functions exposed for testing
+module.exports._testExport = {
+  sortReleases: sortReleases
+};
