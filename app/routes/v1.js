@@ -40,6 +40,8 @@ function getBinaryExt(searchableName) {
   return (lookup[searchableName].binaryExtension);
 }
 
+const deprecationWarning = 'AdoptOpenJDK API v1 is deprecated and will be removed.  See https://api.adoptopenjdk.net/';
+
 module.exports = function(req, res) {
   // set the defaults for each part of the route, overwriting these defaults where the user has specified these parts of the URL/route
   var ROUTEvariant = req.params.variant;
@@ -52,6 +54,9 @@ module.exports = function(req, res) {
     console.log("Incorrect match");
     return
   }
+
+  // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Warning
+  res.set('Warning', `299 api.adoptopenjdk.net/v1 "${deprecationWarning}"`);
 
   // set the JSON filename - if the user wants the latest nightly or release, adjust the name to match the actual JSON filename.
   var jsonFilenamePrefix = '';
@@ -75,6 +80,7 @@ module.exports = function(req, res) {
         var variantArray = []
         for (var variant in variants) {
           var variantObj = new Object()
+          variantObj.warning = deprecationWarning
           variantObj.name = variants[variant].officialName
           variantObj.variant = variants[variant].searchableName
           variantArray.push(variantObj);
@@ -161,6 +167,7 @@ function processJSON(importedJSON, ROUTEplatform, ROUTEbuild, ROUTEbuildtype) {
       var atLeastOneAsset = assetArray[0];
       if(atLeastOneAsset) {
         var releaseObj = new Object();
+        releaseObj.warning = deprecationWarning;
         releaseObj.release_name = eachRelease.name;
         releaseObj.release_link = eachRelease.html_url;
         releaseObj.timestamp = eachRelease.published_at;
@@ -187,6 +194,7 @@ function processJSON(importedJSON, ROUTEplatform, ROUTEbuild, ROUTEbuildtype) {
 
 function processUnexpectedResponse() {
   var errorObj = new Object();
+  errorObj.warning = deprecationWarning;
   errorObj.message =
       'Error. ' +
       'Try again and if the problem persists please raise an issue detailing steps to reproduce this error at ' +
