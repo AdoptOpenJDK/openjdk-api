@@ -116,7 +116,7 @@ function findLatestAssets(data, res) {
       .chain(data)
       .map(function (release) {
         return _.map(release.binaries, function (binary) {
-          binary.timestamp = release.timestamp;
+          binary.timestamp = binary.updated_at;
           binary.release_name = release.release_name;
           binary.release_link = release.release_link;
           return binary;
@@ -385,7 +385,8 @@ function formBinaryAssetInfo(asset, release) {
     checksum_link: checksum_link,
     version: fileInfo.version,
     heap_size: fileInfo.heap_size,
-    download_count: asset.download_count
+    download_count: asset.download_count,
+    updated_at: asset.updated_at,
   }
 }
 
