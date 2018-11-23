@@ -15,7 +15,7 @@ function filterReleaseBinaries(releases, filterFunction) {
 }
 
 function filterRelease(releases, releaseName) {
-  if (releaseName === undefined || releases.length === 0) {
+  if (releaseName === undefined || releases.value().length === 0) {
     return releases;
   } else if (releaseName === 'latest') {
 
