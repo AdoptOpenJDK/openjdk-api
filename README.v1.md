@@ -1,4 +1,11 @@
-# AdoptOpenJDK API
+# AdoptOpenJDK API v1
+
+## Notice of Deprecation
+
+AdoptOpenJDK API v1 (i.e. the API documented here) has been deprecated and will be removed.
+If you are using v1 please move to [the latest version](/) as soon as possible.
+
+## Overview
 
 The AdoptOpenJDK API provides a way to consume JSON information about the AdoptOpenJDK releases and nightly builds.  Sign up to the [mailing list](https://mail.openjdk.java.net/mailman/listinfo/adoption-discuss) where major API updates will be announced, and visit [adoptopenjdk.net](https://adoptopenjdk.net) to find out more about the community.
 
@@ -39,7 +46,7 @@ function Get-RedirectedUrl
 $url= "https://api.adoptopenjdk.net/v1/openjdk8/releases/x64_win/latest/binary"
 
 $fUrl = Get-RedirectedUrl $url
-$filename = [System.IO.Path]::GetFileName($fUrl); 
+$filename = [System.IO.Path]::GetFileName($fUrl);
 
 Write-Host "Downloading $filename"
 

@@ -15,13 +15,13 @@ function filterReleaseBinaries(releases, filterFunction) {
 }
 
 function filterRelease(releases, releaseName) {
-  if (releaseName === undefined || releases.length === 0) {
+  if (releaseName === undefined || releases.value().length === 0) {
     return releases;
   } else if (releaseName === 'latest') {
 
     return releases
       .sortBy(function (release) {
-        return release.timestamp
+        return release.release ? release.release_name : release.timestamp
       })
       .last()
 
@@ -116,7 +116,9 @@ function findLatestAssets(data, res) {
       .chain(data)
       .map(function (release) {
         return _.map(release.binaries, function (binary) {
-          binary.timestamp = release.timestamp;
+          binary.timestamp = binary.updated_at;
+          binary.release_name = release.release_name;
+          binary.release_link = release.release_link;
           return binary;
         })
       })
@@ -383,7 +385,8 @@ function formBinaryAssetInfo(asset, release) {
     checksum_link: checksum_link,
     version: fileInfo.version,
     heap_size: fileInfo.heap_size,
-    download_count: asset.download_count
+    download_count: asset.download_count,
+    updated_at: asset.updated_at,
   }
 }
 
@@ -425,6 +428,6 @@ function githubDataToAdoptApi(githubApiData) {
       return release.binaries.length > 0;
     })
     .sortBy(function (release) {
-      return release.timestamp
+      return release.release ? release.release_name : release.timestamp
     });
 }
