@@ -1,11 +1,18 @@
 {
   "name": "openjdk-api",
   "version": "1.0.0",
+  "author": "AdoptOpenJDK Community <adoptopenjdk@gmail.com> (https://adoptopenjdk.net/)",
   "description": "The AdoptOpenJDK API provides a way to consume JSON information about the AdoptOpenJDK releases and nightly builds.",
-  "homepage": "https://adoptopenjdk.net",
-  "license": "ISC",
-  "author": "",
-  "main": "index.js",
+  "license": "Apache-2.0",
+  "homepage": "https://api.adoptopenjdk.net",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AdoptOpenJDK/openjdk-api.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AdoptOpenJDK/openjdk-api/issues"
+  },
+  "main": "app/routes/index.js",
   "scripts": {
     "start": "nodemon --ignore cache/ server.js",
     "lint": "eslint *.js app/routes/*.js",
