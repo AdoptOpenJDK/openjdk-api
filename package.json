@@ -16,7 +16,7 @@
   "scripts": {
     "start": "nodemon --ignore cache/ server.js",
     "lint": "eslint *.js app/routes/*.js",
-    "test": "mocha --timeout 10000 && npm run lint"
+    "test": "jest && npm run lint"
   },
   "dependencies": {
     "async": "^2.6.1",
@@ -32,7 +32,9 @@
   },
   "devDependencies": {
     "eslint": "^5.10.0",
-    "mocha": "^5.2.0",
+    "eslint-plugin-jest": "^22.1.2",
+    "eslint-plugin-jest-async": "^1.0.3",
+    "jest": "^23.6.0",
     "nodemon": "^1.18.9"
   }
 }
