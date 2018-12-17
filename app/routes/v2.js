@@ -1,5 +1,4 @@
 const _ = require('underscore');
-const cache = require('../lib/github_file_cache')();
 
 function filterReleaseBinaries(releases, filterFunction) {
   return releases
@@ -112,7 +111,7 @@ function redirectToBinary(data, res) {
 
 function findLatestAssets(data, res) {
   if (data !== null && data !== undefined) {
-    let assetInfo = _
+    const assetInfo = _
       .chain(data)
       .map(function (release) {
         return _.map(release.binaries, function (binary) {
@@ -145,24 +144,24 @@ function findLatestAssets(data, res) {
 }
 
 
-function sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, ROUTEopenjdkImpl, ROUTEos, ROUTEarch, ROUTErelease, ROUTEtype, ROUTEheapSize) {
-  let errorMsg = undefined;
+function sanityCheckParams(res, requestType, buildtype, version, openjdkImpl, os, arch, release, type, heapSize) {
+  let errorMsg;
 
-  const alNum = /^[a-zA-Z0-9]+$/;
+  const reAlNum = /^[a-zA-Z0-9]+$/;
 
-  if (!['info', 'binary', 'latestAssets'].includes(ROUTErequestType)) {
+  if (!['info', 'binary', 'latestAssets'].includes(requestType)) {
     errorMsg = 'Unknown request type';
-  } else if (!['releases', 'nightly'].includes(ROUTEbuildtype)) {
+  } else if (!['releases', 'nightly'].includes(buildtype)) {
     errorMsg = 'Unknown build type';
-  } else if (!/^openjdk(?:\d{1,2}|-amber)$/.test(ROUTEversion)) {
+  } else if (!/^openjdk(?:\d{1,2}|-amber)$/.test(version)) {
     errorMsg = 'Unknown version type';
-  } else if (_.isString(ROUTEopenjdkImpl) && !['hotspot', 'openj9'].includes(ROUTEopenjdkImpl.toLowerCase())) {
+  } else if (_.isString(openjdkImpl) && !['hotspot', 'openj9'].includes(openjdkImpl.toLowerCase())) {
     errorMsg = 'Unknown openjdk_impl';
-  } else if (_.isString(ROUTEos) && !alNum.test(ROUTEos)) {
+  } else if (_.isString(os) && !reAlNum.test(os)) {
     errorMsg = 'Unknown os format';
-  } else if (_.isString(ROUTEarch) && !alNum.test(ROUTEarch)) {
+  } else if (_.isString(arch) && !reAlNum.test(arch)) {
     errorMsg = 'Unknown architecture format';
-  } else if (_.isString(ROUTErelease) && !/^[a-z0-9_.+-]+$/.test(ROUTErelease.toLowerCase())) {
+  } else if (_.isString(release) && !/^[a-z0-9_.+-]+$/.test(release.toLowerCase())) {
     // possible release formats, make sure the regex matches these:
     // jdk8u162-b12_openj9-0.8.0
     // jdk8u181-b13_openj9-0.9.0
@@ -176,9 +175,9 @@ function sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, 
     // jdk-11+28
     // jdk-11.0.1+13
     errorMsg = 'Unknown release format';
-  } else if (_.isString(ROUTEtype) && !['jdk', 'jre'].includes(ROUTEtype.toLowerCase())) {
+  } else if (_.isString(type) && !['jdk', 'jre'].includes(type.toLowerCase())) {
     errorMsg = 'Unknown type format';
-  } else if (_.isString(ROUTEheapSize) && !['large', 'normal'].includes(ROUTEheapSize.toLowerCase())) {
+  } else if (_.isString(heapSize) && !['large', 'normal'].includes(heapSize.toLowerCase())) {
     errorMsg = 'Unknown heap size';
   }
 
@@ -192,31 +191,31 @@ function sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, 
 }
 
 
-module.exports = function (req, res) {
-  const ROUTErequestType = req.params.requestType;
-  const ROUTEbuildtype = req.params.buildtype;
-  const ROUTEversion = req.params.version;
+module.exports = (cache) => function (req, res) {
+  const ROUTE_requestType = req.params.requestType;
+  const ROUTE_buildtype = req.params.buildtype;
+  const ROUTE_version = req.params.version;
 
-  if (ROUTErequestType === undefined || ROUTEbuildtype === undefined || ROUTEversion === undefined) {
+  if (ROUTE_requestType === undefined || ROUTE_buildtype === undefined || ROUTE_version === undefined) {
     res.status(404);
     res.send('Not found');
     return;
   }
 
-  const ROUTEopenjdkImpl = req.query['openjdk_impl'];
-  const ROUTEos = req.query['os'];
-  const ROUTEarch = req.query['arch'];
-  const ROUTErelease = req.query['release'];
-  const ROUTEtype = req.query['type'];
-  const ROUTEheapSize = req.query['heap_size'];
+  const ROUTE_openjdkImpl = req.query['openjdk_impl'];
+  const ROUTE_os = req.query['os'];
+  const ROUTE_arch = req.query['arch'];
+  const ROUTE_release = req.query['release'];
+  const ROUTE_type = req.query['type'];
+  const ROUTE_heapSize = req.query['heap_size'];
 
-  if (!sanityCheckParams(res, ROUTErequestType, ROUTEbuildtype, ROUTEversion, ROUTEopenjdkImpl, ROUTEos, ROUTEarch, ROUTErelease, ROUTEtype, ROUTEheapSize)) {
+  if (!sanityCheckParams(res, ROUTE_requestType, ROUTE_buildtype, ROUTE_version, ROUTE_openjdkImpl, ROUTE_os, ROUTE_arch, ROUTE_release, ROUTE_type, ROUTE_heapSize)) {
     return;
   }
 
-  cache.getInfoForVersion(ROUTEversion, ROUTEbuildtype)
+  cache.getInfoForVersion(ROUTE_version, ROUTE_buildtype)
     .then(function (apiData) {
-      let isRelease = ROUTEbuildtype === 'releases';
+      const isRelease = ROUTE_buildtype === 'releases';
 
       let data = _.chain(apiData);
 
@@ -225,20 +224,20 @@ module.exports = function (req, res) {
 
       data = filterReleasesOnReleaseType(data, isRelease);
 
-      data = filterReleaseOnBinaryProperty(data, 'openjdk_impl', ROUTEopenjdkImpl);
-      data = filterReleaseOnBinaryProperty(data, 'os', ROUTEos);
-      data = filterReleaseOnBinaryProperty(data, 'architecture', ROUTEarch);
-      data = filterReleaseOnBinaryProperty(data, 'binary_type', ROUTEtype);
-      data = filterReleaseOnBinaryProperty(data, 'heap_size', ROUTEheapSize);
+      data = filterReleaseOnBinaryProperty(data, 'openjdk_impl', ROUTE_openjdkImpl);
+      data = filterReleaseOnBinaryProperty(data, 'os', ROUTE_os);
+      data = filterReleaseOnBinaryProperty(data, 'architecture', ROUTE_arch);
+      data = filterReleaseOnBinaryProperty(data, 'binary_type', ROUTE_type);
+      data = filterReleaseOnBinaryProperty(data, 'heap_size', ROUTE_heapSize);
 
       // don't look at only the latest release for the latestAssets call
-      if (ROUTErequestType !== 'latestAssets') {
-        data = filterRelease(data, ROUTErelease);
+      if (ROUTE_requestType !== 'latestAssets') {
+        data = filterRelease(data, ROUTE_release);
       }
 
       data = data.value();
 
-      switch (ROUTErequestType) {
+      switch (ROUTE_requestType) {
         case 'info':
           return sendData(data, res);
         case 'binary':
@@ -262,20 +261,20 @@ module.exports = function (req, res) {
 };
 
 function getNewStyleFileInfo(name) {
-  let timestampRegex = '[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}';
+  const timestampRegex = '[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}';
 
   //                  11 style       | 8 Style          | 9/10 style
-  let versionRegex = '[0-9]{2}_[0-9]+|8u[0-9]+-?b[0-9X]+|[0-9]+\\.[0-9]+\\.[0-9]+_[0-9]+';
+  const versionRegex = '[0-9]{2}_[0-9]+|8u[0-9]+-?b[0-9X]+|[0-9]+\\.[0-9]+\\.[0-9]+_[0-9]+';
 
   // IF YOU ARE MODIFYING THIS THEN THE FILE MATCHING IS PROBABLY WRONG, MAKE SURE openjdk-website-backend, Release.sh IS UPDATED TOO
   //                  1) num          2) jre/jdk          3) arch                4) OS               5) impl                6)heap                   7) timestamp/version                                         8) Random suffix               9) extension
-  let regex = 'OpenJDK(?<num>[0-9]+)U?(?<type>-jre|-jdk)?_(?<arch>[0-9a-zA-Z-]+)_(?<os>[0-9a-zA-Z]+)_(?<impl>[0-9a-zA-Z]+)_?(?<heap>[0-9a-zA-Z]+)?.*_(?<ts_or_version>' + timestampRegex + '|' + versionRegex + ')(?<rand_suffix>[-0-9A-Za-z\\._]+)?\\.(?<extension>tar\\.gz|zip)';
+  const regex = 'OpenJDK(?<num>[0-9]+)U?(?<type>-jre|-jdk)?_(?<arch>[0-9a-zA-Z-]+)_(?<os>[0-9a-zA-Z]+)_(?<impl>[0-9a-zA-Z]+)_?(?<heap>[0-9a-zA-Z]+)?.*_(?<ts_or_version>' + timestampRegex + '|' + versionRegex + ')(?<rand_suffix>[-0-9A-Za-z\\._]+)?\\.(?<extension>tar\\.gz|zip)';
 
-  let matched = name.match(new RegExp(regex));
+  const matched = name.match(new RegExp(regex));
 
   if (matched != null) {
-    let heap_size = (matched.groups.heap && matched.groups.heap.toLowerCase() === 'linuxxl') ? 'large' : 'normal';
-    let type = matched.groups.type ? matched.groups.type.replace('-', '') : 'jdk';
+    const heap_size = (matched.groups.heap && matched.groups.heap.toLowerCase() === 'linuxxl') ? 'large' : 'normal';
+    const type = matched.groups.type ? matched.groups.type.replace('-', '') : 'jdk';
 
     let arch = matched.groups.arch.toLowerCase();
     if (arch === 'x86-32') {
@@ -297,15 +296,15 @@ function getNewStyleFileInfo(name) {
 }
 
 function getOldStyleFileInfo(name) {
-  let timestampRegex = '[0-9]{4}[0-9]{2}[0-9]{2}[0-9]{2}[0-9]{2}';
-  let regex = 'OpenJDK(?<num>[0-9]+)U?(?<type>-[0-9a-zA-Z]+)?_(?<arch>[0-9a-zA-Z]+)_(?<os>[0-9a-zA-Z]+).*_?(?<ts>' + timestampRegex + ')?.(?<extension>tar.gz|zip)';
+  const timestampRegex = '[0-9]{4}[0-9]{2}[0-9]{2}[0-9]{2}[0-9]{2}';
+  const regex = 'OpenJDK(?<num>[0-9]+)U?(?<type>-[0-9a-zA-Z]+)?_(?<arch>[0-9a-zA-Z]+)_(?<os>[0-9a-zA-Z]+).*_?(?<ts>' + timestampRegex + ')?.(?<extension>tar.gz|zip)';
 
-  let matched = name.match(new RegExp(regex));
+  const matched = name.match(new RegExp(regex));
   if (matched === null) {
     return null;
   }
 
-  let openjdk_impl = matched.groups.type ? matched.groups.type.replace('-', '') : 'hotspot';
+  const openjdk_impl = matched.groups.type ? matched.groups.type.replace('-', '') : 'hotspot';
 
   let os = matched.groups.os.toLowerCase();
   if (os === 'win') {
@@ -314,7 +313,7 @@ function getOldStyleFileInfo(name) {
     os = 'linux';
   }
 
-  let heap_size = name.indexOf('LinuxLH') >= 0 ? 'large' : 'normal';
+  const heap_size = name.indexOf('LinuxLH') >= 0 ? 'large' : 'normal';
 
   return {
     version: matched.groups.num,
@@ -328,15 +327,15 @@ function getOldStyleFileInfo(name) {
 }
 
 function getAmberStyleFileInfo(name, release) {
-  let timestampRegex = '[0-9]{4}[0-9]{2}[0-9]{2}[0-9]{2}[0-9]{2}';
-  let regex = 'OpenJDK-AMBER_(?<arch>[0-9a-zA-Z]+)_(?<os>[0-9a-zA-Z]+)_(?<ts>' + timestampRegex + ').(?<extension>tar.gz|zip)';
+  const timestampRegex = '[0-9]{4}[0-9]{2}[0-9]{2}[0-9]{2}[0-9]{2}';
+  const regex = 'OpenJDK-AMBER_(?<arch>[0-9a-zA-Z]+)_(?<os>[0-9a-zA-Z]+)_(?<ts>' + timestampRegex + ').(?<extension>tar.gz|zip)';
 
-  let matched = name.match(new RegExp(regex));
+  const matched = name.match(new RegExp(regex));
   if (matched === null) {
     return null;
   }
 
-  let versionMatcher = release.tag_name.match(new RegExp('jdk-(?<num>[0-9]+).*'));
+  const versionMatcher = release['tag_name'].match(new RegExp('jdk-(?<num>[0-9]+).*'));
   if (versionMatcher === null) {
     return null;
   }
@@ -353,7 +352,7 @@ function getAmberStyleFileInfo(name, release) {
 }
 
 function formBinaryAssetInfo(asset, release) {
-  let fileInfo = getNewStyleFileInfo(asset.name) || getOldStyleFileInfo(asset.name) || getAmberStyleFileInfo(asset.name, release);
+  const fileInfo = getNewStyleFileInfo(asset.name) || getOldStyleFileInfo(asset.name) || getAmberStyleFileInfo(asset.name, release);
   if (fileInfo === null) {
     return null;
   }
@@ -362,7 +361,7 @@ function formBinaryAssetInfo(asset, release) {
     .replace('.zip', '')
     .replace('.tar.gz', '');
 
-  const checksum_link = _.chain(release.assets)
+  const checksum_link = _.chain(release['assets'])
     .filter(function (asset) {
       return asset.name.endsWith('sha256.txt')
     })
@@ -370,7 +369,7 @@ function formBinaryAssetInfo(asset, release) {
       return asset.name.startsWith(assetName);
     })
     .map(function (asset) {
-      return asset.browser_download_url;
+      return asset['browser_download_url'];
     })
     .first();
 
@@ -391,7 +390,7 @@ function formBinaryAssetInfo(asset, release) {
 }
 
 function githubReleaseToAdoptRelease(release) {
-  const binaries = _.chain(release.assets)
+  const binaries = _.chain(release['assets'])
     .filter(function (asset) {
       return !asset.name.endsWith('sha256.txt')
     })

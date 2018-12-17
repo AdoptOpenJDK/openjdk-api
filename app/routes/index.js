@@ -4,6 +4,9 @@ module.exports = function (app) {
     next();
   });
 
+  const GitHubFileCache = require('../lib/github_file_cache');
+  const cache = new GitHubFileCache();
+
   // API version 2
   // Examples:
   //  /v2/info/releases/openjdk8
@@ -21,7 +24,7 @@ module.exports = function (app) {
   //
   // curl "http://127.0.0.1:3000/v2/binary/nightly/openjdk8?openjdk_impl=hotspot&os=windows&arch=x64&release=latest&type=jdk"
   // curl "http://127.0.0.1:3000/v2/info/releases/openjdk10?openjdk_impl=hotspot&type=jdk"
-  app.get('/v2/:requestType?/:buildtype?/:version?', require('./v2'));
+  app.get('/v2/:requestType?/:buildtype?/:version?', require('./v2')(cache));
 
   // API version 1
   app.get([
