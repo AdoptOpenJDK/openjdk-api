@@ -4,58 +4,53 @@ const _ = require('underscore');
 const Q = require('q');
 
 const GitHubFileCache = require('../app/lib/github_file_cache');
-jest.mock('../app/lib/github_file_cache');
-// let v2;
 
 describe('v2 API', () => {
   const jdkVersions = ["openjdk8", "openjdk9", "openjdk10", "openjdk11"];
   const releaseTypes = ["nightly", "releases"];
+  const apiDataStore = loadMockApiData();
 
   let v2;
   let cacheMock;
-  let getInfoForVersionMock;
-  let mockInfoResponse;
+  let cachedGetMock;
+
+  beforeAll(() => {
+    cacheMock = new GitHubFileCache();
+  });
 
   beforeEach(() => {
-    getInfoForVersionMock = jest.fn().mockReturnValue(mockInfoResponse);
-    cacheMock = new GitHubFileCache();
-    cacheMock.getInfoForVersion = getInfoForVersionMock;
+    expect(Object.keys(apiDataStore)).toHaveLength(20);
 
-    v2 = require('../app/routes/v2')(cacheMock);
+    cachedGetMock = jest.fn((url) => {
+      const urlRe = new RegExp(/https:\/\/api.github.com\/repos\/AdoptOpenJDK\/(\w*)-(openj9)?(?:-)?(\w*)\/releases\?per_page=10000/);
+      const urlVars = urlRe.exec(url);
+
+      const version = urlVars[1];
+      const openJ9Str = urlVars[2];
+      const releaseType = urlVars[3];
+
+      const isOpenJ9 = !!openJ9Str;
+      const releaseStr = isOpenJ9 ? `${version}-${openJ9Str}-${releaseType}` : `${version}-${releaseType}`;
+
+      const deferred = Q.defer();
+      const apiData = apiDataStore[releaseStr];
+      if (apiData) {
+        deferred.resolve(apiData);
+      } else {
+        deferred.reject(`Could not match release string '${releaseStr}' for URL '${url}'`);
+      }
+
+      return deferred.promise;
+    });
+
+    cacheMock.cachedGet = cachedGetMock;
+
+    return v2 = require('../app/routes/v2')(cacheMock);
   });
 
   afterEach(() => {
     jest.clearAllMocks();
-    // cacheMock.mockClear();
   });
-
-  setUpTestCache();
-
-  function setUpTestCache() {
-
-    if (!fs.existsSync('cache')) {
-      fs.mkdirSync('cache');
-    }
-
-    function updateCacheTimes(cacheData) {
-      for (const cacheEntry in cacheData) {
-        if (cacheData[cacheEntry].hasOwnProperty("cacheTime")) {
-          cacheData[cacheEntry].cacheTime = Date.now() + 60 * 1000;
-        }
-      }
-    }
-
-    const newCacheData = JSON.parse(fs.readFileSync('./test/asset/cache/newCache.cache.json', {encoding: 'UTF-8'}));
-    updateCacheTimes(newCacheData);
-    fs.writeFileSync('./cache/newCache.cache.json', JSON.stringify(newCacheData));
-
-
-    const oldCacheData = JSON.parse(fs.readFileSync('./test/asset/cache/oldCache.cache.json', {encoding: 'UTF-8'}));
-    updateCacheTimes(oldCacheData);
-    fs.writeFileSync('./cache/oldCache.cache.json', JSON.stringify(oldCacheData));
-
-    console.log('Test cache setup')
-  }
 
   function mockRequest(requestType, buildtype, version, openjdk_impl, os, arch, release, type, heap_size) {
     return {
@@ -150,8 +145,6 @@ describe('v2 API', () => {
     describe('200', () => {
       describe('for simple cases', () => {
 
-        mockInfoResponse = Promise.resolve({});
-
         it.each(getAllPermutations())('%s %s', (jdk, release) => {
           const request = mockRequest("info", release, jdk);
 
@@ -181,7 +174,7 @@ describe('v2 API', () => {
       it('for invalid versions', () => {
         const request = mockRequest("info", "releases", "openjdk50", "hotspot", undefined, undefined, undefined, undefined, undefined);
         return performRequest(request, (code, data) => {
-          assert.strictEqual(code, 404);
+          expect(code).toEqual(404);
         });
       });
     });
@@ -359,4 +352,31 @@ describe('v2 API', () => {
       })
     });
   });
+
+  function loadMockApiData() {
+    const newRepoReleaseStrs = [];
+    const oldRepoReleaseStrs = [];
+
+    jdkVersions.forEach(version => {
+      newRepoReleaseStrs.push(`${version}-binaries`);
+      releaseTypes.forEach(type => {
+        oldRepoReleaseStrs.push(`${version}-${type}`);
+        oldRepoReleaseStrs.push(`${version}-openj9-${type}`);
+      });
+    });
+
+    const apiDataStore = {};
+
+    newRepoReleaseStrs.forEach(releaseStr => {
+      const path = `./test/asset/githubApiMocks/newRepo/${releaseStr}.json`;
+      apiDataStore[releaseStr] = JSON.parse(fs.readFileSync(path, {encoding: 'UTF-8'}))
+    });
+
+    oldRepoReleaseStrs.forEach(releaseStr => {
+      const path = `./test/asset/githubApiMocks/oldRepo/${releaseStr}.json`;
+      apiDataStore[releaseStr] = JSON.parse(fs.readFileSync(path, {encoding: 'UTF-8'}))
+    });
+
+    return apiDataStore;
+  }
 });
