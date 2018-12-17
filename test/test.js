@@ -51,83 +51,6 @@ describe('v2 API', () => {
     jest.clearAllMocks();
   });
 
-  function mockRequest(requestType, buildtype, version, openjdk_impl, os, arch, release, type, heap_size) {
-    return {
-      params: {
-        requestType: requestType,
-        buildtype: buildtype,
-        version: version,
-      },
-
-      query: {
-        openjdk_impl: openjdk_impl,
-        os: os,
-        arch: arch,
-        release: release,
-        type: type,
-        heap_size: heap_size,
-      }
-    }
-  }
-
-  function mockRequestWithSingleQuery(requestType, buildtype, version, queryName, queryValue) {
-    const request = mockRequest(requestType, buildtype, version);
-    request.query[queryName] = queryValue;
-    return request;
-  }
-
-  function performRequest(request, doAssert) {
-    const codePromise = Q.defer();
-    const msgPromise = Q.defer();
-    const res = {
-      status: (code) => {
-        codePromise.resolve(code);
-      },
-      send: (msg) => {
-        msgPromise.resolve(msg);
-      },
-      json: (msg) => {
-        msgPromise.resolve(JSON.stringify(msg));
-      },
-      redirect: (url) => {
-        codePromise.resolve(302);
-        msgPromise.resolve(url);
-      }
-    };
-
-    v2(request, res);
-
-    return Q
-    .allSettled([codePromise.promise, msgPromise.promise])
-    .then(result => {
-      const code = result[0].value;
-      const msg = result[1].value;
-      doAssert(code, msg);
-    });
-  }
-
-  function getAllPermutations() {
-    const permutations = [];
-    jdkVersions.forEach(jdkVersion => {
-      releaseTypes.forEach(releaseType => {
-        permutations.push([jdkVersion, releaseType]);
-      })
-    });
-    return permutations;
-  }
-
-  /*
-  TODO: uncomment when fixed
-  describe('dinoguns binary request works', function () {
-    it("works", function () {
-      const request = mockRequest("binary", "nightly", "openjdk8", "hotspot", "linux", "aarch64", "latest", "jdk");
-      return performRequest(request, function (code, msg) {
-        assert.equal(302, code);
-      });
-    })
-  });
-  */
-
   describe('returns HTTP status code', () => {
     describe('200', () => {
       describe('for release info', () => {
@@ -156,8 +79,9 @@ describe('v2 API', () => {
     describe('404', () => {
       it('for invalid versions', () => {
         const request = mockRequest("info", "releases", "openjdk50", "hotspot", undefined, undefined, undefined, undefined, undefined);
-        return performRequest(request, (code, data) => {
+        return performRequest(request, (code, msg) => {
           expect(code).toEqual(404);
+          expect(msg).toEqual('Not found');
         });
       });
     });
@@ -359,5 +283,70 @@ describe('v2 API', () => {
     });
 
     return apiDataStore;
+  }
+
+  function getAllPermutations() {
+    const permutations = [];
+    jdkVersions.forEach(jdkVersion => {
+      releaseTypes.forEach(releaseType => {
+        permutations.push([jdkVersion, releaseType]);
+      })
+    });
+    return permutations;
+  }
+
+  function mockRequest(requestType, buildtype, version, openjdk_impl, os, arch, release, type, heap_size) {
+    return {
+      params: {
+        requestType: requestType,
+        buildtype: buildtype,
+        version: version,
+      },
+
+      query: {
+        openjdk_impl: openjdk_impl,
+        os: os,
+        arch: arch,
+        release: release,
+        type: type,
+        heap_size: heap_size,
+      }
+    }
+  }
+
+  function mockRequestWithSingleQuery(requestType, buildtype, version, queryName, queryValue) {
+    const request = mockRequest(requestType, buildtype, version);
+    request.query[queryName] = queryValue;
+    return request;
+  }
+
+  function performRequest(request, doAssert) {
+    const codePromise = Q.defer();
+    const msgPromise = Q.defer();
+    const res = {
+      status: (code) => {
+        codePromise.resolve(code);
+      },
+      send: (msg) => {
+        msgPromise.resolve(msg);
+      },
+      json: (msg) => {
+        msgPromise.resolve(JSON.stringify(msg));
+      },
+      redirect: (url) => {
+        codePromise.resolve(302);
+        msgPromise.resolve(url);
+      }
+    };
+
+    v2(request, res);
+
+    return Q
+    .allSettled([codePromise.promise, msgPromise.promise])
+    .then(result => {
+      const code = result[0].value;
+      const msg = result[1].value;
+      doAssert(code, msg);
+    });
   }
 });
