@@ -215,7 +215,6 @@ describe('v2 API', () => {
         const isRelease = release.indexOf("releases") >= 0;
 
         return performRequest(request, (code, data) => {
-          console.log(data);
           const releases = JSON.parse(data);
           _.chain(releases)
           .each(release => {

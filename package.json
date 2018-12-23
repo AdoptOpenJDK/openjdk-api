@@ -16,7 +16,7 @@
   "scripts": {
     "start": "nodemon --ignore cache/ server.js",
     "lint": "eslint *.js app/routes/*.js",
-    "test": "jest && npm run lint"
+    "test": "jest --coverage && npm run lint"
   },
   "dependencies": {
     "async": "^2.6.1",

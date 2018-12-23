@@ -103,7 +103,6 @@ function redirectToBinary(data, res) {
     res.status(400);
     res.send('Multiple binaries match request: ' + JSON.stringify(data.binaries, null, 2));
   } else {
-    console.log('Redirecting to ' + data.binaries[0].binary_link);
     res.redirect(data.binaries[0].binary_link);
   }
 }
