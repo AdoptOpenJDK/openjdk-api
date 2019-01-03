@@ -1,51 +1,12 @@
-const fs = require('fs');
 const _ = require('underscore');
 const Q = require('q');
-
-const GitHubFileCache = require('../app/lib/github_file_cache');
 
 describe('v2 API', () => {
   const jdkVersions = ["openjdk8", "openjdk9", "openjdk10", "openjdk11"];
   const releaseTypes = ["nightly", "releases"];
-  const apiDataStore = loadMockApiData();
 
-  let v2;
-  let cacheMock;
-  let cachedGetMock;
-
-  beforeAll(() => {
-    cacheMock = new GitHubFileCache();
-  });
-
-  beforeEach(() => {
-    expect(Object.keys(apiDataStore)).toHaveLength(20);
-
-    cachedGetMock = jest.fn((url) => {
-      const urlRe = new RegExp(/https:\/\/api.github.com\/repos\/AdoptOpenJDK\/(\w*)-(openj9)?(?:-)?(\w*)\/releases\?per_page=10000/);
-      const urlVars = urlRe.exec(url);
-
-      const version = urlVars[1];
-      const openJ9Str = urlVars[2];
-      const releaseType = urlVars[3];
-
-      const isOpenJ9 = !!openJ9Str;
-      const releaseStr = isOpenJ9 ? `${version}-${openJ9Str}-${releaseType}` : `${version}-${releaseType}`;
-
-      const deferred = Q.defer();
-      const apiData = apiDataStore[releaseStr];
-      if (apiData) {
-        deferred.resolve(apiData);
-      } else {
-        return deferred.reject(`Could not match release string '${releaseStr}' for URL '${url}'`);
-      }
-
-      return deferred.promise;
-    });
-
-    cacheMock.cachedGet = cachedGetMock;
-
-    return v2 = require('../app/routes/v2')(cacheMock);
-  });
+  const cacheMock = require('./mockCache')(jdkVersions, releaseTypes);
+  const v2 = require('../app/routes/v2')(cacheMock);
 
   afterEach(() => {
     jest.clearAllMocks();
@@ -117,14 +78,14 @@ describe('v2 API', () => {
           }
 
           _.chain(releases)
-          .map(release => release.binaries)
-          .flatten()
-          .each(binary => {
-            _.chain(expectedBinaryProperties)
-            .each(property => {
-              expect(binary).toHaveProperty(property);
-            });
-          })
+            .map(release => release.binaries)
+            .flatten()
+            .each(binary => {
+              _.chain(expectedBinaryProperties)
+                .each(property => {
+                  expect(binary).toHaveProperty(property);
+                });
+            })
         });
       });
     });
@@ -136,11 +97,11 @@ describe('v2 API', () => {
         return performRequest(request, (code, data) => {
           const binaries = JSON.parse(data);
           _.chain(binaries)
-          .each(binary => {
-            expect(binary.openjdk_impl).toEqual("hotspot");
-            expect(binary.os).toEqual("linux");
-            expect(binary.architecture).toEqual("x64");
-          })
+            .each(binary => {
+              expect(binary.openjdk_impl).toEqual("hotspot");
+              expect(binary.os).toEqual("linux");
+              expect(binary.architecture).toEqual("x64");
+            })
         });
       });
     });
@@ -151,14 +112,14 @@ describe('v2 API', () => {
         return performRequest(request, (code, data) => {
           const releases = JSON.parse(data);
           _.chain(releases)
-          .each(release => {
-            if (release.hasOwnProperty('binaries')) {
-              _.chain(releases.binaries)
-              .each(binary => {
-                expect(binary.os.toLowerCase()).not.toEqual("linuxlh");
-              })
-            }
-          })
+            .each(release => {
+              if (release.hasOwnProperty('binaries')) {
+                _.chain(releases.binaries)
+                  .each(binary => {
+                    expect(binary.os.toLowerCase()).not.toEqual("linuxlh");
+                  })
+              }
+            })
         });
       })
     });
@@ -200,11 +161,11 @@ describe('v2 API', () => {
 
           const releases = JSON.parse(msg);
           _.chain(releases)
-          .map(release => release.binaries)
-          .flatten()
-          .each(binary => {
-            expect(binary[returnedPropertyName]).toEqual(propertyValue);
-          });
+            .map(release => release.binaries)
+            .flatten()
+            .each(binary => {
+              expect(binary[returnedPropertyName]).toEqual(propertyValue);
+            });
         });
       }
     });
@@ -217,22 +178,22 @@ describe('v2 API', () => {
         return performRequest(request, (code, data) => {
           const releases = JSON.parse(data);
           _.chain(releases)
-          .each(release => {
-            if (release.hasOwnProperty('binaries')) {
-              _.chain(releases.binaries)
-              .each(binary => {
-                const isNightlyRepo = binary.binary_link.indexOf("-nightly") >= 0;
-                const isBinaryRepo = binary.binary_link.indexOf("-binaries") >= 0;
-                if (isRelease) {
-                  expect(isNightlyRepo).toBe(false);
-                } else {
-                  expect(isNightlyRepo || isBinaryRepo).toBe(true);
-                }
-              });
-            }
+            .each(release => {
+              if (release.hasOwnProperty('binaries')) {
+                _.chain(releases.binaries)
+                  .each(binary => {
+                    const isNightlyRepo = binary.binary_link.indexOf("-nightly") >= 0;
+                    const isBinaryRepo = binary.binary_link.indexOf("-binaries") >= 0;
+                    if (isRelease) {
+                      expect(isNightlyRepo).toBe(false);
+                    } else {
+                      expect(isNightlyRepo || isBinaryRepo).toBe(true);
+                    }
+                  });
+              }
 
-            expect(release.release).toEqual(isRelease);
-          });
+              expect(release.release).toEqual(isRelease);
+            });
         });
       });
     });
@@ -243,46 +204,60 @@ describe('v2 API', () => {
         return performRequest(request, (code, data) => {
           const releases = JSON.parse(data);
           _.chain(releases)
-          .each(release => {
-            if (release.hasOwnProperty('binaries')) {
-              _.chain(releases.binaries)
-              .each(binary => {
-                expect(binary.binary_link).toContain("linuxXL");
-                expect(binary.heap_size).toEqual("large");
-              })
-            }
-          })
+            .each(release => {
+              if (release.hasOwnProperty('binaries')) {
+                _.chain(releases.binaries)
+                  .each(binary => {
+                    expect(binary.binary_link).toContain("linuxXL");
+                    expect(binary.heap_size).toEqual("large");
+                  })
+              }
+            })
         })
       });
     });
   });
 
-  function loadMockApiData() {
-    const newRepoReleaseStrs = [];
-    const oldRepoReleaseStrs = [];
+  describe('sort order is correct', function () {
+    function assertSortsCorrectly(data, javaVersion, expectedOrder) {
+      let sorted = v2._testExport.sortReleases(javaVersion, _.chain(data)).value();
 
-    jdkVersions.forEach(version => {
-      newRepoReleaseStrs.push(`${version}-binaries`);
-      releaseTypes.forEach(type => {
-        oldRepoReleaseStrs.push(`${version}-${type}`);
-        oldRepoReleaseStrs.push(`${version}-openj9-${type}`);
-      });
+      let isSorted = _.chain(sorted)
+        .map(function (release) {
+          return release.release_name;
+        })
+        .isEqual(expectedOrder)
+        .value();
+
+      expect(isSorted).toBe(true);
+    }
+
+    it("java 8 is sorted", function () {
+      assertSortsCorrectly([
+          {"release_name": "jdk8u100-b10", "timestamp": 1},
+          {"release_name": "jdk8u100-b2", "timestamp": 2},
+          {"release_name": "jdk8u20-b1", "timestamp": 3},
+          {"release_name": "jdk8u100-b1_openj9-0.8.0", "timestamp": 4},
+          {"release_name": "jdk8u20-b1_openj9-0.8.0", "timestamp": 5}
+        ],
+        "openjdk8",
+        ["jdk8u20-b1", "jdk8u20-b1_openj9-0.8.0", "jdk8u100-b1_openj9-0.8.0", "jdk8u100-b2", "jdk8u100-b10"]);
     });
 
-    const apiDataStore = {};
 
-    newRepoReleaseStrs.forEach(releaseStr => {
-      const path = `./test/asset/githubApiMocks/newRepo/${releaseStr}.json`;
-      apiDataStore[releaseStr] = JSON.parse(fs.readFileSync(path, {encoding: 'UTF-8'}))
-    });
-
-    oldRepoReleaseStrs.forEach(releaseStr => {
-      const path = `./test/asset/githubApiMocks/oldRepo/${releaseStr}.json`;
-      apiDataStore[releaseStr] = JSON.parse(fs.readFileSync(path, {encoding: 'UTF-8'}))
-    });
-
-    return apiDataStore;
-  }
+    it("java 11 is sorted", function () {
+      assertSortsCorrectly(
+        [
+          {"release_name": "jdk-11+100", "timestamp": 1},
+          {"release_name": "jdk-11+2", "timestamp": 2},
+          {"release_name": "jdk-11.10.1+2", "timestamp": 3},
+          {"release_name": "jdk-11.2.1+10", "timestamp": 4},
+          {"release_name": "jdk-11.2.1+2", "timestamp": 5},
+        ],
+        "openjdk11",
+        ["jdk-11+2", "jdk-11+100", "jdk-11.2.1+2", "jdk-11.2.1+10", "jdk-11.10.1+2"]);
+    })
+  });
 
   function getAllPermutations() {
     const permutations = [];
@@ -338,14 +313,14 @@ describe('v2 API', () => {
       }
     };
 
-    v2(request, res);
+    v2.get(request, res);
 
     return Q
-    .allSettled([codePromise.promise, msgPromise.promise])
-    .then(result => {
-      const code = result[0].value;
-      const msg = result[1].value;
-      doAssert(code, msg);
-    });
+      .allSettled([codePromise.promise, msgPromise.promise])
+      .then(result => {
+        const code = result[0].value;
+        const msg = result[1].value;
+        doAssert(code, msg);
+      });
   }
 });

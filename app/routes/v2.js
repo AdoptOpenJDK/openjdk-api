@@ -1,4 +1,6 @@
 const _ = require('underscore');
+const versions = require('./versions')();
+
 
 function filterReleaseBinaries(releases, filterFunction) {
   return releases
@@ -117,6 +119,7 @@ function findLatestAssets(data, res) {
           binary.timestamp = binary.updated_at;
           binary.release_name = release.release_name;
           binary.release_link = release.release_link;
+          binary.release_version = release.version;
           return binary;
         })
       })
@@ -188,76 +191,6 @@ function sanityCheckParams(res, requestType, buildtype, version, openjdkImpl, os
     return true;
   }
 }
-
-
-module.exports = (cache) => function (req, res) {
-  const ROUTE_requestType = req.params.requestType;
-  const ROUTE_buildtype = req.params.buildtype;
-  const ROUTE_version = req.params.version;
-
-  if (ROUTE_requestType === undefined || ROUTE_buildtype === undefined || ROUTE_version === undefined) {
-    res.status(404);
-    res.send('Not found');
-    return;
-  }
-
-  const ROUTE_openjdkImpl = req.query['openjdk_impl'];
-  const ROUTE_os = req.query['os'];
-  const ROUTE_arch = req.query['arch'];
-  const ROUTE_release = req.query['release'];
-  const ROUTE_type = req.query['type'];
-  const ROUTE_heapSize = req.query['heap_size'];
-
-  if (!sanityCheckParams(res, ROUTE_requestType, ROUTE_buildtype, ROUTE_version, ROUTE_openjdkImpl, ROUTE_os, ROUTE_arch, ROUTE_release, ROUTE_type, ROUTE_heapSize)) {
-    return;
-  }
-
-  cache.getInfoForVersion(ROUTE_version, ROUTE_buildtype)
-    .then(function (apiData) {
-      const isRelease = ROUTE_buildtype === 'releases';
-
-      let data = _.chain(apiData);
-
-      data = fixPrereleaseTagOnOldRepoData(data, isRelease);
-      data = githubDataToAdoptApi(data);
-
-      data = filterReleasesOnReleaseType(data, isRelease);
-
-      data = filterReleaseOnBinaryProperty(data, 'openjdk_impl', ROUTE_openjdkImpl);
-      data = filterReleaseOnBinaryProperty(data, 'os', ROUTE_os);
-      data = filterReleaseOnBinaryProperty(data, 'architecture', ROUTE_arch);
-      data = filterReleaseOnBinaryProperty(data, 'binary_type', ROUTE_type);
-      data = filterReleaseOnBinaryProperty(data, 'heap_size', ROUTE_heapSize);
-
-      // don't look at only the latest release for the latestAssets call
-      if (ROUTE_requestType !== 'latestAssets') {
-        data = filterRelease(data, ROUTE_release);
-      }
-
-      data = data.value();
-
-      switch (ROUTE_requestType) {
-        case 'info':
-          return sendData(data, res);
-        case 'binary':
-          return redirectToBinary(data, res);
-        case 'latestAssets':
-          return findLatestAssets(data, res);
-        default:
-          return res.status(404).send('Not found');
-      }
-    })
-    .catch(function (err) {
-      console.log(err);
-      if (err.err) {
-        res.status(500);
-        res.send('Internal error');
-      } else {
-        res.status(err.response.statusCode);
-        res.send('');
-      }
-    });
-};
 
 function getNewStyleFileInfo(name) {
   const timestampRegex = '[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}';
@@ -372,6 +305,8 @@ function formBinaryAssetInfo(asset, release) {
     })
     .first();
 
+  const version = versions.formAdoptApiVersionObject(release.tag_name);
+
   return {
     os: fileInfo.os.toLowerCase(),
     architecture: fileInfo.arch.toLowerCase(),
@@ -382,6 +317,7 @@ function formBinaryAssetInfo(asset, release) {
     binary_size: asset.size,
     checksum_link: checksum_link,
     version: fileInfo.version,
+    version_data: version,
     heap_size: fileInfo.heap_size,
     download_count: asset.download_count,
     updated_at: asset.updated_at,
@@ -389,6 +325,7 @@ function formBinaryAssetInfo(asset, release) {
 }
 
 function githubReleaseToAdoptRelease(release) {
+
   const binaries = _.chain(release['assets'])
     .filter(function (asset) {
       return !asset.name.endsWith('sha256.txt')
@@ -419,13 +356,155 @@ function githubReleaseToAdoptRelease(release) {
   }
 }
 
-function githubDataToAdoptApi(githubApiData) {
-  return githubApiData
+function sortByGroup(regex, groupName) {
+  return function (release) {
+    const matched = release.release_name.match(new RegExp(regex));
+    if (matched != null) {
+      if (matched.groups[groupName] === undefined) {
+        return 0;
+      } else {
+        return parseInt(matched.groups[groupName])
+      }
+    }
+    return 0;
+  }
+}
+
+function java8ReleaseSorter(data) {
+  const regex = 'jdk(?<num>[0-9]+)u?(?<update>[0-9]+)-b(?<build>[0-9]+).*';
+  return data
+    .sortBy(sortByGroup(regex, 'build'))
+    .sortBy(sortByGroup(regex, 'update'))
+}
+
+function java11ReleaseSorter(data) {
+  //jdk-11.0.1+13
+  //jdk-11+28
+  const regex = 'jdk-(?<major>[0-9]+)(?:\\.(?<minor>[0-9]+))?(?:\\.(?<security>[0-9]+))?(?:\\+(?<build>[0-9]+))?';
+
+  return data
+    .sortBy(sortByGroup(regex, 'build'))
+    .sortBy(sortByGroup(regex, 'security'))
+    .sortBy(sortByGroup(regex, 'minor'))
+}
+
+function defaultSort(data) {
+  return data
+    .sortBy(function (release) {
+      return release.timestamp
+    })
+    .sortBy(function (release) {
+      return release.release_name
+    })
+}
+
+function sortReleases(javaVersion, data) {
+  data = defaultSort(data);
+
+  if (javaVersion === 'openjdk8') {
+    return java8ReleaseSorter(data);
+  } else if (javaVersion === 'openjdk11') {
+    return java11ReleaseSorter(data);
+  } else {
+    return data
+  }
+}
+
+function githubDataToAdoptApi(githubApiData, javaVersion, isReleases) {
+  const data = githubApiData
     .map(githubReleaseToAdoptRelease)
     .filter(function (release) {
       return release.binaries.length > 0;
+    });
+
+  if (isReleases) {
+    return sortReleases(javaVersion, data)
+  } else {
+    return data
+      .sortBy(function (release) {
+        return release.timestamp
+      });
+  }
+}
+
+function performGetRequest(req, res, cache) {
+  const ROUTE_requestType = req.params.requestType;
+  const ROUTE_buildtype = req.params.buildtype;
+  const ROUTE_version = req.params.version;
+
+  if (ROUTE_requestType === undefined || ROUTE_buildtype === undefined || ROUTE_version === undefined) {
+    res.status(404);
+    res.send('Not found');
+    return;
+  }
+
+  const ROUTE_openjdkImpl = req.query['openjdk_impl'];
+  const ROUTE_os = req.query['os'];
+  const ROUTE_arch = req.query['arch'];
+  const ROUTE_release = req.query['release'];
+  const ROUTE_type = req.query['type'];
+  const ROUTE_heapSize = req.query['heap_size'];
+
+  if (!sanityCheckParams(res, ROUTE_requestType, ROUTE_buildtype, ROUTE_version, ROUTE_openjdkImpl, ROUTE_os, ROUTE_arch, ROUTE_release, ROUTE_type, ROUTE_heapSize)) {
+    return;
+  }
+
+  cache.getInfoForVersion(ROUTE_version, ROUTE_buildtype)
+    .then(function (apiData) {
+      const isRelease = ROUTE_buildtype === 'releases';
+
+      let data = _.chain(apiData);
+
+      data = fixPrereleaseTagOnOldRepoData(data, isRelease);
+      data = githubDataToAdoptApi(data, ROUTE_version, isRelease);
+
+      data = filterReleasesOnReleaseType(data, isRelease);
+
+      data = filterReleaseOnBinaryProperty(data, 'openjdk_impl', ROUTE_openjdkImpl);
+      data = filterReleaseOnBinaryProperty(data, 'os', ROUTE_os);
+      data = filterReleaseOnBinaryProperty(data, 'architecture', ROUTE_arch);
+      data = filterReleaseOnBinaryProperty(data, 'binary_type', ROUTE_type);
+      data = filterReleaseOnBinaryProperty(data, 'heap_size', ROUTE_heapSize);
+
+      // don't look at only the latest release for the latestAssets call
+      if (ROUTE_requestType !== 'latestAssets') {
+        data = filterRelease(data, ROUTE_release);
+      }
+
+      data = data.value();
+
+      switch (ROUTE_requestType) {
+        case 'info':
+          return sendData(data, res);
+        case 'binary':
+          return redirectToBinary(data, res);
+        case 'latestAssets':
+          return findLatestAssets(data, res);
+        default:
+          return res.status(404).send('Not found');
+      }
     })
-    .sortBy(function (release) {
-      return release.release ? release.release_name : release.timestamp
+    .catch(function (err) {
+      console.log(err);
+      if (err.err) {
+        res.status(500);
+        res.send('Internal error');
+      } else {
+        res.status(err.response.statusCode);
+        res.send('');
+      }
     });
 }
+
+
+module.exports = (cache) => {
+  return {
+    get: function (req, res) {
+      return performGetRequest(req, res, cache);
+    },
+    // Functions exposed for testing
+    _testExport: {
+      sortReleases: sortReleases
+    }
+  }
+};
