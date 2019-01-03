@@ -13,11 +13,17 @@ const logger = console;
 function readAuthCreds() {
   try {
     logger.log("Reading auth");
-    return fs.readFileSync('/home/jenkins/github.auth').toString("ascii").trim();
+    if (fs.existsSync('/home/jenkins/github.auth')) {
+      return fs.readFileSync('/home/jenkins/github.auth').toString("ascii").trim();
+    } else if (fs.existsSync('auth/github.auth')) {
+      return fs.readFileSync('auth/github.auth').toString("ascii").trim();
+    }
   } catch (e) {
-    logger.log("No github creds found");
-    return null;
+    //ignore
   }
+
+  logger.log("No github creds found");
+  return null;
 }
 
 function loadCacheFromDisk(cacheName, auth) {
@@ -81,11 +87,11 @@ function getCooldown(auth) {
 
 function markOldReleases(oldReleases) {
   return _.chain(oldReleases)
-  .map(function (release) {
-    release.oldRepo = true;
-    return release;
-  })
-  .value();
+    .map(function (release) {
+      release.oldRepo = true;
+      return release;
+    })
+    .value();
 }
 
 
@@ -247,19 +253,19 @@ class GitHubFileCache {
     }
 
     Q.allSettled([hotspotPromise, openj9Promise])
-    .then(function (results) {
-      const hotspotResult = results[0];
-      const openj9Result = results[1];
-      if (hotspotResult.state !== "fulfilled" && openj9Result.state !== "fulfilled") {
-        deferred.reject(hotspotResult.reason);
-      } else {
-        const hotspotData = hotspotResult.state === "fulfilled" ? hotspotResult.value : [];
-        const openj9Data = openj9Result.state === "fulfilled" ? openj9Result.value : [];
+      .then(function (results) {
+        const hotspotResult = results[0];
+        const openj9Result = results[1];
+        if (hotspotResult.state !== "fulfilled" && openj9Result.state !== "fulfilled") {
+          deferred.reject(hotspotResult.reason);
+        } else {
+          const hotspotData = hotspotResult.state === "fulfilled" ? hotspotResult.value : [];
+          const openj9Data = openj9Result.state === "fulfilled" ? openj9Result.value : [];
 
-        const unifiedJson = _.union(hotspotData, openj9Data);
-        deferred.resolve(unifiedJson);
-      }
-    });
+          const unifiedJson = _.union(hotspotData, openj9Data);
+          deferred.resolve(unifiedJson);
+        }
+      });
 
     return deferred.promise;
   }
@@ -270,22 +276,22 @@ class GitHubFileCache {
     const deferred = Q.defer();
 
     Q.allSettled([this.getInfoForOldRepo(version, releaseType), this.getInfoForNewRepo(version)])
-    .then(function (results) {
-      const oldData = results[0];
-      const newData = results[1];
+      .then(function (results) {
+        const oldData = results[0];
+        const newData = results[1];
 
-      if (oldData.state !== "fulfilled" && newData.state !== "fulfilled") {
-        deferred.reject(oldData.reason);
-      } else {
-        let oldD = oldData.state === "fulfilled" ? oldData.value : [];
-        const newD = newData.state === "fulfilled" ? newData.value : [];
+        if (oldData.state !== "fulfilled" && newData.state !== "fulfilled") {
+          deferred.reject(oldData.reason);
+        } else {
+          let oldD = oldData.state === "fulfilled" ? oldData.value : [];
+          const newD = newData.state === "fulfilled" ? newData.value : [];
 
-        oldD = markOldReleases(oldD);
+          oldD = markOldReleases(oldD);
 
-        const unifiedJson = _.union(oldD, newD);
-        deferred.resolve(unifiedJson);
-      }
-    });
+          const unifiedJson = _.union(oldD, newD);
+          deferred.resolve(unifiedJson);
+        }
+      });
     return deferred.promise;
   }
 }

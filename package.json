@@ -16,7 +16,8 @@
   "scripts": {
     "start": "nodemon --ignore cache/ server.js",
     "lint": "eslint *.js app/routes/*.js",
-    "test": "jest --coverage && npm run lint"
+    "test": "jest --coverage test/*.test.js && npm run lint",
+    "test:regression": "jest --coverage test/regression/*.test.js"
   },
   "dependencies": {
     "async": "^2.6.1",
@@ -35,6 +36,9 @@
     "eslint-plugin-jest": "^22.1.2",
     "eslint-plugin-jest-async": "^1.0.3",
     "jest": "^23.6.0",
-    "nodemon": "^1.18.9"
+    "nodemon": "^1.18.9",
+    "rimraf": "^2.6.2",
+    "sync-request": "^6.0.0",
+    "json-stable-stringify": "^1.0.1"
   }
 }
