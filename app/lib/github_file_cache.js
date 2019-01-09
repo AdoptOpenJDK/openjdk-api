@@ -43,11 +43,11 @@ function readAuthCreds() {
 
 function getCooldown(auth) {
   if (auth) {
-    // 5 min
-    return '0 */5 * * * *';
+    // 15 min
+    return '0 */15 * * * *';
   } else {
     // 30 min
-    return '0 */30 * * * *';
+    return '0 */60 * * * *';
   }
 }
 
