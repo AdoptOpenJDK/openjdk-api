@@ -29,6 +29,8 @@ function readAuthCreds() {
         type: 'token',
         token: token
       });
+
+      return true
     }
 
   } catch (e) {
@@ -36,16 +38,11 @@ function readAuthCreds() {
     logger.warn("No github creds found");
   }
 
-  return null;
+  return false;
 }
-
-function authIsValid(auth) {
-  return auth !== undefined && auth !== null && auth.length > 0;
-}
-
 
 function getCooldown(auth) {
-  if (authIsValid(auth)) {
+  if (auth) {
     // 5 min
     return '0 */5 * * * *';
   } else {

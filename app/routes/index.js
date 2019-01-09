@@ -5,7 +5,7 @@ module.exports = function (app) {
   });
 
   const GitHubFileCache = require('../lib/github_file_cache');
-  const cache = new GitHubFileCache();
+  const cache = new GitHubFileCache(false);
 
   // API version 2
   // Examples:
