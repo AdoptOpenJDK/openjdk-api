@@ -2,8 +2,13 @@ env:
   browser: true
   node: true
   es6: true
+  jest: true
+
 rules:
   no-console: 0
   no-inner-declarations: 0
+  prefer-const: warn
 
-extends: eslint:recommended
+extends:
+  - eslint:recommended
+  - plugin:jest/recommended
