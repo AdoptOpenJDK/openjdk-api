@@ -16,10 +16,12 @@
   "scripts": {
     "start": "nodemon --ignore cache/ server.js",
     "lint": "eslint *.js app/routes/*.js",
-    "test": "jest --coverage && npm run lint"
+    "test": "jest --coverage test/*.test.js && npm run lint"
   },
   "dependencies": {
+    "@octokit/rest": "^16.6.1",
     "async": "^2.6.1",
+    "cron": "1.6.0",
     "express": "^4.16.4",
     "express-rate-limit": "^3.3.2",
     "lodash": "^4.17.11",
@@ -35,6 +37,8 @@
     "eslint-plugin-jest": "^22.1.2",
     "eslint-plugin-jest-async": "^1.0.3",
     "jest": "^23.6.0",
-    "nodemon": "^1.18.9"
+    "json-stable-stringify": "^1.0.1",
+    "nodemon": "^1.18.9",
+    "sync-request": "^6.0.0"
   }
 }
