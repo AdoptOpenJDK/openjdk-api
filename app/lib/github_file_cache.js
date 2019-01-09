@@ -2,12 +2,15 @@ const _ = require('underscore');
 const fs = require('fs');
 const Q = require('q');
 const octokit = require('@octokit/rest')();
-var CronJob = require('cron').CronJob;
+const CronJob = require('cron').CronJob;
 
 // How many tasks can run in parallel.
 // 3 was chosen for the common 1 new repo, 2 old repo calls, but realistically the queue length
 // will vary over time.
 const logger = console;
+
+const LOWEST_JAVA_VERSION = 8;
+const HIGHEST_JAVA_VERSION = 11;
 
 function readAuthCreds() {
   try {
@@ -30,9 +33,9 @@ function readAuthCreds() {
 
   } catch (e) {
     //ignore
+    logger.warn("No github creds found");
   }
 
-  logger.log("No github creds found");
   return null;
 }
 
@@ -43,10 +46,10 @@ function authIsValid(auth) {
 
 function getCooldown(auth) {
   if (authIsValid(auth)) {
-    // 5 min (in ms)
+    // 5 min
     return '0 */5 * * * *';
   } else {
-    // 30 min (in ms)
+    // 30 min
     return '0 */30 * * * *';
   }
 }
@@ -76,7 +79,7 @@ class GitHubFileCache {
   constructor(disableCron) {
     this.auth = readAuthCreds();
     this.cache = {};
-    this.repos = _.chain(_.range(8, 12))
+    this.repos = _.chain(_.range(LOWEST_JAVA_VERSION, HIGHEST_JAVA_VERSION + 1))
       .map(num => {
         return [
           `openjdk${num}-openj9-nightly`,
@@ -96,7 +99,7 @@ class GitHubFileCache {
     console.log('Refresh at:', new Date());
 
     return _.chain(this.repos)
-      .map(repo => this.getDataFromGithub(repo, false))
+      .map(repo => this.getReleaseDataFromGithub(repo, false))
       .value();
   }
 
@@ -116,9 +119,8 @@ class GitHubFileCache {
     new CronJob(getCooldown(this.auth), refresh, undefined, true, undefined, undefined, true);
   }
 
-  getDataFromGithub(repo) {
+  getReleaseDataFromGithub(repo) {
     const cache = this.cache;
-
 
     return octokit
       .paginate(`GET /repos/AdoptOpenJDK/${repo}/releases`, {
@@ -135,45 +137,39 @@ class GitHubFileCache {
     const data = this.cache[repo];
 
     if (data === undefined) {
-      return this.getDataFromGithub(repo)
+      return this.getReleaseDataFromGithub(repo)
         .catch(error => {
           return [];
         })
     } else {
-      const deferred = Q.defer();
-      deferred.resolve(data)
-      return deferred.promise
+      return Q(data);
     }
   }
 
   getInfoForVersion(version, releaseType) {
 
-    const newHotspotPromise = this.cachedGet(`${version}-binaries`);
+    const newRepoPromise = this.cachedGet(`${version}-binaries`);
 
-    const hotspotPromise = this.cachedGet(`${version}-${releaseType}`);
-    let openj9Promise;
+    const legacyHotspotPromise = this.cachedGet(`${version}-${releaseType}`);
+    let legacyOpenj9Promise;
 
     if (version.indexOf('amber') > 0) {
-      openj9Promise = Q.fcall(function () {
-        return {}
-      });
+      legacyOpenj9Promise = Q({});
     } else {
-      openj9Promise = this.cachedGet(`${version}-openj9-${releaseType}`);
+      legacyOpenj9Promise = this.cachedGet(`${version}-openj9-${releaseType}`);
     }
 
     return Q.allSettled([
-      newHotspotPromise,
-      hotspotPromise,
-      openj9Promise
+      newRepoPromise,
+      legacyHotspotPromise,
+      legacyOpenj9Promise
     ])
       .catch(error => {
         console.error("failed to get", error);
         return [];
       })
       .spread(function (newData, oldHotspotData, oldOpenJ9Data) {
-        if (newData.state !== "fulfilled" && oldHotspotData.state !== "fulfilled" && oldOpenJ9Data.state !== "fulfilled") {
-          throw newData.reason;
-        } else {
+        if (newData.state === "fulfilled" || oldHotspotData.state === "fulfilled" || oldOpenJ9Data.state === "fulfilled") {
           newData = newData.state === "fulfilled" ? newData.value : [];
           oldHotspotData = oldHotspotData.state === "fulfilled" ? oldHotspotData.value : [];
           oldOpenJ9Data = oldOpenJ9Data.state === "fulfilled" ? oldOpenJ9Data.value : [];
@@ -181,6 +177,8 @@ class GitHubFileCache {
           oldHotspotData = markOldReleases(oldHotspotData);
           oldOpenJ9Data = markOldReleases(oldOpenJ9Data);
           return _.union(newData, oldHotspotData, oldOpenJ9Data);
+        } else {
+          throw newData.reason;
         }
       });
   }

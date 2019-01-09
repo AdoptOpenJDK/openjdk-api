@@ -2,3 +2,4 @@ node_modules/
 .idea/
 cache/
 auth/
+regression-data/

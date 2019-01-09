@@ -83,7 +83,7 @@ module.exports = function () {
 
     if (matched != null) {
       return {
-        major: parseInt(matched.groups.major),
+        major: toInt(matched.groups.major),
         minor: or0(matched.groups.minor),
         security: or0(matched.groups.security),
         pre: matched.groups.pre,
@@ -104,7 +104,7 @@ module.exports = function () {
       matched = versionNumber.match(pre223regex);
 
       return {
-        major: parseInt(matched.groups.major),
+        major: toInt(matched.groups.major),
         minor: 0,
         security: or0(matched.groups.update),
         build: toInt(matched.groups.build),
@@ -148,14 +148,15 @@ module.exports = function () {
       openjdk_version: parsed.version,
       semver: semver,
       optional: parsed.opt,
-      preview: parsed.pre,
+      preview: parsed.pre
     };
 
     return removeUndefined(adoptVersion);
   }
 
   return {
-    formAdoptApiVersionObject: formAdoptApiVersionObject
+    formAdoptApiVersionObject: formAdoptApiVersionObject,
+    parseVersionString: parseVersionString
   };
 };
 

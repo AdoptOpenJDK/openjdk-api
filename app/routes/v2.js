@@ -356,58 +356,52 @@ function githubReleaseToAdoptRelease(release) {
   }
 }
 
-function sortByGroup(regex, groupName) {
-  return function (release) {
-    const matched = release.release_name.match(new RegExp(regex));
-    if (matched != null) {
-      if (matched.groups[groupName] === undefined) {
-        return 0;
-      } else {
-        return parseInt(matched.groups[groupName])
-      }
-    }
-    return 0;
+function hasValidProperty(object, property) {
+  if (object !== undefined && object !== null && object.hasOwnProperty(property)) {
+    return object[property] !== undefined && object[property] !== null;
+  } else {
+    return false;
   }
 }
 
-function java8ReleaseSorter(data) {
-  const regex = 'jdk(?<num>[0-9]+)u?(?<update>[0-9]+)-b(?<build>[0-9]+).*';
-  return data
-    .sortBy(sortByGroup(regex, 'build'))
-    .sortBy(sortByGroup(regex, 'update'))
+function sortByValue(value) {
+  return function (release) {
+    if (!hasValidProperty(release, value)) {
+      return 0
+    }
+    return release[value];
+  }
 }
 
-function java11ReleaseSorter(data) {
-  //jdk-11.0.1+13
-  //jdk-11+28
-  const regex = 'jdk-(?<major>[0-9]+)(?:\\.(?<minor>[0-9]+))?(?:\\.(?<security>[0-9]+))?(?:\\+(?<build>[0-9]+))?';
-
-  return data
-    .sortBy(sortByGroup(regex, 'build'))
-    .sortBy(sortByGroup(regex, 'security'))
-    .sortBy(sortByGroup(regex, 'minor'))
-}
-
-function defaultSort(data) {
-  return data
-    .sortBy(function (release) {
-      return release.timestamp
-    })
-    .sortBy(function (release) {
-      return release.release_name
-    })
+function sortByVersionData(value) {
+  const sorter = sortByValue(value);
+  return function (release) {
+    if (!hasValidProperty(release, 'version_data')) {
+      return 0
+    }
+    return sorter(release.version_data);
+  }
 }
 
 function sortReleases(javaVersion, data) {
-  data = defaultSort(data);
+  return data
+    .map((release) => {
+      release.version_data = versions.parseVersionString(release.release_name);
+      return release;
+    })
+    .sortBy(sortByValue('timestamp'))
+    .sortBy(sortByValue('release_name'))
+    .sortBy(sortByVersionData('opt'))
+    .sortBy(sortByVersionData('build'))
+    .sortBy(sortByVersionData('pre'))
+    .sortBy(sortByVersionData('security'))
+    .sortBy(sortByVersionData('minor'))
+    .sortBy(sortByVersionData('major'))
+    .map((release) => {
+      delete release.version_data;
+      return release;
+    })
 
-  if (javaVersion === 'openjdk8') {
-    return java8ReleaseSorter(data);
-  } else if (javaVersion === 'openjdk11') {
-    return java11ReleaseSorter(data);
-  } else {
-    return data
-  }
 }
 
 function githubDataToAdoptApi(githubApiData, javaVersion, isReleases) {

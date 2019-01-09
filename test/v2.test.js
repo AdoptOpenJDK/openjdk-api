@@ -222,14 +222,14 @@ describe('v2 API', () => {
     function assertSortsCorrectly(data, javaVersion, expectedOrder) {
       let sorted = v2._testExport.sortReleases(javaVersion, _.chain(data)).value();
 
-      let isSorted = _.chain(sorted)
+      sorted = _.chain(sorted)
         .map(function (release) {
           return release.release_name;
         })
-        .isEqual(expectedOrder)
         .value();
 
-      expect(isSorted).toBe(true);
+      expect(sorted).toEqual(expectedOrder);
+
     }
 
     it("java 8 is sorted", function () {
