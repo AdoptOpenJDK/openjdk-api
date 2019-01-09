@@ -92,20 +92,21 @@ class GitHubFileCache {
     }
   }
 
-  refreshCache() {
+  refreshCache(cache) {
     console.log('Refresh at:', new Date());
 
     return _.chain(this.repos)
-      .map(repo => this.getReleaseDataFromGithub(repo, false))
+      .map(repo => this.getReleaseDataFromGithub(repo, cache))
       .value();
   }
 
   scheduleCacheRefresh() {
-
     const refresh = () => {
       try {
-        Q.allSettled(this.refreshCache())
-          .then(function () {
+        const cache = {};
+        Q.allSettled(this.refreshCache(cache))
+          .then(() => {
+            this.cache = cache;
             console.log("Cache refreshed")
           })
       } catch (e) {
@@ -116,9 +117,7 @@ class GitHubFileCache {
     new CronJob(getCooldown(this.auth), refresh, undefined, true, undefined, undefined, true);
   }
 
-  getReleaseDataFromGithub(repo) {
-    const cache = this.cache;
-
+  getReleaseDataFromGithub(repo, cache) {
     return octokit
       .paginate(`GET /repos/AdoptOpenJDK/${repo}/releases`, {
         owner: 'AdoptOpenJDK',
@@ -134,8 +133,9 @@ class GitHubFileCache {
     const data = this.cache[repo];
 
     if (data === undefined) {
-      return this.getReleaseDataFromGithub(repo)
+      return this.getReleaseDataFromGithub(repo, this.cache)
         .catch(error => {
+          this.cache[repo] = [];
           return [];
         })
     } else {
