@@ -46,7 +46,7 @@ function getCooldown(auth) {
     // 15 min
     return '0 */15 * * * *';
   } else {
-    // 30 min
+    // 60 min
     return '0 */60 * * * *';
   }
 }
