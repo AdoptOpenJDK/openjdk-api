@@ -205,7 +205,14 @@ function getNewStyleFileInfo(name) {
   const matched = name.match(new RegExp(regex));
 
   if (matched != null) {
-    const heap_size = (matched.groups.heap && matched.groups.heap.toLowerCase() === 'linuxxl') ? 'large' : 'normal';
+
+    var heap_size = 'normal';
+    const largeHeapNames = ['linuxxl', 'macosxl'];
+
+    if (matched.groups.heap && _.contains(largeHeapNames, matched.groups.heap.toLowerCase())) {
+      heap_size = 'large';
+    }
+
     const type = matched.groups.type ? matched.groups.type.replace('-', '') : 'jdk';
 
     let arch = matched.groups.arch.toLowerCase();
