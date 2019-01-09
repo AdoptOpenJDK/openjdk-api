@@ -148,5 +148,3 @@ To return latest, hotspot, windows, x64, jdk:
 ```
 curl https://api.adoptopenjdk.net/v2/binary/nightly/openjdk8?openjdk_impl=hotspot&os=windows&arch=x64&release=latest&type=jdk
 ```
-
-

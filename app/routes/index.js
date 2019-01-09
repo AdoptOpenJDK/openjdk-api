@@ -24,8 +24,7 @@ module.exports = function (app) {
   //
   // curl "http://127.0.0.1:3000/v2/binary/nightly/openjdk8?openjdk_impl=hotspot&os=windows&arch=x64&release=latest&type=jdk"
   // curl "http://127.0.0.1:3000/v2/info/releases/openjdk10?openjdk_impl=hotspot&type=jdk"
-  const v2 = require('./v2')(cache);
-  app.get('/v2/:requestType?/:buildtype?/:version?', v2.get);
+  app.get('/v2/:requestType?/:buildtype?/:version?', require('./v2')(cache));
 
   // API version 1
   app.get([
