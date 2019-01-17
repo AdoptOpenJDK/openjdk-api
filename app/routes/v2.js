@@ -195,8 +195,11 @@ function sanityCheckParams(res, requestType, buildtype, version, openjdkImpl, os
 function getNewStyleFileInfo(name) {
   const timestampRegex = '[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}';
 
-  //                    11 style       | 8 Style          | 9/10 style                    | 9 patched style
-  const versionRegex = '[0-9]{2}_[0-9]+|8u[0-9]+-?b[0-9X]+|[0-9]+\\.[0-9]+\\.[0-9]+_[0-9]+|9_[0-9]+';
+  const version8Regex = '8u[0-9]+-?(?:b[0-9X]+|ga)';
+  const version910Regex = '[0-9]+\\.[0-9]+\\.[0-9]+_[0-9]+';
+  const version9PatchedRegex = '9_[0-9]+';
+  const version11Regex = '[0-9]{2}_[0-9]+';
+  const versionRegex = `${version11Regex}|${version8Regex}|${version910Regex}|${version9PatchedRegex}`;
 
   // IF YOU ARE MODIFYING THIS THEN THE FILE MATCHING IS PROBABLY WRONG, MAKE SURE openjdk-website-backend, Release.sh IS UPDATED TOO
   //                    1) num          2) jre/jdk          3) arch                4) OS               5) impl                6)heap                   7) timestamp/version                                         8) Random suffix               9) extension
