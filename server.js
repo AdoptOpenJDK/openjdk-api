@@ -1,3 +1,4 @@
+require('appmetrics-dash').attach();
 const express = require('express');
 const RateLimit = require('express-rate-limit');
 const mds = require('markdown-serve');
