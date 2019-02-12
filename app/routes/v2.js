@@ -317,10 +317,14 @@ function formBinaryAssetInfo(asset, release) {
 
   const installer_link = _.chain(release['assets'])
     .filter(function (asset) {
+      // Add installer extensions here
       const extensions = ['msi', 'pkg']
       for (let extension of extensions) {
-        return asset.name.endsWith(extension)
+        if (asset.name.endsWith(extension)) {
+          return asset.name.endsWith(extension);
+        }
       }
+      return false
     })
     .filter(function (asset) {
       return asset.name.startsWith(assetName);
