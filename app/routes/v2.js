@@ -315,6 +315,21 @@ function formBinaryAssetInfo(asset, release) {
     })
     .first();
 
+  const installer_link = _.chain(release['assets'])
+    .filter(function (asset) {
+      const extensions = ['msi', 'pkg']
+      for (let extension of extensions) {
+        return asset.name.endsWith(extension)
+      }
+    })
+    .filter(function (asset) {
+      return asset.name.startsWith(assetName);
+    })
+    .map(function (asset) {
+      return asset['browser_download_url'];
+    })
+    .first();
+
   const version = versions.formAdoptApiVersionObject(release.tag_name);
 
   return {
@@ -326,6 +341,7 @@ function formBinaryAssetInfo(asset, release) {
     binary_link: asset.browser_download_url,
     binary_size: asset.size,
     checksum_link: checksum_link,
+    installer_link: installer_link,
     version: fileInfo.version,
     version_data: version,
     heap_size: fileInfo.heap_size,
