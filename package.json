@@ -14,7 +14,8 @@
   },
   "main": "app/routes/index.js",
   "scripts": {
-    "start": "nodemon --ignore cache/ server.js",
+    "start": "node server.js",
+    "start-nodemon": "nodemon --ignore cache/ server.js",
     "lint": "eslint *.js app/routes/*.js",
     "test": "jest --coverage test/*.test.js && npm run lint"
   },
