@@ -20,8 +20,9 @@ function readAuthCreds() {
 
     if (fs.existsSync('/home/jenkins/github.auth')) {
       token = fs.readFileSync('/home/jenkins/github.auth').toString("ascii").trim();
-    } else if (fs.existsSync('auth/github.auth')) {
-      token = fs.readFileSync('auth/github.auth').toString("ascii").trim();
+    } else if (process.env.GITHUB_TOKEN) {
+      console.log("Using AUTH from GITHUB_TOKEN")
+      token = process.env.GITHUB_TOKEN
     }
 
     if (token !== undefined) {
