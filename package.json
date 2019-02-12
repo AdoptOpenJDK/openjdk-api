@@ -40,7 +40,6 @@
     "eslint-plugin-jest-async": "^1.0.3",
     "jest": "^23.6.0",
     "json-stable-stringify": "^1.0.1",
-    "nodemon": "^1.18.9",
     "sync-request": "^6.0.0"
   }
 }
