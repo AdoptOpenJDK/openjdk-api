@@ -195,8 +195,11 @@ function sanityCheckParams(res, requestType, buildtype, version, openjdkImpl, os
 function getNewStyleFileInfo(name) {
   const timestampRegex = '[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}';
 
-  //                    11 style       | 8 Style          | 9/10 style                    | 9 patched style
-  const versionRegex = '[0-9]{2}_[0-9]+|8u[0-9]+-?b[0-9X]+|[0-9]+\\.[0-9]+\\.[0-9]+_[0-9]+|9_[0-9]+';
+  const version8Regex = '8u[0-9]+-?(?:b[0-9X]+|ga)';
+  const version910Regex = '[0-9]+\\.[0-9]+\\.[0-9]+_[0-9]+';
+  const version9PatchedRegex = '9_[0-9]+';
+  const version11Regex = '[0-9]{2}_[0-9]+';
+  const versionRegex = `${version11Regex}|${version8Regex}|${version910Regex}|${version9PatchedRegex}`;
 
   // IF YOU ARE MODIFYING THIS THEN THE FILE MATCHING IS PROBABLY WRONG, MAKE SURE openjdk-website-backend, Release.sh IS UPDATED TOO
   //                    1) num          2) jre/jdk          3) arch                4) OS               5) impl                6)heap                   7) timestamp/version                                         8) Random suffix               9) extension
@@ -205,7 +208,14 @@ function getNewStyleFileInfo(name) {
   const matched = name.match(new RegExp(regex));
 
   if (matched != null) {
-    const heap_size = (matched.groups.heap && matched.groups.heap.toLowerCase() === 'linuxxl') ? 'large' : 'normal';
+
+    var heap_size = 'normal';
+    const largeHeapNames = ['linuxxl', 'macosxl'];
+
+    if (matched.groups.heap && _.contains(largeHeapNames, matched.groups.heap.toLowerCase())) {
+      heap_size = 'large';
+    }
+
     const type = matched.groups.type ? matched.groups.type.replace('-', '') : 'jdk';
 
     let arch = matched.groups.arch.toLowerCase();
@@ -305,6 +315,25 @@ function formBinaryAssetInfo(asset, release) {
     })
     .first();
 
+  const installer_link = _.chain(release['assets'])
+    .filter(function (asset) {
+      // Add installer extensions here
+      const extensions = ['msi', 'pkg']
+      for (let extension of extensions) {
+        if (asset.name.endsWith(extension)) {
+          return asset.name.endsWith(extension);
+        }
+      }
+      return false
+    })
+    .filter(function (asset) {
+      return asset.name.startsWith(assetName);
+    })
+    .map(function (asset) {
+      return asset['browser_download_url'];
+    })
+    .first();
+
   const version = versions.formAdoptApiVersionObject(release.tag_name);
 
   return {
@@ -316,6 +345,7 @@ function formBinaryAssetInfo(asset, release) {
     binary_link: asset.browser_download_url,
     binary_size: asset.size,
     checksum_link: checksum_link,
+    installer_link: installer_link,
     version: fileInfo.version,
     version_data: version,
     heap_size: fileInfo.heap_size,

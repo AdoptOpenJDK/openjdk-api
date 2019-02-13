@@ -1,3 +1,4 @@
+require('appmetrics-dash').attach();
 const express = require('express');
 const RateLimit = require('express-rate-limit');
 const mds = require('markdown-serve');
@@ -16,7 +17,7 @@ if (process.env.PRODUCTION) {
     console.log('We are live on port ' + port);
   });
 } else {
-  const port = 3000;
+  const port = 8080;
   app.listen(port, () => {
     console.log('We are live on port ' + port);
   });

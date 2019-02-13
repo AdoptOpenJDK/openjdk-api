@@ -20,8 +20,9 @@ function readAuthCreds() {
 
     if (fs.existsSync('/home/jenkins/github.auth')) {
       token = fs.readFileSync('/home/jenkins/github.auth').toString("ascii").trim();
-    } else if (fs.existsSync('auth/github.auth')) {
-      token = fs.readFileSync('auth/github.auth').toString("ascii").trim();
+    } else if (process.env.GITHUB_TOKEN) {
+      console.log("Using AUTH from GITHUB_TOKEN")
+      token = process.env.GITHUB_TOKEN
     }
 
     if (token !== undefined) {
@@ -43,11 +44,11 @@ function readAuthCreds() {
 
 function getCooldown(auth) {
   if (auth) {
-    // 5 min
-    return '0 */5 * * * *';
+    // 15 min
+    return '0 */15 * * * *';
   } else {
-    // 30 min
-    return '0 */30 * * * *';
+    // 60 min
+    return '0 */60 * * * *';
   }
 }
 
