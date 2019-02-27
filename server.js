@@ -1,36 +1,13 @@
 require('appmetrics-dash').attach();
 const express = require('express');
-const RateLimit = require('express-rate-limit');
 const mds = require('markdown-serve');
 const path = require('path');
 const app = express();
-const fs = require('fs');
 
-// Production / development setup
-if (process.env.PRODUCTION) {
-  const https = require('https');
-  const port = 1234;
-  https.createServer({
-    key: fs.readFileSync('/home/jenkins/sslcert/server.key'),
-    cert: fs.readFileSync('/home/jenkins/sslcert/server.crt')
-  }, app).listen(port, () => {
-    console.log('We are live on port ' + port);
-  });
-} else {
-  const port = 8080;
-  app.listen(port, () => {
-    console.log('We are live on port ' + port);
-  });
-}
-
-// limit requests to 600 per hour
-// apply to all requests
-app.use(new RateLimit({
-  windowMs: 60*60*1000, // 1 hour
-  max: 600, // limit each IP to 600 requests per windowMs
-  delayMs: 0, // disable delaying - full speed until the max limit is reached
-  message: 'You have exceeded your api usage, you are allowed 600 requests per hour'
-}));
+const port = 8080;
+app.listen(port, () => {
+  console.log('We are live on port ' + port);
+});
 
 // markdown and static content serving
 app.set('views', path.resolve(__dirname, './markdown-layouts'));
