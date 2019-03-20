@@ -10,7 +10,7 @@ const CronJob = require('cron').CronJob;
 const logger = console;
 
 const LOWEST_JAVA_VERSION = 8;
-const HIGHEST_JAVA_VERSION = 11;
+const HIGHEST_JAVA_VERSION = 12;
 
 function readAuthCreds() {
   try {
