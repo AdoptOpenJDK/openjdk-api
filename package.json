@@ -14,23 +14,24 @@
   },
   "main": "app/routes/index.js",
   "scripts": {
-    "start": "node server.js",
-    "start-nodemon": "nodemon --ignore cache/ server.js",
-    "lint": "eslint *.js app/routes/*.js",
-    "test": "jest --coverage test/*.test.js && npm run lint"
+    "start": "tsc && node server.js",
+    "start-nodemon": "tsc && nodemon --ignore cache/ server.js",
+    "lint": "tsc && eslint ./app/**/*.js",
+    "test": "tsc && jest --coverage test/v2.test.js && npm run lint",
+    "tsc": "tsc"
   },
   "dependencies": {
     "@octokit/rest": "^16.6.1",
-    "appmetrics-dash": "^4.0.0",
+    "appmetrics-dash": "^4.1.0",
     "async": "^2.6.1",
     "cron": "1.6.0",
-    "express": "^4.16.4",
-    "lodash": "^4.17.11",
     "markdown-serve": "^0.5.0",
     "pug": "^2.0.3",
     "q": "^1.5.1",
     "request": "^2.88.0",
-    "underscore": "^1.9.1"
+    "typescript": "^3.3.4000",
+    "underscore": "^1.9.1",
+    "@types/express": "^4.16.1"
   },
   "devDependencies": {
     "eslint": "^5.10.0",

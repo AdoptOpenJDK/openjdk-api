@@ -17,7 +17,6 @@ describe('v2 API', () => {
       describe('for release info', () => {
         it.each(getAllPermutations())('%s %s', (jdk, release) => {
           const request = mockRequest("info", release, jdk);
-
           return performRequest(request, (code, res) => {
             expect(code).toEqual(200);
             expect(JSON.parse(res)).toBeDefined();

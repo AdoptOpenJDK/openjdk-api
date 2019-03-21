@@ -1,5 +1,5 @@
 const _ = require('underscore');
-const versions = require('./versions')();
+const versions = require('./versions');
 
 
 function filterReleaseBinaries(releases, filterFunction) {
@@ -307,7 +307,7 @@ function formBinaryAssetInfo(asset, release) {
     .filter(function(asset) {
       // Add installer extensions here
       const installer_extensions = ['msi', 'pkg']
-      for (let extension of installer_extensions) {
+      for (const extension of installer_extensions) {
         if (asset.name.endsWith(extension)) {
           return asset.name.endsWith(extension);
         }
@@ -320,7 +320,7 @@ function formBinaryAssetInfo(asset, release) {
     .first()
 
   const version = versions.formAdoptApiVersionObject(release.tag_name);
-  let installerAsset = installer.value()
+  const installerAsset = installer.value()
 
   if (installerAsset && installerAsset['name']){
     installer.name = installerAsset['name']
@@ -349,7 +349,7 @@ function formBinaryAssetInfo(asset, release) {
     heap_size: fileInfo.heap_size,
     download_count: asset.download_count,
     updated_at: asset.updated_at,
-  }
+      }
 }
 
 function githubReleaseToAdoptRelease(release) {
@@ -522,6 +522,7 @@ function performGetRequest(req, res, cache) {
     });
 }
 
+console.log("LOADING ROUTE v2")
 
 module.exports = (cache) => {
   return {

@@ -1,7 +1,7 @@
 const _ = require('underscore');
 const fs = require('fs');
 const Q = require('q');
-const octokit = require('@octokit/rest')();
+const Octokit = require('@octokit/rest');
 const CronJob = require('cron').CronJob;
 
 // How many tasks can run in parallel.
@@ -12,7 +12,8 @@ const logger = console;
 const LOWEST_JAVA_VERSION = 8;
 const HIGHEST_JAVA_VERSION = 12;
 
-function readAuthCreds() {
+
+function getOktokit() {
   try {
     logger.log("Reading auth");
     var token;
@@ -21,25 +22,22 @@ function readAuthCreds() {
     if (fs.existsSync('/home/jenkins/github.auth')) {
       token = fs.readFileSync('/home/jenkins/github.auth').toString("ascii").trim();
     } else if (process.env.GITHUB_TOKEN) {
-      console.log("Using AUTH from GITHUB_TOKEN")
+      console.log("Using AUTH from GITHUB_TOKEN");
       token = process.env.GITHUB_TOKEN
     }
 
     if (token !== undefined) {
-      octokit.authenticate({
-        type: 'token',
-        token: token
+      return new Octokit({
+        auth: 'token ' + token
       });
-
-      return true
     }
 
   } catch (e) {
     //ignore
-    logger.warn("No github creds found");
   }
 
-  return false;
+  logger.warn("No github creds found");
+  return new Octokit();
 }
 
 function getCooldown(auth) {
@@ -62,20 +60,16 @@ function markOldReleases(oldReleases) {
 }
 
 
-function formErrorResponse(error, response, body) {
-  return {
-    error: error,
-    response: response,
-    body: body
-  };
-}
-
-
 // This caches data returned by the github api to speed up response time and avoid going over github api rate limiting
 class GitHubFileCache {
+  hasAuthenticated: boolean;
+  cache: object;
+  repos: string[];
+  octokit;
 
   constructor(disableCron) {
-    this.auth = readAuthCreds();
+    this.octokit = getOktokit();
+    this.hasAuthenticated = this.octokit.auth !== undefined;
     this.cache = {};
     this.repos = _.chain(_.range(LOWEST_JAVA_VERSION, HIGHEST_JAVA_VERSION + 1))
       .map(num => {
@@ -92,6 +86,7 @@ class GitHubFileCache {
       this.scheduleCacheRefresh();
     }
   }
+
 
   refreshCache(cache) {
     console.log('Refresh at:', new Date());
@@ -111,15 +106,15 @@ class GitHubFileCache {
             console.log("Cache refreshed")
           })
       } catch (e) {
-        console.error(e)
+        console.log(e)
       }
     };
 
-    new CronJob(getCooldown(this.auth), refresh, undefined, true, undefined, undefined, true);
+    new CronJob(getCooldown(this.hasAuthenticated), refresh, undefined, true, undefined, undefined, true);
   }
 
   getReleaseDataFromGithub(repo, cache) {
-    return octokit
+    return this.octokit
       .paginate(`GET /repos/AdoptOpenJDK/${repo}/releases`, {
         owner: 'AdoptOpenJDK',
         repo: repo
@@ -135,7 +130,7 @@ class GitHubFileCache {
 
     if (data === undefined) {
       return this.getReleaseDataFromGithub(repo, this.cache)
-        .catch(error => {
+        .catch(() => {
           this.cache[repo] = [];
           return [];
         })
@@ -152,7 +147,7 @@ class GitHubFileCache {
     let legacyOpenj9Promise;
 
     if (version.indexOf('amber') > 0) {
-      legacyOpenj9Promise = Q({});
+      legacyOpenj9Promise = Q([]);
     } else {
       legacyOpenj9Promise = this.cachedGet(`${version}-openj9-${releaseType}`);
     }
@@ -163,7 +158,7 @@ class GitHubFileCache {
       legacyOpenj9Promise
     ])
       .catch(error => {
-        console.error("failed to get", error);
+        console.log("failed to get", error);
         return [];
       })
       .spread(function (newData, oldHotspotData, oldOpenJ9Data) {
