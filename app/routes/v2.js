@@ -303,23 +303,11 @@ function formBinaryAssetInfo(asset, release) {
     .replace('.zip', '')
     .replace('.tar.gz', '');
 
-  const checksum_link = _.chain(release['assets'])
-    .filter(function(asset) {
-      return asset.name.endsWith('sha256.txt')
-    })
-    .filter(function(asset) {
-      return asset.name.startsWith(assetName);
-    })
-    .map(function(asset) {
-      return asset['browser_download_url'];
-    })
-    .first();
-
   const installer = _.chain(release['assets'])
     .filter(function(asset) {
       // Add installer extensions here
-      const extensions = ['msi', 'pkg']
-      for (let extension of extensions) {
+      const installer_extensions = ['msi', 'pkg']
+      for (let extension of installer_extensions) {
         if (asset.name.endsWith(extension)) {
           return asset.name.endsWith(extension);
         }
@@ -333,12 +321,13 @@ function formBinaryAssetInfo(asset, release) {
 
   const version = versions.formAdoptApiVersionObject(release.tag_name);
   let installerAsset = installer.value()
-  
+
   if (installerAsset && installerAsset['name']){
     installer.name = installerAsset['name']
     installer.browser_download_url = installerAsset['browser_download_url']
     installer.size = installerAsset['size']
     installer.download_count = installerAsset['download_count']
+    installer.installer_checksum_link = `${installer.browser_download_url}.sha256.txt`
   }
 
   return {
@@ -349,10 +338,11 @@ function formBinaryAssetInfo(asset, release) {
     binary_name: asset.name,
     binary_link: asset.browser_download_url,
     binary_size: asset.size,
-    checksum_link: checksum_link,
+    checksum_link: `${asset.browser_download_url}.sha256.txt`,
     installer_name: installer.name,
     installer_link: installer.browser_download_url,
     installer_size: installer.size,
+    installer_checksum_link: installer.installer_checksum_link,
     installer_download_count: installer.download_count,
     version: fileInfo.version,
     version_data: version,
