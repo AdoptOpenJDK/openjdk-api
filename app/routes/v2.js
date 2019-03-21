@@ -4,13 +4,13 @@ const versions = require('./versions')();
 
 function filterReleaseBinaries(releases, filterFunction) {
   return releases
-    .map(function (release) {
+    .map(function(release) {
       release.binaries = _.chain(release.binaries)
         .filter(filterFunction)
         .value();
       return release;
     })
-    .filter(function (release) {
+    .filter(function(release) {
       return release.binaries.length > 0
     });
 }
@@ -21,14 +21,14 @@ function filterRelease(releases, releaseName) {
   } else if (releaseName === 'latest') {
 
     return releases
-      .sortBy(function (release) {
+      .sortBy(function(release) {
         return release.release ? release.release_name : release.timestamp
       })
       .last()
 
   } else {
     return releases
-      .filter(function (release) {
+      .filter(function(release) {
         return release.release_name.toLowerCase() === releaseName.toLowerCase()
       });
   }
@@ -40,7 +40,7 @@ function filterReleaseOnBinaryProperty(releases, propertyName, property) {
   }
   property = property.toLowerCase();
 
-  return filterReleaseBinaries(releases, function (binary) {
+  return filterReleaseBinaries(releases, function(binary) {
     if (binary[propertyName] === undefined) return false;
     return binary[propertyName].toLowerCase() === property;
   })
@@ -53,7 +53,7 @@ function filterReleaseOnProperty(releases, propertyName, property) {
   }
 
   return releases
-    .filter(function (release) {
+    .filter(function(release) {
       return release.hasOwnProperty(propertyName) && release[propertyName] === property
     });
 }
@@ -69,7 +69,7 @@ function filterReleasesOnReleaseType(data, isRelease) {
 
 function fixPrereleaseTagOnOldRepoData(data, isRelease) {
   return data
-    .map(function (release) {
+    .map(function(release) {
       if (release.oldRepo) {
         release.prerelease = !isRelease
       }
@@ -114,8 +114,8 @@ function findLatestAssets(data, res) {
   if (data !== null && data !== undefined) {
     const assetInfo = _
       .chain(data)
-      .map(function (release) {
-        return _.map(release.binaries, function (binary) {
+      .map(function(release) {
+        return _.map(release.binaries, function(binary) {
           binary.timestamp = binary.updated_at;
           binary.release_name = release.release_name;
           binary.release_link = release.release_link;
@@ -124,11 +124,11 @@ function findLatestAssets(data, res) {
         })
       })
       .flatten()
-      .sortBy(function (binary) {
+      .sortBy(function(binary) {
         return binary.timestamp
       })
       .reverse()
-      .uniq(false, function (binary) {
+      .uniq(false, function(binary) {
         return binary.os + ':' +
           binary.architecture + ':' +
           binary.binary_type + ':' +
@@ -304,19 +304,19 @@ function formBinaryAssetInfo(asset, release) {
     .replace('.tar.gz', '');
 
   const checksum_link = _.chain(release['assets'])
-    .filter(function (asset) {
+    .filter(function(asset) {
       return asset.name.endsWith('sha256.txt')
     })
-    .filter(function (asset) {
+    .filter(function(asset) {
       return asset.name.startsWith(assetName);
     })
-    .map(function (asset) {
+    .map(function(asset) {
       return asset['browser_download_url'];
     })
     .first();
 
-  const installer_link = _.chain(release['assets'])
-    .filter(function (asset) {
+  const installer = _.chain(release['assets'])
+    .filter(function(asset) {
       // Add installer extensions here
       const extensions = ['msi', 'pkg']
       for (let extension of extensions) {
@@ -326,15 +326,20 @@ function formBinaryAssetInfo(asset, release) {
       }
       return false
     })
-    .filter(function (asset) {
+    .filter(function(asset) {
       return asset.name.startsWith(assetName);
     })
-    .map(function (asset) {
-      return asset['browser_download_url'];
-    })
-    .first();
+    .first()
 
   const version = versions.formAdoptApiVersionObject(release.tag_name);
+  let installerAsset = installer.value()
+  
+  if (installerAsset && installerAsset['name']){
+    installer.name = installerAsset['name']
+    installer.browser_download_url = installerAsset['browser_download_url']
+    installer.size = installerAsset['size']
+    installer.download_count = installerAsset['download_count']
+  }
 
   return {
     os: fileInfo.os.toLowerCase(),
@@ -345,7 +350,10 @@ function formBinaryAssetInfo(asset, release) {
     binary_link: asset.browser_download_url,
     binary_size: asset.size,
     checksum_link: checksum_link,
-    installer_link: installer_link,
+    installer_name: installer.name,
+    installer_link: installer.browser_download_url,
+    installer_size: installer.size,
+    installer_download_count: installer.download_count,
     version: fileInfo.version,
     version_data: version,
     heap_size: fileInfo.heap_size,
@@ -357,22 +365,26 @@ function formBinaryAssetInfo(asset, release) {
 function githubReleaseToAdoptRelease(release) {
 
   const binaries = _.chain(release['assets'])
-    .filter(function (asset) {
+    .filter(function(asset) {
       return !asset.name.endsWith('sha256.txt')
     })
-    .map(function (asset) {
+    .map(function(asset) {
       return formBinaryAssetInfo(asset, release)
     })
-    .filter(function (asset) {
+    .filter(function(asset) {
       return asset !== null;
     })
     .value();
 
   const downloadCount = _.chain(binaries)
     .map(asset => {
-      return asset.download_count
+      if (asset.installer_download_count) {
+        return asset.installer_download_count + asset.download_count
+      } else {
+        return asset.download_count
+      }
     })
-    .reduce(function (sum, num) {
+    .reduce(function(sum, num) {
       return sum + num;
     }, 0);
 
@@ -395,7 +407,7 @@ function hasValidProperty(object, property) {
 }
 
 function sortByValue(value) {
-  return function (release) {
+  return function(release) {
     if (!hasValidProperty(release, value)) {
       return 0
     }
@@ -405,7 +417,7 @@ function sortByValue(value) {
 
 function sortByVersionData(value) {
   const sorter = sortByValue(value);
-  return function (release) {
+  return function(release) {
     if (!hasValidProperty(release, 'version_data')) {
       return 0
     }
@@ -437,7 +449,7 @@ function sortReleases(javaVersion, data) {
 function githubDataToAdoptApi(githubApiData, javaVersion, isReleases) {
   const data = githubApiData
     .map(githubReleaseToAdoptRelease)
-    .filter(function (release) {
+    .filter(function(release) {
       return release.binaries.length > 0;
     });
 
@@ -445,7 +457,7 @@ function githubDataToAdoptApi(githubApiData, javaVersion, isReleases) {
     return sortReleases(javaVersion, data)
   } else {
     return data
-      .sortBy(function (release) {
+      .sortBy(function(release) {
         return release.timestamp
       });
   }
@@ -474,7 +486,7 @@ function performGetRequest(req, res, cache) {
   }
 
   cache.getInfoForVersion(ROUTE_version, ROUTE_buildtype)
-    .then(function (apiData) {
+    .then(function(apiData) {
       const isRelease = ROUTE_buildtype === 'releases';
 
       let data = _.chain(apiData);
@@ -508,7 +520,7 @@ function performGetRequest(req, res, cache) {
           return res.status(404).send('Not found');
       }
     })
-    .catch(function (err) {
+    .catch(function(err) {
       console.log(err);
       if (err.err) {
         res.status(500);
@@ -523,7 +535,7 @@ function performGetRequest(req, res, cache) {
 
 module.exports = (cache) => {
   return {
-    get: function (req, res) {
+    get: function(req, res) {
       return performGetRequest(req, res, cache);
     },
     // Functions exposed for testing
