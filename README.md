@@ -12,7 +12,7 @@ The AdoptOpenJDK API provides a way to consume JSON information about the AdoptO
 Here is an example using `curl` (see the [curl documentation](https://curl.haxx.se/docs/tooldocs.html)):
 
 ```bash
-curl https://api.adoptopenjdk.net/v2/info/releases/openjdk8
+curl -L 'https://api.adoptopenjdk.net/v2/info/releases/openjdk8'
 ```
 
 This command returns information about all 'OpenJDK' releases, and defaults to the latest version of the API.
@@ -61,7 +61,7 @@ For instance:
 
 ```
 /info/latest/openjdk10
-curl https://api.adoptopenjdk.net/v2/info/nightly/openjdk10
+curl -L 'https://api.adoptopenjdk.net/v2/info/nightly/openjdk10'
 ```
 
 ### Path Parameters
@@ -73,14 +73,14 @@ curl https://api.adoptopenjdk.net/v2/info/nightly/openjdk10
 List of information about builds that match the current query
 
 ```
-curl https://api.adoptopenjdk.net/v2/info/nightly/openjdk8?openjdk_impl=hotspot
+curl -L 'https://api.adoptopenjdk.net/v2/info/nightly/openjdk8?openjdk_impl=hotspot'
 ```
 
 ##### binary
-Redirects to the binary that matches your current query. If multiple or no binarys match the query, an error code will be returned
+Redirects to the binary that matches your current query. If multiple or no binaries match the query, an error code will be returned
 
 ```
-curl https://api.adoptopenjdk.net/v2/binary/nightly/openjdk8?openjdk_impl=hotspot&os=windows&arch=x64&release=latest&type=jdk
+curl -L 'https://api.adoptopenjdk.net/v2/binary/nightly/openjdk8?openjdk_impl=hotspot&os=windows&arch=x64&release=latest&type=jdk'
 ```
 
 ##### latestAssets
@@ -89,7 +89,7 @@ Returns the latest binary asset for every matching combination of os, architectu
 i.e to find the latest jdk/jre for linux, x64, normal heap, hotspot:
 
 ```
-curl https://api.adoptopenjdk.net/v2/latestAssets/nightly/openjdk8?os=linux&arch=x64&heap_size=normal&openjdk_impl=hotspot
+curl -L 'https://api.adoptopenjdk.net/v2/latestAssets/nightly/openjdk8?os=linux&arch=x64&heap_size=normal&openjdk_impl=hotspot'
 
 [
   {
@@ -127,7 +127,7 @@ Type of release, i.e `releases` for stable builds or `nightly` for most recent b
 
 #### Version
 
-OpenJDK version, i.e `openjdk8`, `openjdk9`, `openjdk10`.
+OpenJDK version, i.e `openjdk8`, `openjdk9`, `openjdk10`.`openjdk11`, `openjdk12` 
 
 ### Query Parameters
 
@@ -146,7 +146,7 @@ In the absence of a given parameter, it will return all elements.
 
 To return latest, hotspot, windows, x64, jdk:
 ```
-curl https://api.adoptopenjdk.net/v2/binary/nightly/openjdk8?openjdk_impl=hotspot&os=windows&arch=x64&release=latest&type=jdk
+curl -L 'https://api.adoptopenjdk.net/v2/binary/nightly/openjdk8?openjdk_impl=hotspot&os=windows&arch=x64&release=latest&type=jdk'
 ```
 
 
