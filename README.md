@@ -127,7 +127,7 @@ Type of release, i.e `releases` for stable builds or `nightly` for most recent b
 
 #### Version
 
-OpenJDK version, i.e `openjdk8`, `openjdk9`, `openjdk10`.`openjdk11`, `openjdk12` 
+OpenJDK version, i.e `openjdk8`, `openjdk9`, `openjdk10`, `openjdk11`, `openjdk12` 
 
 ### Query Parameters
 
