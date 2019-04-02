@@ -22,7 +22,7 @@ module.exports = (jdkVersions, releaseTypes) => {
     const deferred = Q.defer();
     const apiData = apiDataStore[releaseStr];
     if (apiData) {
-      if(apiData.message == "Not Found") {
+      if (apiData.message === "Not Found") {
         deferred.reject(apiData)
       } else {
         deferred.resolve(apiData);

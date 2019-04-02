@@ -147,7 +147,7 @@ class GitHubFileCache {
     let legacyOpenj9Promise;
 
     if (version.indexOf('amber') > 0) {
-      legacyOpenj9Promise = Q([]);
+      legacyOpenj9Promise = Q({});
     } else {
       legacyOpenj9Promise = this.cachedGet(`${version}-openj9-${releaseType}`);
     }

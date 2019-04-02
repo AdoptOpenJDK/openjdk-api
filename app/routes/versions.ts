@@ -61,7 +61,6 @@ namespace Versions {
     return x === null || x === undefined ? 0 : parseInt(x);
   }
 
-
   function toInt(x) {
     return x === undefined ? undefined : parseInt(x);
   }
@@ -77,7 +76,7 @@ namespace Versions {
     let index = 0;
 
     while (index < version223Regexs.length) {
-      let matched = versionNumber.match(version223Regexs[index]);
+      const matched = versionNumber.match(version223Regexs[index]);
       if (matched != null && matched.groups !== undefined) {
         return {
           major: toInt(matched.groups.major),
@@ -96,7 +95,7 @@ namespace Versions {
 
   function parsePre223VersionString(versionNumber: string) {
 
-    let matched = versionNumber.match(pre223regex);
+    const matched = versionNumber.match(pre223regex);
 
     if (matched != null && matched.groups !== undefined) {
       return {

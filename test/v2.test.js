@@ -1,5 +1,4 @@
 const _ = require('underscore');
-const Q = require('q');
 
 describe('v2 API', () => {
   const jdkVersions = ["openjdk8", "openjdk9", "openjdk10", "openjdk11"];
@@ -7,6 +6,8 @@ describe('v2 API', () => {
 
   const cacheMock = require('./mockCache')(jdkVersions, releaseTypes);
   const v2 = require('../app/routes/v2')(cacheMock);
+  const ApiTest = require('./apiTest').ApiTest;
+  const apiEndpoint = new ApiTest(v2);
 
   afterEach(() => {
     jest.clearAllMocks();
@@ -16,8 +17,8 @@ describe('v2 API', () => {
     describe('200', () => {
       describe('for release info', () => {
         it.each(getAllPermutations())('%s %s', (jdk, release) => {
-          const request = mockRequest("info", release, jdk);
-          return performRequest(request, (code, res) => {
+          const request = apiEndpoint.mockRequest("info", release, jdk);
+          return apiEndpoint.performRequest(request, (code, res) => {
             expect(code).toEqual(200);
             expect(JSON.parse(res)).toBeDefined();
           });
@@ -28,9 +29,9 @@ describe('v2 API', () => {
     describe('302', () => {
       describe('for binary redirects', () => {
         it.each(getAllPermutations())('%s %s', (jdk, release) => {
-          const request = mockRequest("binary", release, jdk, "hotspot", "linux", "x64", "latest", "jdk");
+          const request = apiEndpoint.mockRequest("binary", release, jdk, "hotspot", "linux", "x64", "latest", "jdk");
 
-          return performRequest(request, (code, location) => {
+          return apiEndpoint.performRequest(request, (code, location) => {
             expect(code).toEqual(302);
             expect(location).toEqual(new URL(location).toString());
           });
@@ -40,9 +41,9 @@ describe('v2 API', () => {
 
     describe('404', () => {
       it('for invalid versions', () => {
-        const request = mockRequest("info", "releases", "openjdk50", "hotspot", undefined, undefined, undefined, undefined, undefined);
+        const request = apiEndpoint.mockRequest("info", "releases", "openjdk50", "hotspot", undefined, undefined, undefined, undefined, undefined);
 
-        return performRequest(request, (code, msg) => {
+        return apiEndpoint.performRequest(request, (code, msg) => {
           expect(code).toEqual(404);
           expect(msg).toEqual('Not found');
         });
@@ -65,8 +66,8 @@ describe('v2 API', () => {
       ];
 
       it.each(getAllPermutations())('%s %s', (jdk, release) => {
-        const request = mockRequest("info", release, jdk);
-        return performRequest(request, (code, msg) => {
+        const request = apiEndpoint.mockRequest("info", release, jdk);
+        return apiEndpoint.performRequest(request, (code, msg) => {
           expect(code).toEqual(200);
 
           let releases;
@@ -91,9 +92,9 @@ describe('v2 API', () => {
 
     describe('for latestAssets requests', () => {
       it.each(getAllPermutations())('%s %s', (jdk, release) => {
-        const request = mockRequest("latestAssets", release, jdk, "hotspot", "linux", "x64", undefined, undefined, undefined);
+        const request = apiEndpoint.mockRequest("latestAssets", release, jdk, "hotspot", "linux", "x64", undefined, undefined, undefined);
 
-        return performRequest(request, (code, data) => {
+        return apiEndpoint.performRequest(request, (code, data) => {
           const binaries = JSON.parse(data);
           _.chain(binaries)
             .each(binary => {
@@ -107,8 +108,8 @@ describe('v2 API', () => {
 
     describe('for large heap builds', () => {
       it("does not show linuxlh as an OS", () => {
-        const request = mockRequest("info", "releases", "openjdk8", "openj9", undefined, undefined, undefined, undefined, undefined);
-        return performRequest(request, (code, data) => {
+        const request = apiEndpoint.mockRequest("info", "releases", "openjdk8", "openj9", undefined, undefined, undefined, undefined, undefined);
+        return apiEndpoint.performRequest(request, (code, data) => {
           const releases = JSON.parse(data);
           _.chain(releases)
             .each(release => {
@@ -128,34 +129,34 @@ describe('v2 API', () => {
     describe('by common properties', () => {
       describe('os', () => {
         it.each(getAllPermutations())('%s %s', (jdk, release) => {
-          const request = mockRequestWithSingleQuery("info", release, jdk, 'os', 'windows');
+          const request = apiEndpoint.mockRequestWithSingleQuery("info", release, jdk, 'os', 'windows');
           return checkBinaryProperty(request, 'os', 'windows');
         });
       });
 
       describe('openjdk_impl', () => {
         it.each(getAllPermutations())('%s %s', (jdk, release) => {
-          const request = mockRequestWithSingleQuery("info", release, jdk, 'openjdk_impl', 'hotspot');
+          const request = apiEndpoint.mockRequestWithSingleQuery("info", release, jdk, 'openjdk_impl', 'hotspot');
           return checkBinaryProperty(request, 'openjdk_impl', 'hotspot');
         });
       });
 
       describe('arch', () => {
         it.each(getAllPermutations())('%s %s', (jdk, release) => {
-          const request = mockRequestWithSingleQuery("info", release, jdk, 'arch', 'x64');
+          const request = apiEndpoint.mockRequestWithSingleQuery("info", release, jdk, 'arch', 'x64');
           return checkBinaryProperty(request, 'architecture', 'x64');
         });
       });
 
       describe('type', () => {
         it.each(getAllPermutations())('%s %s', (jdk, release) => {
-          const request = mockRequestWithSingleQuery("info", release, jdk, 'type', 'jdk');
+          const request = apiEndpoint.mockRequestWithSingleQuery("info", release, jdk, 'type', 'jdk');
           return checkBinaryProperty(request, 'binary_type', 'jdk');
         });
       });
 
       function checkBinaryProperty(request, returnedPropertyName, propertyValue) {
-        return performRequest(request, (code, msg) => {
+        return apiEndpoint.performRequest(request, (code, msg) => {
           expect(code).toEqual(200);
 
           const releases = JSON.parse(msg);
@@ -171,10 +172,10 @@ describe('v2 API', () => {
 
     describe('by release type', () => {
       it.each(getAllPermutations())('%s %s', (jdk, release) => {
-        const request = mockRequest("info", release, jdk, "hotspot", "linux", "x64", undefined, "jdk");
+        const request = apiEndpoint.mockRequest("info", release, jdk, "hotspot", "linux", "x64", undefined, "jdk");
         const isRelease = release.indexOf("releases") >= 0;
 
-        return performRequest(request, (code, data) => {
+        return apiEndpoint.performRequest(request, (code, data) => {
           const releases = JSON.parse(data);
           _.chain(releases)
             .each(release => {
@@ -198,9 +199,9 @@ describe('v2 API', () => {
     });
 
     describe('by heap_size', () => {
-      const request = mockRequest("info", "nightly", "openjdk8", undefined, undefined, undefined, undefined, undefined, "large");
+      const request = apiEndpoint.mockRequest("info", "nightly", "openjdk8", undefined, undefined, undefined, undefined, undefined, "large");
       it('only large heaps are returned', () => {
-        return performRequest(request, (code, data) => {
+        return apiEndpoint.performRequest(request, (code, data) => {
           const releases = JSON.parse(data);
           _.chain(releases)
             .each(release => {
@@ -268,58 +269,4 @@ describe('v2 API', () => {
     return permutations;
   }
 
-  function mockRequest(requestType, buildtype, version, openjdk_impl, os, arch, release, type, heap_size) {
-    return {
-      params: {
-        requestType: requestType,
-        buildtype: buildtype,
-        version: version,
-      },
-
-      query: {
-        openjdk_impl: openjdk_impl,
-        os: os,
-        arch: arch,
-        release: release,
-        type: type,
-        heap_size: heap_size,
-      }
-    }
-  }
-
-  function mockRequestWithSingleQuery(requestType, buildtype, version, queryName, queryValue) {
-    const request = mockRequest(requestType, buildtype, version);
-    request.query[queryName] = queryValue;
-    return request;
-  }
-
-  function performRequest(request, doAssert) {
-    const codePromise = Q.defer();
-    const msgPromise = Q.defer();
-    const res = {
-      status: (code) => {
-        codePromise.resolve(code);
-      },
-      send: (msg) => {
-        msgPromise.resolve(msg);
-      },
-      json: (msg) => {
-        msgPromise.resolve(JSON.stringify(msg));
-      },
-      redirect: (url) => {
-        codePromise.resolve(302);
-        msgPromise.resolve(url);
-      }
-    };
-
-    v2.get(request, res);
-
-    return Q
-      .allSettled([codePromise.promise, msgPromise.promise])
-      .then(result => {
-        const code = result[0].value;
-        const msg = result[1].value;
-        doAssert(code, msg);
-      });
-  }
 });
