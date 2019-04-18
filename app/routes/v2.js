@@ -308,8 +308,8 @@ function formBinaryAssetInfo(asset, release) {
   const installer = _.chain(release['assets'])
     .filter(function(asset) {
       // Add installer extensions here
-      const installer_extensions = ['msi', 'pkg']
-      for (let extension of installer_extensions) {
+      const installer_extensions = ['msi', 'pkg'];
+      for (const extension of installer_extensions) {
         if (asset.name.endsWith(extension)) {
           return asset.name.endsWith(extension);
         }
@@ -322,7 +322,7 @@ function formBinaryAssetInfo(asset, release) {
     .first()
 
   const version = versions.formAdoptApiVersionObject(release.tag_name);
-  let installerAsset = installer.value()
+  const installerAsset = installer.value()
 
   if (installerAsset && installerAsset['name']){
     installer.name = installerAsset['name']
@@ -358,8 +358,8 @@ function githubReleaseToAdoptRelease(release) {
 
   const binaries = _.chain(release['assets'])
     .filter(function (asset) {
-      for (var i = 0; i < BINARY_ASSET_WHITELIST.length; i++) {
-        if (asset.name.endsWith(BINARY_ASSET_WHITELIST[i])) {
+      for (const extension of BINARY_ASSET_WHITELIST) {
+        if (asset.name.endsWith(extension)) {
           return true;
         }
       }
