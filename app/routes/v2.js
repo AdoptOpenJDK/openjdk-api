@@ -1,7 +1,7 @@
 const _ = require('underscore');
 const versions = require('./versions')();
 
-const BINARY_ASSET_WHITELIST = [".tar.gz", ".msi", ".pkg", ".zip", ".deb"];
+const BINARY_ASSET_WHITELIST = [".tar.gz", ".msi", ".pkg", ".zip", ".deb", ".rpm"];
 
 
 function filterReleaseBinaries(releases, filterFunction) {
