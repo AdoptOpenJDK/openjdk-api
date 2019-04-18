@@ -1,6 +1,8 @@
 const _ = require('underscore');
 const versions = require('./versions')();
 
+const BINARY_ASSET_WHITELIST = [".tar.gz", ".msi", ".pkg", ".zip", ".deb"];
+
 
 function filterReleaseBinaries(releases, filterFunction) {
   return releases
@@ -355,8 +357,13 @@ function formBinaryAssetInfo(asset, release) {
 function githubReleaseToAdoptRelease(release) {
 
   const binaries = _.chain(release['assets'])
-    .filter(function(asset) {
-      return !asset.name.endsWith('sha256.txt')
+    .filter(function (asset) {
+      for (var i = 0; i < BINARY_ASSET_WHITELIST.length; i++) {
+        if (asset.name.endsWith(BINARY_ASSET_WHITELIST[i])) {
+          return true;
+        }
+      }
+      return false;
     })
     .map(function(asset) {
       return formBinaryAssetInfo(asset, release)
