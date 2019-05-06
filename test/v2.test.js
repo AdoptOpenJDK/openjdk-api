@@ -216,6 +216,37 @@ describe('v2 API', () => {
         })
       });
     });
+
+    describe('by release name', () => {
+      it('returns array containing matching release', () => {
+        const releaseName = 'jdk8u181-b13_openj9-0.9.0';
+        const request = mockRequest("info", "releases", "openjdk8", undefined, undefined, undefined, releaseName, undefined, undefined);
+        return performRequest(request, (code, data) => {
+          const release = JSON.parse(data);
+          expect(release).toBeInstanceOf(Array);
+          expect(release).toHaveLength(1);
+          expect(release[0].release_name).toEqual(releaseName);
+        });
+      });
+
+      describe('"latest" returns single most recent release', () => {
+        const versionBuildExpectedResults = [
+            ['openjdk8', 'releases', 'jdk8u181-b13_openj9-0.9.0'],
+            ['openjdk8', 'nightly', 'jdk8u-2018-12-16-12-17'],
+            ['openjdk11', 'releases', 'jdk-11.0.1+13'],
+            ['openjdk11', 'nightly', 'jdk11u-2018-12-16-04-46'],
+        ];
+
+        it.each(versionBuildExpectedResults)('%s %s', (version, buildtype, expectedReleaseName) => {
+          const request = mockRequest("info", buildtype, version, undefined, undefined, undefined, "latest", undefined, undefined);
+          return performRequest(request, (code, data) => {
+            const release = JSON.parse(data);
+            expect(release).not.toBeInstanceOf(Array);
+            expect(release.release_name).toEqual(expectedReleaseName);
+          });
+        });
+      });
+    });
   });
 
   describe('sort order is correct', function () {
