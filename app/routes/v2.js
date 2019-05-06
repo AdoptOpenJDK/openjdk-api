@@ -422,7 +422,7 @@ function sortByVersionData(value) {
   }
 }
 
-function sortReleases(javaVersion, data) {
+function sortReleases(data) {
   return data
     .map((release) => {
       release.version_data = versions.parseVersionString(release.release_name);
@@ -443,21 +443,23 @@ function sortReleases(javaVersion, data) {
 
 }
 
-function githubDataToAdoptApi(githubApiData, javaVersion, isReleases) {
-  const data = githubApiData
-    .map(githubReleaseToAdoptRelease)
-    .filter(function(release) {
-      return release.binaries.length > 0;
-    });
-
-  if (isReleases) {
-    return sortReleases(javaVersion, data)
+function sortReleasesByVersionAsc(releases, isRelease) {
+  if (isRelease) {
+    return sortReleases(releases)
   } else {
-    return data
+    return releases
       .sortBy(function(release) {
         return release.timestamp
       });
   }
+}
+
+function githubDataToAdoptApi(githubApiData) {
+  return githubApiData
+    .map(githubReleaseToAdoptRelease)
+    .filter(function(release) {
+      return release.binaries.length > 0;
+    });
 }
 
 function performGetRequest(req, res, cache) {
@@ -489,7 +491,8 @@ function performGetRequest(req, res, cache) {
       let data = _.chain(apiData);
 
       data = fixPrereleaseTagOnOldRepoData(data, isRelease);
-      data = githubDataToAdoptApi(data, ROUTE_version, isRelease);
+      data = githubDataToAdoptApi(data);
+      data = sortReleasesByVersionAsc(data, isRelease);
 
       data = filterReleasesOnReleaseType(data, isRelease);
 

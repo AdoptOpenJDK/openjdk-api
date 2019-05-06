@@ -250,8 +250,8 @@ describe('v2 API', () => {
   });
 
   describe('sort order is correct', function () {
-    function assertSortsCorrectly(data, javaVersion, expectedOrder) {
-      let sorted = v2._testExport.sortReleases(javaVersion, _.chain(data)).value();
+    function assertSortsCorrectly(data, expectedOrder) {
+      let sorted = v2._testExport.sortReleases(_.chain(data)).value();
 
       sorted = _.chain(sorted)
         .map(function (release) {
@@ -271,7 +271,6 @@ describe('v2 API', () => {
           {"release_name": "jdk8u100-b1_openj9-0.8.0", "timestamp": 4},
           {"release_name": "jdk8u20-b1_openj9-0.8.0", "timestamp": 5}
         ],
-        "openjdk8",
         ["jdk8u20-b1", "jdk8u20-b1_openj9-0.8.0", "jdk8u100-b1_openj9-0.8.0", "jdk8u100-b2", "jdk8u100-b10"]);
     });
 
@@ -285,9 +284,8 @@ describe('v2 API', () => {
           {"release_name": "jdk-11.2.1+10", "timestamp": 4},
           {"release_name": "jdk-11.2.1+2", "timestamp": 5},
         ],
-        "openjdk11",
         ["jdk-11+2", "jdk-11+100", "jdk-11.2.1+2", "jdk-11.2.1+10", "jdk-11.10.1+2"]);
-    })
+    });
   });
 
   function getAllPermutations() {
