@@ -1,6 +1,8 @@
 const _ = require('underscore');
 const versions = require('./versions')();
 
+const BINARY_ASSET_WHITELIST = [".tar.gz", ".msi", ".pkg", ".zip", ".deb", ".rpm"];
+
 
 function filterReleaseBinaries(releases, filterFunction) {
   return releases
@@ -306,8 +308,8 @@ function formBinaryAssetInfo(asset, release) {
   const installer = _.chain(release['assets'])
     .filter(function(asset) {
       // Add installer extensions here
-      const installer_extensions = ['msi', 'pkg']
-      for (let extension of installer_extensions) {
+      const installer_extensions = ['msi', 'pkg'];
+      for (const extension of installer_extensions) {
         if (asset.name.endsWith(extension)) {
           return asset.name.endsWith(extension);
         }
@@ -320,7 +322,7 @@ function formBinaryAssetInfo(asset, release) {
     .first()
 
   const version = versions.formAdoptApiVersionObject(release.tag_name);
-  let installerAsset = installer.value()
+  const installerAsset = installer.value()
 
   if (installerAsset && installerAsset['name']){
     installer.name = installerAsset['name']
@@ -355,8 +357,13 @@ function formBinaryAssetInfo(asset, release) {
 function githubReleaseToAdoptRelease(release) {
 
   const binaries = _.chain(release['assets'])
-    .filter(function(asset) {
-      return !asset.name.endsWith('sha256.txt')
+    .filter(function (asset) {
+      for (const extension of BINARY_ASSET_WHITELIST) {
+        if (asset.name.endsWith(extension)) {
+          return true;
+        }
+      }
+      return false;
     })
     .map(function(asset) {
       return formBinaryAssetInfo(asset, release)
