@@ -150,20 +150,21 @@ function findLatestAssets(data, res) {
 function sanityCheckParams(res, requestType, buildtype, version, openjdkImpl, os, arch, release, type, heapSize) {
   let errorMsg;
 
-  const reAlNum = /^[a-zA-Z0-9]+$/;
+  const reAlphaNumeric = /^[a-zA-Z0-9]+$/;
+  const reVersion = /^openjdk(?:\d{1,2}|-amber)$/;
 
   if (!['info', 'binary', 'latestAssets'].includes(requestType)) {
-    errorMsg = 'Unknown request type';
+    errorMsg = `Unknown request type`;
   } else if (!['releases', 'nightly'].includes(buildtype)) {
-    errorMsg = 'Unknown build type';
-  } else if (!/^openjdk(?:\d{1,2}|-amber)$/.test(version)) {
-    errorMsg = 'Unknown version type';
+    errorMsg = `Unknown build type`;
+  } else if (!reVersion.test(version)) {
+    errorMsg = `Unknown version type`;
   } else if (_.isString(openjdkImpl) && !['hotspot', 'openj9'].includes(openjdkImpl.toLowerCase())) {
-    errorMsg = 'Unknown openjdk_impl';
-  } else if (_.isString(os) && !reAlNum.test(os)) {
-    errorMsg = 'Unknown os format';
-  } else if (_.isString(arch) && !reAlNum.test(arch)) {
-    errorMsg = 'Unknown architecture format';
+    errorMsg = `Unknown openjdk_impl format "${openjdkImpl}"`;
+  } else if (_.isString(os) && !reAlphaNumeric.test(os)) {
+    errorMsg = `Unknown os format "${os}"`;
+  } else if (_.isString(arch) && !reAlphaNumeric.test(arch)) {
+    errorMsg = `Unknown arch format "${arch}"`;
   } else if (release) {
     if (_.isString(release) && !/^[a-z0-9_.+-]+$/.test(release.toLowerCase())) {
       // possible release formats, make sure the regex matches these:
@@ -178,14 +179,14 @@ function sanityCheckParams(res, requestType, buildtype, version, openjdkImpl, os
       // jdk-10.0.2+13
       // jdk-11+28
       // jdk-11.0.1+13
-      errorMsg = 'Unknown release format';
+      errorMsg = `Unknown release format "${release}"`;
     } else if (release instanceof Array) {
       errorMsg = 'Multi-value queries not supported for "release"';
     }
   } else if (_.isString(type) && !['jdk', 'jre'].includes(type.toLowerCase())) {
-    errorMsg = 'Unknown type format';
+    errorMsg = `Unknown type format "${type}"`;
   } else if (_.isString(heapSize) && !['large', 'normal'].includes(heapSize.toLowerCase())) {
-    errorMsg = 'Unknown heap size';
+    errorMsg = `Unknown heap_size format "${heapSize}"`;
   }
 
   if (errorMsg !== undefined) {

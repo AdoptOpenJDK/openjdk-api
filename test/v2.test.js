@@ -40,13 +40,21 @@ describe('v2 API', () => {
     });
 
     describe('400', () => {
-      describe('for invalid queries', () => {
-        it('invalid release string', () => {
-          const request = mockRequest("info", "releases", "openjdk8", undefined, undefined, undefined, "*!/\\$", undefined);
+      describe('for invalid query format', () => {
+        it.each`
+          queryName         | invalidQueryVal
+          ${'os'}           | ${'walls!!!'}
+          ${'openjdk_impl'} | ${'openj9000'}
+          ${'arch'}         | ${'*'}
+          ${'type'}         | ${'jre++'}
+          ${'heap_size'}    | ${'superSize'}
+          ${'release'}      | ${'*!/\\$'}
+          `('$queryName=$invalidQueryVal', ({queryName, invalidQueryVal}) => {
+          const request = mockRequestWithSingleQuery("info", "releases", "openjdk11", queryName, invalidQueryVal);
 
           return performRequest(request, (code, res) => {
             expect(code).toEqual(400);
-            expect(res).toEqual('Unknown release format');
+            expect(res).toEqual(`Unknown ${queryName} format "${invalidQueryVal}"`);
           });
         });
       });
@@ -182,35 +190,17 @@ describe('v2 API', () => {
     });
 
     describe('by multiple property values', () => {
-      describe('binary properties', () => {
-        it('os', () => {
-          const queryValues = ['windows', 'linux'];
-          const request = mockRequestWithSingleQuery("info", "releases", "openjdk11", 'os', queryValues);
-          return checkBinaryPropertyMultiValueQuery(request, 'os', queryValues);
-        });
-
-        it('openjdk_impl', () => {
-          const queryValues = ['hotspot', 'openj9'];
-          const request = mockRequestWithSingleQuery("info", "releases", "openjdk11", 'openjdk_impl', queryValues);
-          return checkBinaryPropertyMultiValueQuery(request, 'openjdk_impl', queryValues);
-        });
-
-        it('arch', () => {
-          const queryValues = ['aarch64', 'x64'];
-          const request = mockRequestWithSingleQuery("info", "releases", "openjdk11", 'arch', queryValues);
-          return checkBinaryPropertyMultiValueQuery(request, 'architecture', queryValues);
-        });
-
-        it('type', () => {
-          const queryValues = ['jdk', 'jre'];
-          const request = mockRequestWithSingleQuery("info", "releases", "openjdk11", 'type', queryValues);
-          return checkBinaryPropertyMultiValueQuery(request, 'binary_type', queryValues);
-        });
-
-        it('heap_size', () => {
-          const queryValues = ['normal', 'large'];
-          const request = mockRequestWithSingleQuery("info", "releases", "openjdk11", 'heap_size', queryValues);
-          return checkBinaryPropertyMultiValueQuery(request, 'heap_size', queryValues);
+      describe('valid binary properties', () => {
+        it.each`
+          queryName         | returnedPropertyName | queryValues
+          ${'os'}           | ${'os'}              | ${['windows', 'linux']}
+          ${'openjdk_impl'} | ${'openjdk_impl'}    | ${['hotspot', 'openj9']}
+          ${'arch'}         | ${'architecture'}    | ${['aarch64', 'x64']}
+          ${'type'}         | ${'binary_type'}     | ${['jdk', 'jre']}
+          ${'heap_size'}    | ${'heap_size'}       | ${['normal', 'large']}
+        `('$queryName', ({queryName, returnedPropertyName, queryValues}) => {
+          const request = mockRequestWithSingleQuery("info", "releases", "openjdk11", queryName, queryValues);
+          return checkBinaryPropertyMultiValueQuery(request, returnedPropertyName, queryValues);
         });
       });
     });
