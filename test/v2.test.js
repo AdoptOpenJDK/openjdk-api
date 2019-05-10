@@ -310,6 +310,29 @@ describe('v2 API', () => {
           });
         });
       });
+
+      describe('matches possible release formats', () => {
+        const validReleaseFormats = [
+          'jdk8u162-b12_openj9-0.8.0',
+          'jdk8u181-b13_openj9-0.9.0',
+          'jdk8u192-b13-0.11.0',
+          'jdk-9.0.4+11',
+          'jdk-9.0.4+12_openj9-0.9.0',
+          'jdk-9+181',
+          'jdk-10.0.1+10',
+          'jdk-10.0.2+13_openj9-0.9.0',
+          'jdk-10.0.2+13',
+          'jdk-11+28',
+          'jdk-11.0.1+13',
+        ];
+
+        it.each(validReleaseFormats)('%s', (releaseName) => {
+          const request = mockRequestWithSingleQuery("info", "releases", "openjdk8", "release", releaseName);
+          return performRequest(request, (code) => {
+            expect(code).not.toEqual(400);
+          });
+        });
+      });
     });
   });
 

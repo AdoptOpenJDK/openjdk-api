@@ -167,18 +167,6 @@ function sanityCheckParams(res, requestType, buildtype, version, openjdkImpl, os
     errorMsg = `Unknown arch format "${arch}"`;
   } else if (release) {
     if (_.isString(release) && !/^[a-z0-9_.+-]+$/.test(release.toLowerCase())) {
-      // possible release formats, make sure the regex matches these:
-      // jdk8u162-b12_openj9-0.8.0
-      // jdk8u181-b13_openj9-0.9.0
-      // jdk8u192-b13-0.11.0
-      // jdk-9.0.4+11
-      // jdk-9.0.4+12_openj9-0.9.0
-      // jdk-9+181
-      // jdk-10.0.1+10
-      // jdk-10.0.2+13_openj9-0.9.0
-      // jdk-10.0.2+13
-      // jdk-11+28
-      // jdk-11.0.1+13
       errorMsg = `Unknown release format "${release}"`;
     } else if (release instanceof Array) {
       errorMsg = 'Multi-value queries not supported for "release"';
