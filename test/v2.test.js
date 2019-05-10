@@ -40,6 +40,20 @@ describe('v2 API', () => {
     });
 
     describe('400', () => {
+      describe('for invalid path params', () => {
+        const invalidPathParamRequests = [
+          ['request types', mockRequest("admin", "releases", "openjdk8"), 'Unknown request type'],
+          ['build types', mockRequest("info", "relish", "openjdk8"), 'Unknown build type'],
+        ];
+
+        it.each(invalidPathParamRequests)('for invalid %s', (paramName, request, expectedErrorMsg) => {
+          return performRequest(request, (code, msg) => {
+            expect(code).toEqual(400);
+            expect(msg).toEqual(expectedErrorMsg);
+          });
+        });
+      });
+
       describe('for invalid query format', () => {
         it.each`
           queryName         | invalidQueryVal
@@ -79,6 +93,21 @@ describe('v2 API', () => {
         return performRequest(request, (code, msg) => {
           expect(code).toEqual(404);
           expect(msg).toEqual('Not found');
+        });
+      });
+
+      describe('if missing required path param', () => {
+        const missingPathParamRequests = [
+          ["request type", mockRequest(undefined, "releases", "openjdk8")],
+          ["build type", mockRequest("info", undefined, "openjdk8")],
+          ["version", mockRequest("info", "releases", undefined)],
+        ];
+
+        it.each(missingPathParamRequests)('%s', (pathParamName, request) => {
+          return performRequest(request, (code, msg) => {
+            expect(code).toEqual(404);
+            expect(msg).toEqual('Not found');
+          });
         });
       });
     });
