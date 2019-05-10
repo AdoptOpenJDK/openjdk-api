@@ -232,6 +232,25 @@ describe('v2 API', () => {
           return checkBinaryPropertyMultiValueQuery(request, returnedPropertyName, queryValues);
         });
       });
+
+      describe('returns error for invalid property format', () => {
+        it.each`
+          queryName         | validQueryVal  | invalidQueryVal
+          ${'os'}           | ${'windows'}   | ${'walls!!!'}
+          ${'openjdk_impl'} | ${'hotspot'}   | ${'openj9000'}
+          ${'arch'}         | ${'aarch64'}   | ${'*'}
+          ${'type'}         | ${'jdk'}       | ${'jre++'}
+          ${'heap_size'}    | ${'normal'}    | ${'superSize'}
+        `('$queryName with invalid value "$invalidQueryVal"', ({queryName, validQueryVal, invalidQueryVal}) => {
+          const queryValues = [validQueryVal, invalidQueryVal];
+          const request = mockRequestWithSingleQuery("info", "releases", "openjdk11", queryName, queryValues);
+
+          return performRequest(request, (code, res) => {
+            expect(code).toEqual(400);
+            expect(res).toEqual(`Unknown ${queryName} format "${invalidQueryVal}"`);
+          });
+        });
+      });
     });
 
     describe('by release type', () => {

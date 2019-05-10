@@ -13,8 +13,9 @@ const errorResponse = (statusCode, errorMsg) => {
 const paramValidator = (queryValue, validatorFn) => {
   return {
     value: queryValue,
-    hasValue: () => _.isString(queryValue),
-    isValid: () => validatorFn(queryValue),
+    hasValue: () => !!queryValue,
+    isValid: () => queryValue instanceof Array ? queryValue.every(validatorFn) : validatorFn(queryValue),
+    getFirstInvalidValue: () => queryValue instanceof Array ? queryValue.find(v => !validatorFn(v)) : queryValue,
   }
 };
 
@@ -203,7 +204,7 @@ function sanityCheckQueryParams(res, openjdkImpl, os, arch, release, type, heapS
 
   for (const [queryName, validator] of Object.entries(formatValidators)) {
     if (validator.hasValue() && !validator.isValid()) {
-      return errorResponse(400, `Unknown ${queryName} format "${validator.value}"`);
+      return errorResponse(400, `Unknown ${queryName} format "${validator.getFirstInvalidValue()}"`);
     }
   }
 
