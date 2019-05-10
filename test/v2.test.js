@@ -179,20 +179,40 @@ describe('v2 API', () => {
           return checkBinaryProperty(request, 'binary_type', 'jdk');
         });
       });
+    });
 
-      function checkBinaryProperty(request, returnedPropertyName, propertyValue) {
-        return performRequest(request, (code, msg) => {
-          expect(code).toEqual(200);
-
-          const releases = JSON.parse(msg);
-          _.chain(releases)
-            .map(release => release.binaries)
-            .flatten()
-            .each(binary => {
-              expect(binary[returnedPropertyName]).toEqual(propertyValue);
-            });
+    describe('by multiple property values', () => {
+      describe('binary properties', () => {
+        it('os', () => {
+          const queryValues = ['windows', 'linux'];
+          const request = mockRequestWithSingleQuery("info", "releases", "openjdk11", 'os', queryValues);
+          return checkBinaryPropertyMultiValueQuery(request, 'os', queryValues);
         });
-      }
+
+        it('openjdk_impl', () => {
+          const queryValues = ['hotspot', 'openj9'];
+          const request = mockRequestWithSingleQuery("info", "releases", "openjdk11", 'openjdk_impl', queryValues);
+          return checkBinaryPropertyMultiValueQuery(request, 'openjdk_impl', queryValues);
+        });
+
+        it('arch', () => {
+          const queryValues = ['aarch64', 'x64'];
+          const request = mockRequestWithSingleQuery("info", "releases", "openjdk11", 'arch', queryValues);
+          return checkBinaryPropertyMultiValueQuery(request, 'architecture', queryValues);
+        });
+
+        it('type', () => {
+          const queryValues = ['jdk', 'jre'];
+          const request = mockRequestWithSingleQuery("info", "releases", "openjdk11", 'type', queryValues);
+          return checkBinaryPropertyMultiValueQuery(request, 'binary_type', queryValues);
+        });
+
+        it('heap_size', () => {
+          const queryValues = ['normal', 'large'];
+          const request = mockRequestWithSingleQuery("info", "releases", "openjdk11", 'heap_size', queryValues);
+          return checkBinaryPropertyMultiValueQuery(request, 'heap_size', queryValues);
+        });
+      });
     });
 
     describe('by release type', () => {
@@ -377,4 +397,30 @@ describe('v2 API', () => {
         doAssert(code, msg);
       });
   }
+
+  function checkBinaryProperty(request, returnedPropertyName, propertyValue, assertFn = assertEachPropertyEqualTo) {
+    return performRequest(request, (code, msg) => {
+      expect(code).toEqual(200);
+      const releases = JSON.parse(msg);
+      const binaries = _.chain(releases)
+        .map(release => release.binaries)
+        .flatten()
+        .value();
+
+      expect(binaries.length).toBeGreaterThan(0);
+      assertFn(binaries, returnedPropertyName, propertyValue);
+    });
+  }
+
+  function checkBinaryPropertyMultiValueQuery(request, returnedPropertyName, propertyValues) {
+    return checkBinaryProperty(request, returnedPropertyName, propertyValues, assertEachPropertyIn);
+  }
+
+  const assertEachPropertyEqualTo = (subjects, propertyName, propertyValue) =>
+      subjects.map(subject => expect(subject[propertyName]).toEqual(propertyValue));
+
+  const assertEachPropertyIn = (subjects, propertyName, propertyValues) => {
+    const actualBinaryPropertyValues = subjects.map(binary => binary[propertyName]);
+    expect(actualBinaryPropertyValues).toEqual(expect.arrayContaining(propertyValues))
+  };
 });

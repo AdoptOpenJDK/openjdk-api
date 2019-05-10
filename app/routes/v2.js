@@ -40,12 +40,11 @@ function filterReleaseOnBinaryProperty(releases, propertyName, property) {
   if (property === undefined) {
     return releases;
   }
-  property = property.toLowerCase();
+  const properties = property instanceof Array ? property.map(prop => prop.toLowerCase()) : [property.toLowerCase()];
+  const fnBinaryFilter = (binary) => binary.hasOwnProperty(propertyName) &&
+    properties.some(prop => binary[propertyName].toLowerCase() === prop);
 
-  return filterReleaseBinaries(releases, function(binary) {
-    if (binary[propertyName] === undefined) return false;
-    return binary[propertyName].toLowerCase() === property;
-  })
+  return filterReleaseBinaries(releases, fnBinaryFilter);
 }
 
 
@@ -54,10 +53,10 @@ function filterReleaseOnProperty(releases, propertyName, property) {
     return releases;
   }
 
+  const properties = property instanceof Array ? property : [property];
   return releases
-    .filter(function(release) {
-      return release.hasOwnProperty(propertyName) && release[propertyName] === property
-    });
+    .filter(release => release.hasOwnProperty(propertyName))
+    .filter(release => properties.some(prop => release[propertyName] === prop));
 }
 
 
