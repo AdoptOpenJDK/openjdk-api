@@ -32,7 +32,7 @@ function filterReleaseBinaries(releases, filterFunction) {
     });
 }
 
-function filterRelease(releases, releaseName) {
+function filterReleaseOnReleaseName(releases, releaseName) {
   if (releaseName === undefined || releases.value().length === 0) {
     return releases;
   } else if (releaseName === 'latest') {
@@ -62,7 +62,6 @@ function filterReleaseOnBinaryProperty(releases, propertyName, property) {
   return filterReleaseBinaries(releases, fnBinaryFilter);
 }
 
-
 function filterReleaseOnProperty(releases, propertyName, property) {
   if (property === undefined) {
     return releases;
@@ -73,7 +72,6 @@ function filterReleaseOnProperty(releases, propertyName, property) {
     .filter(release => release.hasOwnProperty(propertyName))
     .filter(release => properties.some(prop => release[propertyName] === prop));
 }
-
 
 function filterReleasesOnReleaseType(data, isRelease) {
   if (isRelease === undefined) {
@@ -124,7 +122,6 @@ function redirectToBinary(data, res) {
     res.redirect(data.binaries[0].binary_link);
   }
 }
-
 
 function findLatestAssets(data, res) {
   if (data !== null && data !== undefined) {
@@ -230,10 +227,10 @@ function getNewStyleFileInfo(name) {
 
   if (matched != null) {
 
-    var heap_size = 'normal';
+    let heap_size = 'normal';
     const largeHeapNames = ['linuxxl', 'macosxl'];
 
-    if (matched.groups.heap && _.contains(largeHeapNames, matched.groups.heap.toLowerCase())) {
+    if (matched.groups.heap && largeHeapNames.includes(matched.groups.heap.toLowerCase())) {
       heap_size = 'large';
     }
 
@@ -316,7 +313,7 @@ function getAmberStyleFileInfo(name, release) {
 
 function formBinaryAssetInfo(asset, release) {
   const fileInfo = getNewStyleFileInfo(asset.name) || getOldStyleFileInfo(asset.name) || getAmberStyleFileInfo(asset.name, release);
-  if (fileInfo === null) {
+  if (!fileInfo) {
     return null;
   }
 
@@ -338,16 +335,16 @@ function formBinaryAssetInfo(asset, release) {
     .filter(function(asset) {
       return asset.name.startsWith(assetName);
     })
-    .first()
+    .first();
 
   const version = versions.formAdoptApiVersionObject(release.tag_name);
-  const installerAsset = installer.value()
+  const installerAsset = installer.value();
 
   if (installerAsset && installerAsset['name']){
-    installer.name = installerAsset['name']
-    installer.browser_download_url = installerAsset['browser_download_url']
-    installer.size = installerAsset['size']
-    installer.download_count = installerAsset['download_count']
+    installer.name = installerAsset['name'];
+    installer.browser_download_url = installerAsset['browser_download_url'];
+    installer.size = installerAsset['size'];
+    installer.download_count = installerAsset['download_count'];
     installer.installer_checksum_link = `${installer.browser_download_url}.sha256.txt`
   }
 
@@ -415,11 +412,7 @@ function githubReleaseToAdoptRelease(release) {
 }
 
 function hasValidProperty(object, property) {
-  if (object !== undefined && object !== null && object.hasOwnProperty(property)) {
-    return object[property] !== undefined && object[property] !== null;
-  } else {
-    return false;
-  }
+  return !!object && !!object[property];
 }
 
 function sortByValue(value) {
@@ -527,7 +520,7 @@ function performGetRequest(req, res, cache) {
 
       // don't look at only the latest release for the latestAssets call
       if (ROUTE_requestType !== 'latestAssets') {
-        data = filterRelease(data, QUERY_release);
+        data = filterReleaseOnReleaseName(data, QUERY_release);
       }
 
       data = data.value();

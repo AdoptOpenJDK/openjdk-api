@@ -76,7 +76,7 @@ describe('v2 API', () => {
       describe('for unsupported queries', () => {
         it('multi-value release query', () => {
           const queryValues = ['latest', 'jdk8u172-b11'];
-          const request = mockRequest("info", "releases", "openjdk8", undefined, undefined, undefined, queryValues, undefined);
+          const request = mockRequestWithSingleQuery("info", "releases", "openjdk8", "release", queryValues);
 
           return performRequest(request, (code, res) => {
             expect(code).toEqual(400);
@@ -88,7 +88,7 @@ describe('v2 API', () => {
 
     describe('404', () => {
       it('for invalid versions', () => {
-        const request = mockRequest("info", "releases", "openjdk50", "hotspot", undefined, undefined, undefined, undefined, undefined);
+        const request = mockRequest("info", "releases", "openjdk50");
 
         return performRequest(request, (code, msg) => {
           expect(code).toEqual(404);
@@ -282,7 +282,7 @@ describe('v2 API', () => {
     });
 
     describe('by heap_size', () => {
-      const request = mockRequest("info", "nightly", "openjdk8", undefined, undefined, undefined, undefined, undefined, "large");
+      const request = mockRequestWithSingleQuery("info", "nightly", "openjdk8", "heap_size", "large");
       it('only large heaps are returned', () => {
         return performRequest(request, (code, data) => {
           const releases = JSON.parse(data);
@@ -293,10 +293,10 @@ describe('v2 API', () => {
                   .each(binary => {
                     expect(binary.binary_link).toContain("linuxXL");
                     expect(binary.heap_size).toEqual("large");
-                  })
+                  });
               }
-            })
-        })
+            });
+        });
       });
     });
 
