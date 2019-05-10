@@ -3,6 +3,20 @@ const versions = require('./versions')();
 
 const BINARY_ASSET_WHITELIST = [".tar.gz", ".msi", ".pkg", ".zip", ".deb", ".rpm"];
 
+const errorResponse = (statusCode, errorMsg) => {
+  return {
+    status: statusCode,
+    errorMsg: errorMsg,
+  }
+};
+
+const paramValidator = (queryValue, validatorFn) => {
+  return {
+    value: queryValue,
+    hasValue: () => _.isString(queryValue),
+    isValid: () => validatorFn(queryValue),
+  }
+};
 
 function filterReleaseBinaries(releases, filterFunction) {
   return releases
@@ -146,43 +160,55 @@ function findLatestAssets(data, res) {
   }
 }
 
-
-function sanityCheckParams(res, requestType, buildtype, version, openjdkImpl, os, arch, release, type, heapSize) {
-  let errorMsg;
-
-  const reAlphaNumeric = /^[a-zA-Z0-9]+$/;
-  const reVersion = /^openjdk(?:\d{1,2}|-amber)$/;
-
-  if (!['info', 'binary', 'latestAssets'].includes(requestType)) {
-    errorMsg = `Unknown request type`;
-  } else if (!['releases', 'nightly'].includes(buildtype)) {
-    errorMsg = `Unknown build type`;
-  } else if (!reVersion.test(version)) {
-    errorMsg = `Unknown version type`;
-  } else if (_.isString(openjdkImpl) && !['hotspot', 'openj9'].includes(openjdkImpl.toLowerCase())) {
-    errorMsg = `Unknown openjdk_impl format "${openjdkImpl}"`;
-  } else if (_.isString(os) && !reAlphaNumeric.test(os)) {
-    errorMsg = `Unknown os format "${os}"`;
-  } else if (_.isString(arch) && !reAlphaNumeric.test(arch)) {
-    errorMsg = `Unknown arch format "${arch}"`;
-  } else if (release) {
-    if (_.isString(release) && !/^[a-z0-9_.+-]+$/.test(release.toLowerCase())) {
-      errorMsg = `Unknown release format "${release}"`;
-    } else if (release instanceof Array) {
-      errorMsg = 'Multi-value queries not supported for "release"';
-    }
-  } else if (_.isString(type) && !['jdk', 'jre'].includes(type.toLowerCase())) {
-    errorMsg = `Unknown type format "${type}"`;
-  } else if (_.isString(heapSize) && !['large', 'normal'].includes(heapSize.toLowerCase())) {
-    errorMsg = `Unknown heap_size format "${heapSize}"`;
+function sanityCheckPathParams(res, requestType, buildtype, version) {
+  if (!requestType || !buildtype || !version) {
+    return errorResponse(404, 'Not found');
   }
 
-  if (errorMsg !== undefined) {
-    res.status(400);
-    res.send(errorMsg);
-    return false;
-  } else {
-    return true;
+  const reVersion = /^openjdk(?:\d{1,2}|-amber)$/;
+  const formatValidators = {
+    request:
+      paramValidator(requestType, (self) => ['info', 'binary', 'latestAssets'].includes(self)),
+    build:
+      paramValidator(buildtype, (self) => ['releases', 'nightly'].includes(self)),
+    version:
+      paramValidator(version, (self) => reVersion.test(self)),
+  };
+
+  for (const [paramName, validator] of Object.entries(formatValidators)) {
+    if (!validator.isValid()) {
+      return errorResponse(400, `Unknown ${paramName} type`);
+    }
+  }
+}
+
+function sanityCheckQueryParams(res, openjdkImpl, os, arch, release, type, heapSize) {
+  const reAlphaNumeric = /^[a-zA-Z0-9]+$/;
+  const reReleaseName = /^[a-z0-9_.+-]+$/;
+
+  const formatValidators = {
+    openjdk_impl:
+      paramValidator(openjdkImpl, (self) => ['hotspot', 'openj9'].includes(self.toLowerCase())),
+    os:
+      paramValidator(os, (self) => reAlphaNumeric.test(self)),
+    arch:
+      paramValidator(arch, (self) => reAlphaNumeric.test(self)),
+    type:
+      paramValidator(type, (self) => ['jdk', 'jre'].includes(self.toLowerCase())),
+    heap_size:
+      paramValidator(heapSize, (self) => ['large', 'normal'].includes(self.toLowerCase())),
+    release:
+      paramValidator(release, (self) => reReleaseName.test(self.toLowerCase())),
+  };
+
+  for (const [queryName, validator] of Object.entries(formatValidators)) {
+    if (validator.hasValue() && !validator.isValid()) {
+      return errorResponse(400, `Unknown ${queryName} format "${validator.value}"`);
+    }
+  }
+
+  if (release instanceof Array) {
+    return errorResponse(400, 'Multi-value queries not supported for "release"');
   }
 }
 
@@ -459,20 +485,24 @@ function performGetRequest(req, res, cache) {
   const ROUTE_buildtype = req.params.buildtype;
   const ROUTE_version = req.params.version;
 
-  if (ROUTE_requestType === undefined || ROUTE_buildtype === undefined || ROUTE_version === undefined) {
-    res.status(404);
-    res.send('Not found');
+  const pathParamError = sanityCheckPathParams(res, ROUTE_requestType, ROUTE_buildtype, ROUTE_version);
+  if (pathParamError) {
+    res.status(pathParamError.status);
+    res.send(pathParamError.errorMsg);
     return;
   }
 
-  const ROUTE_openjdkImpl = req.query['openjdk_impl'];
-  const ROUTE_os = req.query['os'];
-  const ROUTE_arch = req.query['arch'];
-  const ROUTE_release = req.query['release'];
-  const ROUTE_type = req.query['type'];
-  const ROUTE_heapSize = req.query['heap_size'];
+  const QUERY_openjdkImpl = req.query['openjdk_impl'];
+  const QUERY_os = req.query['os'];
+  const QUERY_arch = req.query['arch'];
+  const QUERY_release = req.query['release'];
+  const QUERY_type = req.query['type'];
+  const QUERY_heapSize = req.query['heap_size'];
 
-  if (!sanityCheckParams(res, ROUTE_requestType, ROUTE_buildtype, ROUTE_version, ROUTE_openjdkImpl, ROUTE_os, ROUTE_arch, ROUTE_release, ROUTE_type, ROUTE_heapSize)) {
+  const queryParamError = sanityCheckQueryParams(res, QUERY_openjdkImpl, QUERY_os, QUERY_arch, QUERY_release, QUERY_type, QUERY_heapSize);
+  if (queryParamError) {
+    res.status(queryParamError.status);
+    res.send(queryParamError.errorMsg);
     return;
   }
 
@@ -488,15 +518,15 @@ function performGetRequest(req, res, cache) {
 
       data = filterReleasesOnReleaseType(data, isRelease);
 
-      data = filterReleaseOnBinaryProperty(data, 'openjdk_impl', ROUTE_openjdkImpl);
-      data = filterReleaseOnBinaryProperty(data, 'os', ROUTE_os);
-      data = filterReleaseOnBinaryProperty(data, 'architecture', ROUTE_arch);
-      data = filterReleaseOnBinaryProperty(data, 'binary_type', ROUTE_type);
-      data = filterReleaseOnBinaryProperty(data, 'heap_size', ROUTE_heapSize);
+      data = filterReleaseOnBinaryProperty(data, 'openjdk_impl', QUERY_openjdkImpl);
+      data = filterReleaseOnBinaryProperty(data, 'os', QUERY_os);
+      data = filterReleaseOnBinaryProperty(data, 'architecture', QUERY_arch);
+      data = filterReleaseOnBinaryProperty(data, 'binary_type', QUERY_type);
+      data = filterReleaseOnBinaryProperty(data, 'heap_size', QUERY_heapSize);
 
       // don't look at only the latest release for the latestAssets call
       if (ROUTE_requestType !== 'latestAssets') {
-        data = filterRelease(data, ROUTE_release);
+        data = filterRelease(data, QUERY_release);
       }
 
       data = data.value();
