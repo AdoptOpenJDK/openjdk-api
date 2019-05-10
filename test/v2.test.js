@@ -39,6 +39,31 @@ describe('v2 API', () => {
       });
     });
 
+    describe('400', () => {
+      describe('for invalid queries', () => {
+        it('invalid release string', () => {
+          const request = mockRequest("info", "releases", "openjdk8", undefined, undefined, undefined, "*!/\\$", undefined);
+
+          return performRequest(request, (code, res) => {
+            expect(code).toEqual(400);
+            expect(res).toEqual('Unknown release format');
+          });
+        });
+      });
+
+      describe('for unsupported queries', () => {
+        it('multi-value release query', () => {
+          const queryValues = ['latest', 'jdk8u172-b11'];
+          const request = mockRequest("info", "releases", "openjdk8", undefined, undefined, undefined, queryValues, undefined);
+
+          return performRequest(request, (code, res) => {
+            expect(code).toEqual(400);
+            expect(res).toContain('Multi-value queries not supported for "release"');
+          });
+        });
+      });
+    });
+
     describe('404', () => {
       it('for invalid versions', () => {
         const request = mockRequest("info", "releases", "openjdk50", "hotspot", undefined, undefined, undefined, undefined, undefined);
