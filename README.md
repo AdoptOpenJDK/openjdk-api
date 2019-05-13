@@ -138,15 +138,21 @@ The data that can be returned can then be filtered to find builds of a specific 
 | Open Jdk Implementation | openjdk_impl | hotspot, openj9 |
 | Operating System | os | windows, linux, mac |
 | Architecture | arch | x64, x32, ppc64, s390x, ppc64le, aarch64 |
-| Release | release | latest, jdk8u172-b00-201807161800 |
 | Binary Type | type | jdk, jre |
 | Heap Size | heap_size | normal, large |
+| Release | release | latest, jdk8u172-b00-201807161800 |
 
-In the absence of a given parameter, it will return all elements.
+In the absence of a given parameter, it will return all elements. 
 
 To return latest, hotspot, windows, x64, jdk:
 ```
 curl -L 'https://api.adoptopenjdk.net/v2/binary/nightly/openjdk8?openjdk_impl=hotspot&os=windows&arch=x64&release=latest&type=jdk'
 ```
 
-
+Multiple values can be supplied for a given parameter like so:
+```sh
+curl 'https://api.adoptopenjdk.net/v2/info/releases/openjdk8?os=windows&os=linux&arch=x32&arch=x64'
+```
+This will return all Windows and Linux releases of OpenJDK8 for 32-bit and 64-bit x86 architectures.  
+Multi-value `release` queries are not currently supported due to some idiosyncrasies with how it affects response 
+formats. Queries such as `?release=latest&release=jdk8u172-b00-201807161800` will return an appropriate error response.
