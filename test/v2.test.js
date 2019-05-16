@@ -39,13 +39,75 @@ describe('v2 API', () => {
       });
     });
 
+    describe('400', () => {
+      describe('for invalid path params', () => {
+        const invalidPathParamRequests = [
+          ['request types', mockRequest("admin", "releases", "openjdk8"), 'Unknown request type'],
+          ['build types', mockRequest("info", "relish", "openjdk8"), 'Unknown build type'],
+        ];
+
+        it.each(invalidPathParamRequests)('for invalid %s', (paramName, request, expectedErrorMsg) => {
+          return performRequest(request, (code, msg) => {
+            expect(code).toEqual(400);
+            expect(msg).toEqual(expectedErrorMsg);
+          });
+        });
+      });
+
+      describe('for invalid query format', () => {
+        it.each`
+          queryName         | invalidQueryVal
+          ${'os'}           | ${'walls!!!'}
+          ${'openjdk_impl'} | ${'openj9000'}
+          ${'arch'}         | ${'*'}
+          ${'type'}         | ${'jre++'}
+          ${'heap_size'}    | ${'superSize'}
+          ${'release'}      | ${'*!/\\$'}
+          `('$queryName=$invalidQueryVal', ({queryName, invalidQueryVal}) => {
+          const request = mockRequestWithSingleQuery("info", "releases", "openjdk11", queryName, invalidQueryVal);
+
+          return performRequest(request, (code, res) => {
+            expect(code).toEqual(400);
+            expect(res).toEqual(`Unknown ${queryName} format "${invalidQueryVal}"`);
+          });
+        });
+      });
+
+      describe('for unsupported queries', () => {
+        it('multi-value release query', () => {
+          const queryValues = ['latest', 'jdk8u172-b11'];
+          const request = mockRequestWithSingleQuery("info", "releases", "openjdk8", "release", queryValues);
+
+          return performRequest(request, (code, res) => {
+            expect(code).toEqual(400);
+            expect(res).toContain('Multi-value queries not supported for "release"');
+          });
+        });
+      });
+    });
+
     describe('404', () => {
       it('for invalid versions', () => {
-        const request = mockRequest("info", "releases", "openjdk50", "hotspot", undefined, undefined, undefined, undefined, undefined);
+        const request = mockRequest("info", "releases", "openjdk50");
 
         return performRequest(request, (code, msg) => {
           expect(code).toEqual(404);
           expect(msg).toEqual('Not found');
+        });
+      });
+
+      describe('if missing required path param', () => {
+        const missingPathParamRequests = [
+          ["request type", mockRequest(undefined, "releases", "openjdk8")],
+          ["build type", mockRequest("info", undefined, "openjdk8")],
+          ["version", mockRequest("info", "releases", undefined)],
+        ];
+
+        it.each(missingPathParamRequests)('%s', (pathParamName, request) => {
+          return performRequest(request, (code, msg) => {
+            expect(code).toEqual(404);
+            expect(msg).toEqual('Not found');
+          });
         });
       });
     });
@@ -154,20 +216,41 @@ describe('v2 API', () => {
           return checkBinaryProperty(request, 'binary_type', 'jdk');
         });
       });
+    });
 
-      function checkBinaryProperty(request, returnedPropertyName, propertyValue) {
-        return performRequest(request, (code, msg) => {
-          expect(code).toEqual(200);
-
-          const releases = JSON.parse(msg);
-          _.chain(releases)
-            .map(release => release.binaries)
-            .flatten()
-            .each(binary => {
-              expect(binary[returnedPropertyName]).toEqual(propertyValue);
-            });
+    describe('by multiple property values', () => {
+      describe('valid binary properties', () => {
+        it.each`
+          queryName         | returnedPropertyName | queryValues
+          ${'os'}           | ${'os'}              | ${['windows', 'linux']}
+          ${'openjdk_impl'} | ${'openjdk_impl'}    | ${['hotspot', 'openj9']}
+          ${'arch'}         | ${'architecture'}    | ${['aarch64', 'x64']}
+          ${'type'}         | ${'binary_type'}     | ${['jdk', 'jre']}
+          ${'heap_size'}    | ${'heap_size'}       | ${['normal', 'large']}
+        `('$queryName', ({queryName, returnedPropertyName, queryValues}) => {
+          const request = mockRequestWithSingleQuery("info", "releases", "openjdk11", queryName, queryValues);
+          return checkBinaryPropertyMultiValueQuery(request, returnedPropertyName, queryValues);
         });
-      }
+      });
+
+      describe('returns error for invalid property format', () => {
+        it.each`
+          queryName         | validQueryVal  | invalidQueryVal
+          ${'os'}           | ${'windows'}   | ${'walls!!!'}
+          ${'openjdk_impl'} | ${'hotspot'}   | ${'openj9000'}
+          ${'arch'}         | ${'aarch64'}   | ${'*'}
+          ${'type'}         | ${'jdk'}       | ${'jre++'}
+          ${'heap_size'}    | ${'normal'}    | ${'superSize'}
+        `('$queryName with invalid value "$invalidQueryVal"', ({queryName, validQueryVal, invalidQueryVal}) => {
+          const queryValues = [validQueryVal, invalidQueryVal];
+          const request = mockRequestWithSingleQuery("info", "releases", "openjdk11", queryName, queryValues);
+
+          return performRequest(request, (code, res) => {
+            expect(code).toEqual(400);
+            expect(res).toEqual(`Unknown ${queryName} format "${invalidQueryVal}"`);
+          });
+        });
+      });
     });
 
     describe('by release type', () => {
@@ -199,7 +282,7 @@ describe('v2 API', () => {
     });
 
     describe('by heap_size', () => {
-      const request = mockRequest("info", "nightly", "openjdk8", undefined, undefined, undefined, undefined, undefined, "large");
+      const request = mockRequestWithSingleQuery("info", "nightly", "openjdk8", "heap_size", "large");
       it('only large heaps are returned', () => {
         return performRequest(request, (code, data) => {
           const releases = JSON.parse(data);
@@ -210,17 +293,71 @@ describe('v2 API', () => {
                   .each(binary => {
                     expect(binary.binary_link).toContain("linuxXL");
                     expect(binary.heap_size).toEqual("large");
-                  })
+                  });
               }
-            })
-        })
+            });
+        });
+      });
+    });
+
+    describe('by release name', () => {
+      it('returns array containing matching release', () => {
+        const releaseName = 'jdk8u181-b13_openj9-0.9.0';
+        const request = mockRequest("info", "releases", "openjdk8", undefined, undefined, undefined, releaseName, undefined, undefined);
+        return performRequest(request, (code, data) => {
+          const release = JSON.parse(data);
+          expect(release).toBeInstanceOf(Array);
+          expect(release).toHaveLength(1);
+          expect(release[0].release_name).toEqual(releaseName);
+        });
+      });
+
+      describe('"latest" returns single most recent release', () => {
+        const versionBuildExpectedResults = [
+            ['openjdk8', 'releases', 'jdk8u181-b13_openj9-0.9.0'],
+            ['openjdk8', 'nightly', 'jdk8u-2018-12-16-12-17'],
+            ['openjdk11', 'releases', 'jdk-11.0.1+13'],
+            ['openjdk11', 'nightly', 'jdk11u-2018-12-16-04-46'],
+        ];
+
+        it.each(versionBuildExpectedResults)('%s %s', (version, buildtype, expectedReleaseName) => {
+          const request = mockRequest("info", buildtype, version, undefined, undefined, undefined, "latest", undefined, undefined);
+          return performRequest(request, (code, data) => {
+            const release = JSON.parse(data);
+            expect(release).not.toBeInstanceOf(Array);
+            expect(release.release_name).toEqual(expectedReleaseName);
+          });
+        });
+      });
+
+      describe('matches possible release formats', () => {
+        const validReleaseFormats = [
+          'jdk8u162-b12_openj9-0.8.0',
+          'jdk8u181-b13_openj9-0.9.0',
+          'jdk8u192-b13-0.11.0',
+          'jdk-9.0.4+11',
+          'jdk-9.0.4+12_openj9-0.9.0',
+          'jdk-9+181',
+          'jdk-10.0.1+10',
+          'jdk-10.0.2+13_openj9-0.9.0',
+          'jdk-10.0.2+13',
+          'jdk-11+28',
+          'jdk-11.0.1+13',
+        ];
+
+        it.each(validReleaseFormats)('%s', (releaseName) => {
+          const request = mockRequestWithSingleQuery("info", "releases", "openjdk8", "release", releaseName);
+          return performRequest(request, (code) => {
+            expect(code).not.toEqual(400);
+          });
+        });
       });
     });
   });
 
   describe('sort order is correct', function () {
-    function assertSortsCorrectly(data, javaVersion, expectedOrder) {
-      let sorted = v2._testExport.sortReleases(javaVersion, _.chain(data)).value();
+    function assertSortsCorrectly(data, expectedOrder) {
+      let sorted = v2._testExport.sortReleases(_.chain(data)).value();
 
       sorted = _.chain(sorted)
         .map(function (release) {
@@ -240,7 +377,6 @@ describe('v2 API', () => {
           {"release_name": "jdk8u100-b1_openj9-0.8.0", "timestamp": 4},
           {"release_name": "jdk8u20-b1_openj9-0.8.0", "timestamp": 5}
         ],
-        "openjdk8",
         ["jdk8u20-b1", "jdk8u20-b1_openj9-0.8.0", "jdk8u100-b1_openj9-0.8.0", "jdk8u100-b2", "jdk8u100-b10"]);
     });
 
@@ -254,9 +390,8 @@ describe('v2 API', () => {
           {"release_name": "jdk-11.2.1+10", "timestamp": 4},
           {"release_name": "jdk-11.2.1+2", "timestamp": 5},
         ],
-        "openjdk11",
         ["jdk-11+2", "jdk-11+100", "jdk-11.2.1+2", "jdk-11.2.1+10", "jdk-11.10.1+2"]);
-    })
+    });
   });
 
   function getAllPermutations() {
@@ -323,4 +458,30 @@ describe('v2 API', () => {
         doAssert(code, msg);
       });
   }
+
+  function checkBinaryProperty(request, returnedPropertyName, propertyValue, assertFn = assertEachPropertyEqualTo) {
+    return performRequest(request, (code, msg) => {
+      expect(code).toEqual(200);
+      const releases = JSON.parse(msg);
+      const binaries = _.chain(releases)
+        .map(release => release.binaries)
+        .flatten()
+        .value();
+
+      expect(binaries.length).toBeGreaterThan(0);
+      assertFn(binaries, returnedPropertyName, propertyValue);
+    });
+  }
+
+  function checkBinaryPropertyMultiValueQuery(request, returnedPropertyName, propertyValues) {
+    return checkBinaryProperty(request, returnedPropertyName, propertyValues, assertEachPropertyIn);
+  }
+
+  const assertEachPropertyEqualTo = (subjects, propertyName, propertyValue) =>
+      subjects.map(subject => expect(subject[propertyName]).toEqual(propertyValue));
+
+  const assertEachPropertyIn = (subjects, propertyName, propertyValues) => {
+    const actualBinaryPropertyValues = subjects.map(binary => binary[propertyName]);
+    expect(actualBinaryPropertyValues).toEqual(expect.arrayContaining(propertyValues))
+  };
 });
