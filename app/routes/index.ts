@@ -1,3 +1,5 @@
+import V3 from './v3';
+
 module.exports = function (app) {
   app.use((req, res, next) => {
     app.set('json spaces', req.query.pretty === 'false' ? false : 2);
@@ -6,6 +8,9 @@ module.exports = function (app) {
 
   const GitHubFileCache = require('../lib/github_file_cache');
   const cache = new GitHubFileCache(false);
+  const v = new V3(cache);
+
+  app.get('/v3/:requestType?/:buildtype?/:version?', v.get);
 
   // API version 2
   // Examples:

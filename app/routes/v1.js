@@ -5,6 +5,9 @@ var variants = [];
 var lookup = {};
 var i = 0;
 
+
+console.log("LOADING ROUTE v1")
+
 function setLookup() {
   // FUNCTIONS FOR GETTING PLATFORM DATA
   // allows us to use, for example, 'lookup["MAC"];'
