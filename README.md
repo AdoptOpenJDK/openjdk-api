@@ -3,6 +3,8 @@
 **NOTICE:** [AdoptOpenJDK API v1](/README.v1.md) has been deprecated and will be removed.
 If you are using v1 please move to the latest version (documented below) as soon as possible.
 
+**NOTICE:** AdoptOpenJDK API v3 is the next version being worked onb, please ensure you pull request to the [v3 branch](https://github.com/AdoptOpenJDK/openjdk-api/tree/v3).
+
 ## Overview
 
 The AdoptOpenJDK API provides a way to consume JSON information about the AdoptOpenJDK releases and nightly builds.  Sign up to the [mailing list](https://mail.openjdk.java.net/mailman/listinfo/adoption-discuss) where major API updates will be announced, and visit [adoptopenjdk.net](https://adoptopenjdk.net) to find out more about the community.
