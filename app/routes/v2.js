@@ -228,7 +228,7 @@ function getNewStyleFileInfo(name) {
   if (matched != null) {
 
     let heap_size = 'normal';
-    const largeHeapNames = ['linuxxl', 'macosxl'];
+    const largeHeapNames = ['linuxxl', 'macosxl', 'windowsxl'];
 
     if (matched.groups.heap && largeHeapNames.includes(matched.groups.heap.toLowerCase())) {
       heap_size = 'large';
