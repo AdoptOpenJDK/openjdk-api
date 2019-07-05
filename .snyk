@@ -1,0 +1,20 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.13.5
+ignore: {}
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  SNYK-JS-LODASH-450202:
+    - lodash:
+        patched: '2019-07-05T08:52:19.459Z'
+    - async > lodash:
+        patched: '2019-07-05T08:52:19.459Z'
+    - markdown-serve > lodash:
+        patched: '2019-07-05T08:52:19.459Z'
+    - pug > pug-code-gen > constantinople > babel-types > lodash:
+        patched: '2019-07-05T08:52:19.459Z'
+    - pug > pug-filters > constantinople > babel-types > lodash:
+        patched: '2019-07-05T08:52:19.459Z'
+    - pug > pug-code-gen > pug-attrs > constantinople > babel-types > lodash:
+        patched: '2019-07-05T08:52:19.459Z'
+    - appmetrics-dash > appmetrics > ibmapm-embed > ibmapm-restclient > kubernetes-client > async > lodash:
+        patched: '2019-07-05T08:52:19.459Z'
