@@ -2,16 +2,11 @@ package net.adoptopenjdk.api
 
 
 import io.quarkus.test.junit.QuarkusTest
-import io.restassured.RestAssured.given
-import net.adoptopenjdk.api.APITestUtils.Companion.releaseVersionPermutations
-import org.junit.jupiter.api.DynamicTest
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestFactory
-import java.util.stream.Stream
 
 
 @QuarkusTest
 open class InfoTest {
+    /*
     @TestFactory
     fun testDynamicTestStream(): Stream<DynamicTest> {
         return releaseVersionPermutations({ releaseType, releaseVersion ->
@@ -40,6 +35,6 @@ open class InfoTest {
                 .then()
                 .statusCode(200)
     }
-
+*/
 }
 

@@ -20,7 +20,6 @@ open class BinaryTest {
     fun testDynamicTestStream(): Stream<DynamicTest> {
         return runTest(createPermutations(listOf(
                 names(ReleaseType.values()),
-                ReleaseVersion.values().map { it.featureNumber.toString() },
                 names(OperatingSystem.values()),
                 names(Architecture.values()),
                 names(BinaryType.values()),
@@ -28,9 +27,8 @@ open class BinaryTest {
                 names(HeapSize.values())
         ), 500), { params ->
             val releaseType = params.get(0)
-            val releaseVersion = params.get(1)
-            val os = params.get(2)
-            val architecture = params.get(3)
+            val os = params.get(1)
+            val architecture = params.get(2)
             val type = params.get(3)
             val jvmImpl = params.get(4)
             val heapSize = params.get(5)
@@ -39,7 +37,7 @@ open class BinaryTest {
                     .redirects()
                     .follow(false)
                     .`when`()
-                    .get("/v3/binary/${releaseType}/${releaseVersion}/${os}/${architecture}/latest/${type}/${jvmImpl}/${heapSize}")
+                    .get("/v3/binary/${releaseType}/8/${os}/${architecture}/latest/${type}/${jvmImpl}/${heapSize}")
                     .then()
                     .statusCode(Response.Status.FOUND.statusCode)
         })

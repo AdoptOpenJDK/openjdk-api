@@ -12,6 +12,7 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag
 import org.jboss.resteasy.annotations.jaxrs.PathParam
 import org.jboss.resteasy.annotations.jaxrs.QueryParam
 import java.time.LocalDateTime
+import javax.ws.rs.DefaultValue
 import javax.ws.rs.GET
 import javax.ws.rs.Path
 import javax.ws.rs.Produces
@@ -35,46 +36,48 @@ class AssetsResource {
     ])
     fun get(
             @Parameter(name = "release_type", description = "Release type", required = true,
-                    schema = Schema(ref = "#/components/schemas/ApiEnums/properties/ReleaseType"))
+                    schema = Schema(ref = "#/components/parameters/ApiProperties/schema/properties/ReleaseType"))
             @PathParam("release_type")
+            @DefaultValue("releases")
             release_type: ReleaseType?,
 
-            @Parameter(name = "version", description = "Feature release version e.g. 8,9,10,11,12,13", required = true)
+            @Parameter(name = "version", description = "Feature release version e.g. 8,9,10,11,12,13", required = true,
+                    schema = Schema(defaultValue = "8"))
             @PathParam("version")
             version: Int?,
 
             @Parameter(name = "os", description = "Operating System", required = false,
-                    schema = Schema(ref = "#/components/schemas/ApiEnums/properties/OperatingSystem"))
+                    schema = Schema(ref = "#/components/parameters/ApiProperties/schema/properties/OperatingSystem"))
             @QueryParam("os")
             os: OperatingSystem?,
 
             @Parameter(name = "arch", description = "Architecture", required = false,
-                    schema = Schema(ref = "#/components/schemas/ApiEnums/properties/Architecture"))
+                    schema = Schema(ref = "#/components/parameters/ApiProperties/schema/properties/Architecture"))
             @QueryParam("arch")
             arch: Architecture?,
 
-            @Parameter(name = "release_name", description = "Release e.g latest, jdk8u172-b00-201807161800", required = false,
+            @Parameter(name = "release_name", description = "Release e.g latest, all, jdk8u172-b00-201807161800", required = false,
                     schema = Schema(defaultValue = "latest"))
             @QueryParam("release_name")
             release_name: String?,
 
             @Parameter(name = "binary_type", description = "Binary Type", required = false,
-                    schema = Schema(defaultValue = "jdk", ref = "#/components/schemas/ApiEnums/properties/BinaryType", required = false))
+                    schema = Schema(defaultValue = "jdk", ref = "#/components/parameters/ApiProperties/schema/properties/BinaryType", required = false))
             @QueryParam("binary_type")
             binary_type: BinaryType?,
 
             @Parameter(name = "jvm_impl", description = "JVM Implementation", required = false,
-                    schema = Schema(ref = "#/components/schemas/ApiEnums/properties/JvmImpl"))
+                    schema = Schema(ref = "#/components/parameters/ApiProperties/schema/properties/JvmImpl"))
             @QueryParam("jvm_impl")
             jvm_impl: JvmImpl?,
 
             @Parameter(name = "heap_size", description = "Heap Size", required = false,
-                    schema = Schema(defaultValue = "normal", ref = "#/components/schemas/ApiEnums/properties/HeapSize"))
+                    schema = Schema(defaultValue = "normal", ref = "#/components/parameters/ApiProperties/schema/properties/HeapSize"))
             @QueryParam("heap_size")
             heap_size: HeapSize?,
 
             @Parameter(name = "vendor", description = "Vendor", required = false,
-                    schema = Schema(defaultValue = "adopt", ref = "#/components/schemas/ApiEnums/properties/Vendor"))
+                    schema = Schema(defaultValue = "adopt", ref = "#/components/parameters/ApiProperties/schema/properties/Vendor"))
             @QueryParam("vendor")
             vendor: Vendor?
 
@@ -84,7 +87,7 @@ class AssetsResource {
             throw IllegalArgumentException("Unrecognised type")
         }
 
-        return listOf(Info(release_type.name, "", "", LocalDateTime.now(), listOf<Binary>(), 1, Vendor.adopt.name, VersionData(1, 2, "pre", 4, 5, "a", 6, "opt", "")))
+        return listOf(Info(release_type, "", "", LocalDateTime.now(), listOf<Binary>(), 1, Vendor.adopt, VersionData(1, 2, "pre", 4, 5, "a", 6, "opt", "")))
     }
 
 

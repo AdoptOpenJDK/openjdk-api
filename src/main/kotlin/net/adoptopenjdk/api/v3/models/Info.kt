@@ -21,14 +21,14 @@ class Info {
     val download_count: Int;
 
     @Schema(example = "release", required = true)
-    val release_type: String;
+    val release_type: ReleaseType;
 
-    @Schema(example = "adopt", ref = "#/components/schemas/ApiEnums/properties/Vendor")
-    val vendor: String;
+    @Schema(example = "adopt", required = true)
+    val vendor: Vendor;
 
     val version_data: VersionData;
 
-    constructor(release_type: String, release_link: String, release_name: String, timestamp: LocalDateTime, binaries: List<Binary>, download_count: Int, vendor: String, version_data: VersionData) {
+    constructor(release_type: ReleaseType, release_link: String, release_name: String, timestamp: LocalDateTime, binaries: List<Binary>, download_count: Int, vendor: Vendor, version_data: VersionData) {
         this.release_type = release_type;
         this.release_link = release_link
         this.release_name = release_name

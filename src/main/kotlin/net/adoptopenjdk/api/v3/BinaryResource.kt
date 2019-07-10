@@ -31,45 +31,47 @@ class BinaryResource {
     ])
     fun returnBinary(
             @Parameter(name = "release_type", description = "Release type", required = true,
-                    schema = Schema(ref = "#/components/schemas/ApiEnums/properties/ReleaseType"))
+                    schema = Schema(ref = "#/components/parameters/ApiProperties/schema/properties/ReleaseType"))
             @PathParam("release_type")
             release_type: ReleaseType?,
 
-            @Parameter(name = "version", description = "Feature release version e.g. 8,9,10,11,12,13", required = true)
+            @Parameter(name = "version", description = "Feature release version e.g. 8,9,10,11,12,13", required = true,
+                    schema = Schema(defaultValue = "8"))
             @PathParam("version")
             version: Int?,
 
             @Parameter(name = "os", description = "Operating System", required = true,
-                    schema = Schema(ref = "#/components/schemas/ApiEnums/properties/OperatingSystem"))
+                    schema = Schema(ref = "#/components/parameters/ApiProperties/schema/properties/OperatingSystem"))
             @PathParam("os")
             os: OperatingSystem?,
 
             @Parameter(name = "arch", description = "Architecture", required = true,
-                    schema = Schema(ref = "#/components/schemas/ApiEnums/properties/Architecture"))
+                    schema = Schema(ref = "#/components/parameters/ApiProperties/schema/properties/Architecture"))
             @PathParam("arch")
             arch: Architecture?,
 
-            @Parameter(name = "release_name", description = "Release e.g latest, jdk8u172-b00-201807161800", required = true)
+            @Parameter(name = "release_name", description = "Release e.g latest, jdk8u172-b00-201807161800", required = true,
+                    schema = Schema(defaultValue = "latest"))
             @PathParam("release_name")
             release_name: String?,
 
             @Parameter(name = "binary_type", description = "Binary Type", required = true,
-                    schema = Schema(ref = "#/components/schemas/ApiEnums/properties/BinaryType"))
+                    schema = Schema(ref = "#/components/parameters/ApiProperties/schema/properties/BinaryType"))
             @PathParam("binary_type")
             binary_type: BinaryType?,
 
             @Parameter(name = "jvm_impl", description = "OpenJDK Implementation", required = true,
-                    schema = Schema(ref = "#/components/schemas/ApiEnums/properties/JvmImpl"))
+                    schema = Schema(ref = "#/components/parameters/ApiProperties/schema/properties/JvmImpl"))
             @PathParam("jvm_impl")
             jvm_impl: JvmImpl?,
 
             @Parameter(name = "heap_size", description = "Heap Size", required = true,
-                    schema = Schema(ref = "#/components/schemas/ApiEnums/properties/HeapSize"))
+                    schema = Schema(ref = "#/components/parameters/ApiProperties/schema/properties/HeapSize"))
             @PathParam("heap_size")
             heap_size: HeapSize?,
 
             @Parameter(name = "vendor", description = "Vendor", required = true,
-                    schema = Schema(ref = "#/components/schemas/ApiEnums/properties/Vendor"))
+                    schema = Schema(ref = "#/components/parameters/ApiProperties/schema/properties/Vendor"))
             @PathParam("vendor")
             vendor: Vendor?
     ): Response {

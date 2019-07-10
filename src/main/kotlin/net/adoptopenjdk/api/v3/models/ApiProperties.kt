@@ -15,25 +15,7 @@ enum class OperatingSystem {
 
 @Schema(type = SchemaType.STRING)
 enum class Architecture {
-    x64, x32, ppc64, ppc64le, s390x, aarch64, arm;
-}
-
-
-@Schema(type = SchemaType.STRING)
-enum class ReleaseType {
-    releases,
-    nightly;
-}
-
-@Schema(type = SchemaType.STRING, example = "openjdk8, openjdk9")
-enum class ReleaseVersion(val featureNumber: Int) {
-    openjdk8(8),
-    openjdk9(9),
-    openjdk10(10),
-    openjdk11(11),
-    openjdk12(12),
-    openjdk13(13);
-
+    x64, x32, ppc64, ppc64le, s390x, aarch64, arm, sparcv9;
 }
 
 @Schema(type = SchemaType.STRING)
@@ -51,14 +33,20 @@ enum class Vendor {
     adopt, ibm, redhat, azul, amazon;
 }
 
+@Schema(type = SchemaType.STRING, defaultValue = "releases", ref = "#/components/schemas/ReleaseType")
+enum class ReleaseType {
+    releases,
+    nightly;
+}
+
+
 @Schema(hidden = true)
-class ApiEnums {
-    val ReleaseVersion: ReleaseVersion? = null
+class ApiProperties {
     val Architecture: Architecture? = null
     val OperatingSystem: OperatingSystem? = null
-    val ReleaseType: ReleaseType? = null
     val BinaryType: BinaryType? = null
     val JvmImpl: JvmImpl? = null
     val HeapSize: HeapSize? = null
     val Vendor: Vendor? = null
+    val ReleaseType: ReleaseType? = null;
 }

@@ -2,8 +2,6 @@ package net.adoptopenjdk.api
 
 
 import com.google.common.base.Joiner
-import net.adoptopenjdk.api.v3.models.ReleaseType
-import net.adoptopenjdk.api.v3.models.ReleaseVersion
 import org.junit.jupiter.api.DynamicTest
 import java.util.stream.Stream
 
@@ -61,7 +59,7 @@ open class APITestUtils {
 
             }.stream()
         }
-
+/*
         fun releaseVersionPermutations(
                 test: (
                         releaseType: ReleaseType,
@@ -75,7 +73,7 @@ open class APITestUtils {
                 val releaseVersion = args.get(1)
                 test(releaseType, releaseVersion.toString().toInt())
             })
-        }
+        }*/
 
         fun <E : Enum<*>> names(values: Array<E>): List<String> {
             return values.map { it.name }
