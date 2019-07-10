@@ -19,7 +19,7 @@ import javax.ws.rs.core.MediaType
 
 
 @Tag(name = "Assets")
-@Path("/v3/assets/")
+@Path("/assets/")
 @Produces(MediaType.APPLICATION_JSON)
 class AssetsResource {
 
@@ -39,7 +39,7 @@ class AssetsResource {
             @PathParam("release_type")
             release_type: ReleaseType?,
 
-            @Parameter(name = "version", description = "Feature release version", required = true)
+            @Parameter(name = "version", description = "Feature release version e.g. 8,9,10,11,12,13", required = true)
             @PathParam("version")
             version: Int?,
 
@@ -63,7 +63,7 @@ class AssetsResource {
             @QueryParam("binary_type")
             binary_type: BinaryType?,
 
-            @Parameter(name = "jvm_impl", description = "OpenJDK Implementation", required = false,
+            @Parameter(name = "jvm_impl", description = "JVM Implementation", required = false,
                     schema = Schema(ref = "#/components/schemas/ApiEnums/properties/JvmImpl"))
             @QueryParam("jvm_impl")
             jvm_impl: JvmImpl?,

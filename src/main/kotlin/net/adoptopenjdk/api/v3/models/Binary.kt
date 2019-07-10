@@ -26,6 +26,15 @@ class Binary {
     @Schema(example = "82573385", required = true)
     val binary_size: Int
 
+    @Schema(example = "OpenJDK8U-jre_x86-32_windows_hotspot_8u212b04.msi")
+    val installer_name: String
+
+    @Schema(example = "https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u212-b04/OpenJDK8U-jre_x86-32_windows_hotspot_8u212b04.msi")
+    val installer_link: String
+
+    @Schema(example = "82573385")
+    val installer_size: Int
+
     @Schema(example = "dd28d6d2cde2b931caf94ac2422a2ad082ea62f0beee3bf7057317c53093de93", required = true)
     val checksum: String
 
@@ -57,7 +66,10 @@ class Binary {
             heap_size: String,
             download_count: Int,
             updated_at: LocalDateTime,
-            scm_ref: String) {
+            scm_ref: String,
+            installer_name: String,
+            installer_link: String,
+            installer_size: Int) {
         this.os = os
         this.architecture = architecture
         this.binary_type = binary_type
@@ -71,5 +83,8 @@ class Binary {
         this.download_count = download_count
         this.updated_at = updated_at
         this.scm_ref = scm_ref
+        this.installer_name = installer_name
+        this.installer_link = installer_link
+        this.installer_size = installer_size
     }
 }

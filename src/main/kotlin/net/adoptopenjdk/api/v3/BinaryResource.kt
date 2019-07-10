@@ -17,12 +17,12 @@ import javax.ws.rs.core.Response
 
 
 @Tag(name = "Binary")
-@Path("/v3/binary/")
+@Path("/binary/")
 @Produces(MediaType.APPLICATION_JSON)
 class BinaryResource {
 
     @GET
-    @Path("{release_type}/{version}/{os}/{arch}/{release_name}/{binary_type}/{jvm_impl}/{heap_size}")
+    @Path("{release_type}/{version}/{os}/{arch}/{release_name}/{binary_type}/{jvm_impl}/{heap_size}/{vendor}")
     @Produces("application/octet-stream")
     @Operation(summary = "Redirects to the binary that matches your current query", description = "Redirects to the binary that matches your current query")
     @APIResponses(value = [
@@ -35,7 +35,7 @@ class BinaryResource {
             @PathParam("release_type")
             release_type: ReleaseType?,
 
-            @Parameter(name = "version", description = "Feature release version", required = true)
+            @Parameter(name = "version", description = "Feature release version e.g. 8,9,10,11,12,13", required = true)
             @PathParam("version")
             version: Int?,
 
@@ -66,7 +66,12 @@ class BinaryResource {
             @Parameter(name = "heap_size", description = "Heap Size", required = true,
                     schema = Schema(ref = "#/components/schemas/ApiEnums/properties/HeapSize"))
             @PathParam("heap_size")
-            heap_size: HeapSize?
+            heap_size: HeapSize?,
+
+            @Parameter(name = "vendor", description = "Vendor", required = true,
+                    schema = Schema(ref = "#/components/schemas/ApiEnums/properties/Vendor"))
+            @PathParam("vendor")
+            vendor: Vendor?
     ): Response {
         return Response.status(Response.Status.FOUND).location(URI.create("resource/location")).build()
     }
