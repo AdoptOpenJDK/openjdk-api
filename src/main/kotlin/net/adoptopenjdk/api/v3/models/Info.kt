@@ -20,7 +20,7 @@ class Info {
     @Schema(example = "7128", required = true)
     val download_count: Int;
 
-    @Schema(example = "nightly", required = true)
+    @Schema(example = "release", required = true)
     val release_type: String;
 
     @Schema(example = "adopt", ref = "#/components/schemas/ApiEnums/properties/Vendor")

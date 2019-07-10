@@ -9,7 +9,7 @@ import org.eclipse.microprofile.openapi.annotations.servers.Server
 import javax.ws.rs.core.Application
 
 @OpenAPIDefinition(
-        servers = [Server(url = "api.adoptopenjdk.com/v3/")],
+        servers = [Server(url = "https://api.adoptopenjdk.com/v3/")],
         components = Components(schemas = [
 
             //Force enums to be included in schema so that we can refer to them via $ref
