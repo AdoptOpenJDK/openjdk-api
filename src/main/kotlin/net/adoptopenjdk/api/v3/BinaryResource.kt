@@ -6,6 +6,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses
+import org.eclipse.microprofile.openapi.annotations.tags.Tag
 import org.jboss.resteasy.annotations.jaxrs.PathParam
 import java.net.URI
 import javax.ws.rs.GET
@@ -15,12 +16,13 @@ import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
 
+@Tag(name = "Binary")
 @Path("/v3/binary/")
 @Produces(MediaType.APPLICATION_JSON)
 class BinaryResource {
 
     @GET
-    @Path("{release_type}/{version}/{os}/{arch}/{release}/{type}/{jvm_impl}/{heap_size}")
+    @Path("{release_type}/{version}/{os}/{arch}/{release_name}/{binary_type}/{jvm_impl}/{heap_size}")
     @Produces("application/octet-stream")
     @Operation(summary = "Redirects to the binary that matches your current query", description = "Redirects to the binary that matches your current query")
     @APIResponses(value = [
@@ -47,14 +49,14 @@ class BinaryResource {
             @PathParam("arch")
             arch: Architecture?,
 
-            @Parameter(name = "release", description = "Release e.g latest, jdk8u172-b00-201807161800", required = true)
-            @PathParam("release")
-            release: String?,
+            @Parameter(name = "release_name", description = "Release e.g latest, jdk8u172-b00-201807161800", required = true)
+            @PathParam("release_name")
+            release_name: String?,
 
-            @Parameter(name = "type", description = "Binary Type", required = true,
+            @Parameter(name = "binary_type", description = "Binary Type", required = true,
                     schema = Schema(ref = "#/components/schemas/ApiEnums/properties/BinaryType"))
-            @PathParam("type")
-            type: BinaryType?,
+            @PathParam("binary_type")
+            binary_type: BinaryType?,
 
             @Parameter(name = "jvm_impl", description = "OpenJDK Implementation", required = true,
                     schema = Schema(ref = "#/components/schemas/ApiEnums/properties/JvmImpl"))

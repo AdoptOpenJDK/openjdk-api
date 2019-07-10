@@ -8,6 +8,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses
+import org.eclipse.microprofile.openapi.annotations.tags.Tag
 import org.jboss.resteasy.annotations.jaxrs.PathParam
 import org.jboss.resteasy.annotations.jaxrs.QueryParam
 import java.time.LocalDateTime
@@ -17,9 +18,10 @@ import javax.ws.rs.Produces
 import javax.ws.rs.core.MediaType
 
 
-@Path("/v3/info/")
+@Tag(name = "Assets")
+@Path("/v3/assets/")
 @Produces(MediaType.APPLICATION_JSON)
-class InfoResource {
+class AssetsResource {
 
     @GET
     @Path("{release_type}/{version}")
@@ -51,15 +53,15 @@ class InfoResource {
             @QueryParam("arch")
             arch: Architecture?,
 
-            @Parameter(name = "release", description = "Release e.g latest, jdk8u172-b00-201807161800", required = false,
+            @Parameter(name = "release_name", description = "Release e.g latest, jdk8u172-b00-201807161800", required = false,
                     schema = Schema(defaultValue = "latest"))
-            @QueryParam("release")
-            release: String?,
+            @QueryParam("release_name")
+            release_name: String?,
 
-            @Parameter(name = "type", description = "Binary Type", required = false,
+            @Parameter(name = "binary_type", description = "Binary Type", required = false,
                     schema = Schema(defaultValue = "jdk", ref = "#/components/schemas/ApiEnums/properties/BinaryType", required = false))
-            @QueryParam("type")
-            type: BinaryType?,
+            @QueryParam("binary_type")
+            binary_type: BinaryType?,
 
             @Parameter(name = "jvm_impl", description = "OpenJDK Implementation", required = false,
                     schema = Schema(ref = "#/components/schemas/ApiEnums/properties/JvmImpl"))
@@ -67,12 +69,12 @@ class InfoResource {
             jvm_impl: JvmImpl?,
 
             @Parameter(name = "heap_size", description = "Heap Size", required = false,
-                    schema = Schema(ref = "#/components/schemas/ApiEnums/properties/HeapSize"))
+                    schema = Schema(defaultValue = "normal", ref = "#/components/schemas/ApiEnums/properties/HeapSize"))
             @QueryParam("heap_size")
             heap_size: HeapSize?,
 
             @Parameter(name = "vendor", description = "Vendor", required = false,
-                    schema = Schema(ref = "#/components/schemas/ApiEnums/properties/Vendor"))
+                    schema = Schema(defaultValue = "adopt", ref = "#/components/schemas/ApiEnums/properties/Vendor"))
             @QueryParam("vendor")
             vendor: Vendor?
 

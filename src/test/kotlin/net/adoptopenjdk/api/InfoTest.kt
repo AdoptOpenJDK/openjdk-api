@@ -17,7 +17,7 @@ open class InfoTest {
         return releaseVersionPermutations({ releaseType, releaseVersion ->
             given()
                     .`when`()
-                    .get("/v3/info/${releaseType}/${releaseVersion}")
+                    .get("/v3/assets/${releaseType}/${releaseVersion}")
                     .then()
                     .statusCode(200)
         })

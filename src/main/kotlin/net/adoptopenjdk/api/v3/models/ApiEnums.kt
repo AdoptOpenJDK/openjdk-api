@@ -41,7 +41,7 @@ enum class JvmImpl {
     hotspot, openj9;
 }
 
-@Schema(type = SchemaType.STRING)
+@Schema(defaultValue = "normal", type = SchemaType.STRING)
 enum class HeapSize {
     normal, large;
 }
