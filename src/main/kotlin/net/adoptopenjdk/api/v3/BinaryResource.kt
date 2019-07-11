@@ -30,8 +30,7 @@ class BinaryResource {
         APIResponse(responseCode = "400", description = "bad input parameter")
     ])
     fun returnBinary(
-            @Parameter(name = "release_type", description = "Release type", required = true,
-                    schema = Schema(ref = "#/components/parameters/ApiProperties/schema/properties/ReleaseType"))
+            @Parameter(name = "release_type", description = "Release type", required = true)
             @PathParam("release_type")
             release_type: ReleaseType?,
 
@@ -40,13 +39,11 @@ class BinaryResource {
             @PathParam("version")
             version: Int?,
 
-            @Parameter(name = "os", description = "Operating System", required = true,
-                    schema = Schema(ref = "#/components/parameters/ApiProperties/schema/properties/OperatingSystem"))
+            @Parameter(name = "os", description = "Operating System", required = true)
             @PathParam("os")
             os: OperatingSystem?,
 
-            @Parameter(name = "arch", description = "Architecture", required = true,
-                    schema = Schema(ref = "#/components/parameters/ApiProperties/schema/properties/Architecture"))
+            @Parameter(name = "arch", description = "Architecture", required = true)
             @PathParam("arch")
             arch: Architecture?,
 
@@ -55,23 +52,19 @@ class BinaryResource {
             @PathParam("release_name")
             release_name: String?,
 
-            @Parameter(name = "binary_type", description = "Binary Type", required = true,
-                    schema = Schema(ref = "#/components/parameters/ApiProperties/schema/properties/BinaryType"))
+            @Parameter(name = "binary_type", description = "Binary Type", required = true)
             @PathParam("binary_type")
             binary_type: BinaryType?,
 
-            @Parameter(name = "jvm_impl", description = "OpenJDK Implementation", required = true,
-                    schema = Schema(ref = "#/components/parameters/ApiProperties/schema/properties/JvmImpl"))
+            @Parameter(name = "jvm_impl", description = "OpenJDK Implementation", required = true)
             @PathParam("jvm_impl")
             jvm_impl: JvmImpl?,
 
-            @Parameter(name = "heap_size", description = "Heap Size", required = true,
-                    schema = Schema(ref = "#/components/parameters/ApiProperties/schema/properties/HeapSize"))
+            @Parameter(name = "heap_size", description = "Heap Size", required = true)
             @PathParam("heap_size")
             heap_size: HeapSize?,
 
-            @Parameter(name = "vendor", description = "Vendor", required = true,
-                    schema = Schema(ref = "#/components/parameters/ApiProperties/schema/properties/Vendor"))
+            @Parameter(name = "vendor", description = "Vendor", required = true)
             @PathParam("vendor")
             vendor: Vendor?
     ): Response {

@@ -5,7 +5,6 @@ import java.time.LocalDateTime
 
 class Binary {
 
-    @Schema(example = "linux", required = true)
     val os: OperatingSystem
 
     @Schema(example = "x64", required = true)

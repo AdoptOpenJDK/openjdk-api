@@ -20,7 +20,7 @@ class Info {
     @Schema(example = "7128", required = true)
     val download_count: Int;
 
-    @Schema(example = "release", required = true)
+    @Schema(example = "releases", required = true)
     val release_type: ReleaseType;
 
     @Schema(example = "adopt", required = true)

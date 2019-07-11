@@ -35,10 +35,8 @@ class AssetsResource {
                 content = [Content(schema = Schema(implementation = Void::class))])
     ])
     fun get(
-            @Parameter(name = "release_type", description = "Release type", required = true,
-                    schema = Schema(ref = "#/components/parameters/ApiProperties/schema/properties/ReleaseType"))
+            @Parameter(name = "release_type", description = "Release type", required = true)
             @PathParam("release_type")
-            @DefaultValue("releases")
             release_type: ReleaseType?,
 
             @Parameter(name = "version", description = "Feature release version e.g. 8,9,10,11,12,13", required = true,
@@ -46,13 +44,11 @@ class AssetsResource {
             @PathParam("version")
             version: Int?,
 
-            @Parameter(name = "os", description = "Operating System", required = false,
-                    schema = Schema(ref = "#/components/parameters/ApiProperties/schema/properties/OperatingSystem"))
+            @Parameter(name = "os", description = "Operating System", required = false)
             @QueryParam("os")
             os: OperatingSystem?,
 
-            @Parameter(name = "arch", description = "Architecture", required = false,
-                    schema = Schema(ref = "#/components/parameters/ApiProperties/schema/properties/Architecture"))
+            @Parameter(name = "arch", description = "Architecture", required = false)
             @QueryParam("arch")
             arch: Architecture?,
 
@@ -61,23 +57,19 @@ class AssetsResource {
             @QueryParam("release_name")
             release_name: String?,
 
-            @Parameter(name = "binary_type", description = "Binary Type", required = false,
-                    schema = Schema(defaultValue = "jdk", ref = "#/components/parameters/ApiProperties/schema/properties/BinaryType", required = false))
+            @Parameter(name = "binary_type", description = "Binary Type", required = false)
             @QueryParam("binary_type")
             binary_type: BinaryType?,
 
-            @Parameter(name = "jvm_impl", description = "JVM Implementation", required = false,
-                    schema = Schema(ref = "#/components/parameters/ApiProperties/schema/properties/JvmImpl"))
+            @Parameter(name = "jvm_impl", description = "JVM Implementation", required = false)
             @QueryParam("jvm_impl")
             jvm_impl: JvmImpl?,
 
-            @Parameter(name = "heap_size", description = "Heap Size", required = false,
-                    schema = Schema(defaultValue = "normal", ref = "#/components/parameters/ApiProperties/schema/properties/HeapSize"))
+            @Parameter(name = "heap_size", description = "Heap Size", required = false)
             @QueryParam("heap_size")
             heap_size: HeapSize?,
 
-            @Parameter(name = "vendor", description = "Vendor", required = false,
-                    schema = Schema(defaultValue = "adopt", ref = "#/components/parameters/ApiProperties/schema/properties/Vendor"))
+            @Parameter(name = "vendor", description = "Vendor", required = false)
             @QueryParam("vendor")
             vendor: Vendor?
 
