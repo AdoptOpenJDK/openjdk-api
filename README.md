@@ -86,7 +86,7 @@ curl -L 'https://api.adoptopenjdk.net/v2/binary/nightly/openjdk8?openjdk_impl=ho
 ```
 
 ##### latestAssets
-Returns the latest binary asset for every matching combination of os, architecture, binary_type, openjdk_impl, version, heap_size.
+Returns the latest binary asset for every matching combination of `os`, `arch`, `type`, `openjdk_impl`, and `heap_size` query parameters.
 
 i.e to find the latest jdk/jre for linux, x64, normal heap, hotspot:
 
