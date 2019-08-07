@@ -391,8 +391,21 @@ describe('v2 API', () => {
           {"release_name": "jdk-11.2.1+2", "timestamp": 5},
           {"release_name": "jdk-11.0.4+11_openj9-0.15.1", "timestamp": 6},
           {"release_name": "jdk-11.0.4+11.2_openj9-0.15.1", "timestamp": 7},
+          {"release_name": "jdk-11.0.5+20.2", "timestamp": 8},
+          {"release_name": "jdk-11.0.5+20", "timestamp": 9},
         ],
-        ["jdk-11+2", "jdk-11+100", "jdk-11.0.4+11_openj9-0.15.1", "jdk-11.0.4+11.2_openj9-0.15.1", "jdk-11.2.1+2", "jdk-11.2.1+10", "jdk-11.10.1+2"]);
+        [
+          "jdk-11+2",
+          "jdk-11+100",
+          "jdk-11.0.4+11_openj9-0.15.1",
+          "jdk-11.0.4+11.2_openj9-0.15.1",
+          "jdk-11.0.5+20",
+          "jdk-11.0.5+20.2",
+          "jdk-11.2.1+2",
+          "jdk-11.2.1+10",
+          "jdk-11.10.1+2",
+        ]
+      );
     });
   });
 
