@@ -46,7 +46,7 @@ module.exports = function () {
   // Technically the standard supports an arbitrary number of numbers, we will support 3 for now
   const vnumRegex = '(?<major>[0-9]+)(\\.(?<minor>[0-9]+))?(\\.(?<security>[0-9]+))?';
   const pre = '(?<pre>[a-zA-Z0-9]+)';
-  const build = '(?<build>[0-9]+)';
+  const build = '(?<build>[0-9]+(\\.(?<buildpatch>[0-9]+))?)';
   const opt = '(?<opt>[-a-zA-Z0-9\\.]+)';
 
   const version223Regexs = [
@@ -88,6 +88,7 @@ module.exports = function () {
         security: or0(matched.groups.security),
         pre: matched.groups.pre,
         build: toInt(matched.groups.build),
+        buildpatch: toInt(matched.groups.buildpatch),
         opt: matched.groups.opt,
         version: matched.groups.version
       }

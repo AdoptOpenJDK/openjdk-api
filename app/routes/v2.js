@@ -443,6 +443,7 @@ function sortReleases(data) {
     .sortBy(sortByValue('timestamp'))
     .sortBy(sortByValue('release_name'))
     .sortBy(sortByVersionData('opt'))
+    .sortBy(sortByVersionData('buildpatch'))
     .sortBy(sortByVersionData('build'))
     .sortBy(sortByVersionData('pre'))
     .sortBy(sortByVersionData('security'))
