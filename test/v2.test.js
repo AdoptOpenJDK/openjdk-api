@@ -8,7 +8,11 @@ describe('v2 API', () => {
   const cacheMock = require('./mockCache')(jdkVersions, releaseTypes);
   const v2 = require('../app/routes/v2')(cacheMock);
 
+  const cacheGetInfoFn = cacheMock.getInfoForVersion;
+
   afterEach(() => {
+    // Restore cache get function in case a test overrides it
+    cacheMock.getInfoForVersion = cacheGetInfoFn;
     jest.clearAllMocks();
   });
 
@@ -326,6 +330,26 @@ describe('v2 API', () => {
             const release = JSON.parse(data);
             expect(release).not.toBeInstanceOf(Array);
             expect(release.release_name).toEqual(expectedReleaseName);
+          });
+        });
+
+        it('sorts by build patch version', () => {
+          const rawData = [
+            {
+              tag_name: 'jdk-11.0.4+11_openj9-0.15.1',
+              assets: [{name: 'OpenJDK11U-jdk_x64_mac_openj9_11.0.4_11_openj9-0.15.1.tar.gz'}],
+            },
+            {
+              tag_name: 'jdk-11.0.4+11.2_openj9-0.15.1',
+              assets: [{name: 'OpenJDK11U-jdk_x64_mac_openj9_11.0.4_11_openj9-0.15.1.tar.gz'}],
+            }
+          ];
+          cacheMock.getInfoForVersion = () => Q.resolve(rawData);
+
+          const request = mockRequestWithSingleQuery('info', 'releases', 'openjdk11', 'release', 'latest');
+          return performRequest(request, (code, data) => {
+            const release = JSON.parse(data);
+            expect(release.release_name).toEqual('jdk-11.0.4+11.2_openj9-0.15.1');
           });
         });
       });
