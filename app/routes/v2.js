@@ -36,13 +36,7 @@ function filterReleaseOnReleaseName(releases, releaseName) {
   if (releaseName === undefined || releases.value().length === 0) {
     return releases;
   } else if (releaseName === 'latest') {
-
-    return releases
-      .sortBy(function(release) {
-        return release.release ? release.release_name : release.timestamp
-      })
-      .last()
-
+    return releases.last()
   } else {
     return releases
       .filter(function(release) {
