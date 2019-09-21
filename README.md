@@ -3,7 +3,7 @@
 **NOTICE:** [AdoptOpenJDK API v1](/README.v1.md) has been deprecated and will be removed.
 If you are using v1 please move to the latest version (documented below) as soon as possible.
 
-**NOTICE:** AdoptOpenJDK API v3 is the next version being worked onb, please ensure you pull request to the [v3 branch](https://github.com/AdoptOpenJDK/openjdk-api/tree/v3).
+**NOTICE:** AdoptOpenJDK API v3 is the next version being worked on, please ensure you pull request to the [v3 branch](https://github.com/AdoptOpenJDK/openjdk-api/tree/v3).
 
 ## Overview
 
