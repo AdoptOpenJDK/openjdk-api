@@ -2,6 +2,7 @@ const _ = require('underscore');
 const versions = require('./versions')();
 
 const BINARY_ASSET_WHITELIST = [".tar.gz", ".msi", ".pkg", ".zip", ".deb", ".rpm"];
+const BINARY_ASSET_EXCLUSIONS = ["hotspot-jfr"];
 
 const errorResponse = (statusCode, errorMsg) => {
   return {
@@ -374,6 +375,14 @@ function githubReleaseToAdoptRelease(release) {
         }
       }
       return false;
+    })
+    .filter(function (asset) {
+      for (const exclusion of BINARY_ASSET_EXCLUSIONS) {
+        if (asset.name.includes(exclusion)) {
+          return false;
+        }
+      }
+      return true;
     })
     .map(function(asset) {
       return formBinaryAssetInfo(asset, release)
