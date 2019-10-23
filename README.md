@@ -129,7 +129,7 @@ Type of release, i.e `releases` for stable builds or `nightly` for most recent b
 
 #### Version
 
-OpenJDK version, i.e `openjdk8`, `openjdk9`, `openjdk10`, `openjdk11`, `openjdk12` 
+OpenJDK version, i.e `openjdk8`, `openjdk9`, `openjdk10`, `openjdk11`, `openjdk12`, `openjdk13` 
 
 ### Query Parameters
 
@@ -137,12 +137,12 @@ The data that can be returned can then be filtered to find builds of a specific 
 
 | Parameter | Query Parameter Name | Examples |
 |-----------|----------------------|----------|
-| Open Jdk Implementation | openjdk_impl | hotspot, openj9 |
-| Operating System | os | windows, linux, mac |
-| Architecture | arch | x64, x32, ppc64, s390x, ppc64le, aarch64 |
-| Binary Type | type | jdk, jre |
-| Heap Size | heap_size | normal, large |
-| Release | release | latest, jdk8u172-b00-201807161800 |
+| JVM Implementation | `openjdk_impl` | `hotspot`, `openj9` |
+| Operating System | `os` | `windows`, `linux`, `mac`, `solaris`, `aix` |
+| Architecture | `arch` | `x64`, `x32`, `ppc64`, `s390x`, `ppc64le`, `aarch64`, `arm32` |
+| Binary Type | `type` | `jdk`, `jre` |
+| Heap Size | `heap_size` | `normal`, `large` |
+| Release | `release` | `latest`, `jdk8u172-b00-201807161800` |
 
 In the absence of a given parameter, it will return all elements. 
 

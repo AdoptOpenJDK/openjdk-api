@@ -63,6 +63,7 @@ function filterReleaseOnProperty(releases, propertyName, property) {
   }
 
   const properties = property instanceof Array ? property : [property];
+
   return releases
     .filter(release => release.hasOwnProperty(propertyName))
     .filter(release => properties.some(prop => release[propertyName] === prop));
