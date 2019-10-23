@@ -1,8 +1,11 @@
 require('appmetrics-dash').attach();
 const express = require('express');
+const cors = require('cors');
 const mds = require('markdown-serve');
 const path = require('path');
 const app = express();
+
+app.use(cors());
 
 const port = 8080;
 app.listen(port, () => {
@@ -13,11 +16,6 @@ app.listen(port, () => {
 app.set('views', path.resolve(__dirname, './markdown-layouts'));
 app.set('view engine', 'pug');
 app.use(express.static(path.resolve(__dirname, './markdown-layouts')));
-
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  next();
-});
 
 app.get('/README.v1.md', (req, res) => res.redirect('./README.v1'));
 
