@@ -139,7 +139,7 @@ The data that can be returned can then be filtered to find builds of a specific 
 |-----------|----------------------|----------|
 | Open Jdk Implementation | openjdk_impl | hotspot, openj9 |
 | Operating System | os | windows, linux, mac |
-| Architecture | arch | x64, x32, ppc64, s390x, ppc64le, aarch64 |
+| Architecture | arch | x64, x32, ppc64, s390x, ppc64le, aarch64, arm32 |
 | Binary Type | type | jdk, jre |
 | Heap Size | heap_size | normal, large |
 | Release | release | latest, jdk8u172-b00-201807161800 |

@@ -20,24 +20,24 @@
     "test": "jest --coverage && npm run lint"
   },
   "dependencies": {
-    "@octokit/rest": "^16.6.1",
-    "appmetrics-dash": "^4.0.0",
+    "@octokit/rest": "^16.33.1",
+    "appmetrics-dash": "^5.2.0",
     "cors": "^2.8.5",
-    "cron": "1.6.0",
+    "cron": "1.7.2",
     "express": "^4.17.1",
-    "lodash": "^4.17.11",
-    "markdown-serve": "^0.6.0",
-    "pug": "^2.0.3",
+    "lodash": "^4.17.15",
+    "markdown-serve": "^0.8.0",
+    "pug": "^2.0.4",
     "q": "^1.5.1",
     "request": "^2.88.0",
     "underscore": "^1.9.1"
   },
   "devDependencies": {
-    "eslint": "^5.10.0",
-    "eslint-plugin-jest": "^22.1.2",
+    "eslint": "^6.5.1",
+    "eslint-plugin-jest": "^22.20.0",
     "eslint-plugin-jest-async": "^1.0.3",
-    "jest": "^24.1.0",
+    "jest": "^24.9.0",
     "json-stable-stringify": "^1.0.1",
-    "sync-request": "^6.0.0"
+    "sync-request": "^6.1.0"
   }
 }
