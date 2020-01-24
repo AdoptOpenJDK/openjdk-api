@@ -27,9 +27,11 @@ module.exports = function (app) {
   const v2 = require('./v2')(cache);
   app.get('/v2/:requestType?/:buildtype?/:version?', v2.get);
 
-  // API version 1
-  app.get([
-    '/v1/:variant/:buildtype?/:platform?/:build?/:datatype?',
-    '/:variant/:buildtype?/:platform?/:build?/:datatype?' // Maintain backwards compatibility for a while
-  ], require('./v1'));
+  app.get("/v1/*", function(req, res) {
+    res.status(400).send("DEPRECATED: V1 has now been deprecated, please see https://api.adoptopenjdk.net for the latest version");
+  });
+
+  app.get("/v1", function(req, res) {
+    res.status(400).send("DEPRECATED: V1 has now been deprecated, please see https://api.adoptopenjdk.net for the latest version");
+  });
 };
