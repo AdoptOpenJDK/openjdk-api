@@ -1,9 +1,11 @@
 # AdoptOpenJDK API
 
 **NOTICE:** AdoptOpenJDK API v1 Has now been removed.
+**NOTICE:** AdoptOpenJDK API v2 Has now been deprecated.
 
-**NOTICE:** AdoptOpenJDK API v3 is the next version being worked on.
-Please ensure you pull request to the [v3 repo](https://github.com/AdoptOpenJDK/openjdk-api-v3).
+If you are using v1 or v2 please move to the [latest version](https://github.com/AdoptOpenJDK/openjdk-api-v3) as soon as possible. Please raise any migration problems as an issue in the [v3 issue tracker](https://github.com/AdoptOpenJDK/openjdk-api-v3/issues/new).
+
+**NOTICE:** The documentation below is kept for historical purposes.
 
 ## Overview
 
