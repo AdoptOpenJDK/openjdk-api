@@ -28,10 +28,10 @@ module.exports = function (app) {
   app.get('/v2/:requestType?/:buildtype?/:version?', v2.get);
 
   app.get("/v1/*", function(req, res) {
-    res.status(400).send("DEPRECATED: V1 has now been deprecated, please see https://api.adoptopenjdk.net for the latest version");
+    res.status(400).send("REMOVED: V1 has now been removed, please see https://api.adoptopenjdk.net for the latest version");
   });
 
   app.get("/v1", function(req, res) {
-    res.status(400).send("DEPRECATED: V1 has now been deprecated, please see https://api.adoptopenjdk.net for the latest version");
+    res.status(400).send("REMOVED: V1 has now been removed, please see https://api.adoptopenjdk.net for the latest version");
   });
 };
