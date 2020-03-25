@@ -17,11 +17,9 @@ app.set('views', path.resolve(__dirname, './markdown-layouts'));
 app.set('view engine', 'pug');
 app.use(express.static(path.resolve(__dirname, './markdown-layouts')));
 
-app.get('/README.v1.md', (req, res) => res.redirect('./README.v1'));
-
 const mdServer = new mds.MarkdownServer(path.resolve(__dirname, ''));
 mdServer.resolverOptions.defaultPageName = 'README';
-app.get(['/', '/README', '/README.v1'], (req, res, next) => {
+app.get(['/', '/README'], (req, res, next) => {
   mdServer.get(req.path, (err, result) => {
     if (err) {
       console.error(err);
