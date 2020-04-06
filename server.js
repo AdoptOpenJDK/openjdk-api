@@ -18,8 +18,8 @@ app.use(express.static(path.resolve(__dirname, './markdown-layouts')));
 
 const mdServer = new mds.MarkdownServer(path.resolve(__dirname, ''));
 mdServer.resolverOptions.defaultPageName = 'README';
-app.get(['/', '/README'], (req, res, next) => {
-  mdServer.get(req.path, (err, result) => {
+app.get(['/', '/README', '/v2', '/v2/'], (req, res, next) => {
+  mdServer.get('/README', (err, result) => {
     if (err) {
       console.error(err);
       return next();

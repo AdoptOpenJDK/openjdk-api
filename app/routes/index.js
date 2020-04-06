@@ -25,7 +25,7 @@ module.exports = function (app) {
   // curl "http://127.0.0.1:3000/v2/binary/nightly/openjdk8?openjdk_impl=hotspot&os=windows&arch=x64&release=latest&type=jdk"
   // curl "http://127.0.0.1:3000/v2/info/releases/openjdk10?openjdk_impl=hotspot&type=jdk"
   const v2 = require('./v2')(cache);
-  app.get('/v2/:requestType?/:buildtype?/:version?', v2.get);
+  app.get('/v2/:requestType/:buildtype?/:version?', v2.get);
 
   app.get("/v1/*", function(req, res) {
     res.status(400).send("REMOVED: V1 has now been removed, please see https://api.adoptopenjdk.net for the latest version");
