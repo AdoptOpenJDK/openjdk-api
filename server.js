@@ -2,14 +2,23 @@ const express = require('express');
 const cors = require('cors');
 const mds = require('markdown-serve');
 const path = require('path');
+const db = require('./app/lib/db.service');
 const app = express();
 
 app.use(cors());
 
 const port = 8080;
-app.listen(port, () => {
-  console.log('We are live on port ' + port);
-});
+
+db.connect()
+  .then(() => console.log('Database connected'))
+  .then(() => {
+    app.listen(port, () => {
+      console.log('We are live on port ' + port);
+    });
+  })
+  .catch(e => {
+    console.error(e);
+  });
 
 // markdown and static content serving
 app.set('views', path.resolve(__dirname, './markdown-layouts'));
