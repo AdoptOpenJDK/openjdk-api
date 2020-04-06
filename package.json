@@ -34,6 +34,7 @@
     "underscore": "^1.11.0"
   },
   "devDependencies": {
+    "bson": "^4.0.4",
     "eslint": "^7.13.0",
     "eslint-plugin-jest": "^24.1.0",
     "eslint-plugin-jest-async": "^1.0.3",

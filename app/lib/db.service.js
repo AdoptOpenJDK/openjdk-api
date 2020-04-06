@@ -1,9 +1,15 @@
 const MongoClient = require('mongodb').MongoClient;
 
+const dbName = 'adoptOpenJdkApi';
+const collectionName = 'v2Stats';
 const dbuser = encodeURIComponent('dbuser');
 const dbpassword = encodeURIComponent('dbpassword');
 
 const url = `mongodb+srv://${dbuser}:${dbpassword}@cluster0-fdnyp.mongodb.net/test?retryWrites=true&w=majority`;
+
+/**
+ * @const {MongoClientOptions}
+ */
 const options = {
   useUnifiedTopology: true,
 };
@@ -40,3 +46,6 @@ module.exports.get = () => {
 
   return connection;
 }
+
+module.exports.dbName = dbName;
+module.exports.collectionName = collectionName;

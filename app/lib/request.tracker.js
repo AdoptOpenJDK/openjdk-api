@@ -1,5 +1,10 @@
-const dbName = 'adoptOpenJdkApi';
-const collectionName = 'v2Stats';
+/**
+ * @typedef {Object} RequestCountDocument
+ * @property {BSON.ObjectId} _id
+ * @property {BSON.String} route
+ * @property {BSON.Long} hits
+ * @property {BSON.Timestamp} updatedAt
+ */
 
 /**
  * @type {module:DBService}
@@ -22,18 +27,40 @@ class RequestTracker {
    * @type {RequestHandler}
    */
   hitCounter(req, res, next) {
-    console.log(req.path);
-    const client = db.get();
-    const collection = client.db(dbName).collection(collectionName);
+    if (!req.path.startsWith('/v2/')) {
+      return next();
+    }
 
-    const cursor = collection.find({route: '/v2/info/releases/openjdk8'});
-    cursor.forEach(doc => {
-      console.log(doc);
-    }, error => {
-      if (error) console.error(error);
-    });
+    const client = db.get();
+    const collection = client.db(db.dbName).collection(db.collectionName);
+
+    collection.findOneAndUpdate(
+      {route: req.path}, // query by request path (e.g. /v2/info/releases/openjdk8)
+      {
+        $currentDate: {
+          updatedAt: {$type: 'timestamp'}, // set updatedAt timestamp to current datetime
+        },
+        $inc: {hits: 1}, // increment hit counter by 1 (or initialize to 1 for new documents)
+      },
+      {
+        returnOriginal: false, // return the updated document
+        upsert: true, // create document if one does not exist for route
+      }
+    )
+      .then(result => {
+        console.debug(`${result.value.route} - ${result.value.hits} hits
+        Created at: ${result.value._id.getTimestamp()}
+        Updated at: ${timestampDate(result.value.updatedAt)}`);
+      })
+      .catch(err => console.error(`Error updating document for ${req.path}: ${err}`));
     return next();
   }
 }
+
+/**
+ * @param {Timestamp} timestamp
+ * @returns {Date}
+ */
+const timestampDate = (timestamp) => new Date(timestamp.getHighBits() * 1000);
 
 module.exports = RequestTracker;
