@@ -1,10 +1,26 @@
-const db = require('./db.service');
-
 const dbName = 'adoptOpenJdkApi';
 const collectionName = 'v2Stats';
 
-class RequestTracker {
+/**
+ * @type {module:DBService}
+ */
+let db;
 
+class RequestTracker {
+  /**
+   * @param {module:DBService} dbIn
+   */
+  constructor(dbIn) {
+    db = dbIn;
+  }
+
+  /**
+   * @param {Request} req
+   * @param {Response} res
+   * @param {Function} next
+   *
+   * @type {RequestHandler}
+   */
   hitCounter(req, res, next) {
     console.log(req.path);
     const client = db.get();

@@ -7,8 +7,9 @@ module.exports = function (app) {
   const GitHubFileCache = require('../lib/github_file_cache');
   const cache = new GitHubFileCache(false);
 
+  const db = require('../lib/db.service');
   const RequestTracker = require('../lib/request.tracker');
-  const requestTracker = new RequestTracker();
+  const requestTracker = new RequestTracker(db);
   app.use(requestTracker.hitCounter);
   // API version 2
   // Examples:

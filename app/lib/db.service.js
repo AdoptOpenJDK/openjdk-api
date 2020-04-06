@@ -5,13 +5,18 @@ const dbpassword = encodeURIComponent('dbpassword');
 
 const url = `mongodb+srv://${dbuser}:${dbpassword}@cluster0-fdnyp.mongodb.net/test?retryWrites=true&w=majority`;
 const options = {
-  autoReconnect: true,
+  useUnifiedTopology: true,
 };
 
 let connection = null;
 
 /**
- * @returns {Promise<MongoClient, MongoError>}
+ * DB service module
+ * @module module:DBService
+ */
+/**
+ * Initiate DB connection
+ * @returns {Promise<MongoClient>}
  */
 module.exports.connect = () => new Promise((resolve, reject) => {
   MongoClient.connect(url, options, function (err, db) {
