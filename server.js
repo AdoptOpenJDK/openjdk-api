@@ -12,6 +12,14 @@ const port = 8080;
 db.connect()
   .then(() => console.log('Database connected'))
   .then(() => {
+    const client = db.get();
+    const collection = client.db(db.dbName).collection(db.collectionName);
+
+    // use request route as the primary key (this is a noop if index already exists)
+    collection.createIndex({route: 1}, {v: 2, unique: true, background: false})
+      .catch(err => console.error(err));
+  })
+  .then(() => {
     app.listen(port, () => {
       console.log('We are live on port ' + port);
     });
