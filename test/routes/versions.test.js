@@ -1,8 +1,8 @@
 const _ = require('underscore');
-const versions = require('../app/routes/versions')();
+const versions = require('../../app/routes/versions')();
 
 describe('parses versions correctly', () => {
-    
+
     const versionMappings = {
       "jdk-11.2.1+10":              "11.2.1+10",
       "9-ea+19":                    "9.0.0-ea+19",

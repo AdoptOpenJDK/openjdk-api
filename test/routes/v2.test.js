@@ -5,8 +5,8 @@ describe('v2 API', () => {
   const jdkVersions = ["openjdk8", "openjdk9", "openjdk10", "openjdk11"];
   const releaseTypes = ["nightly", "releases"];
 
-  const cacheMock = require('./mockCache')(jdkVersions, releaseTypes);
-  const v2 = require('../app/routes/v2')(cacheMock);
+  const cacheMock = require('../mockCache')(jdkVersions, releaseTypes);
+  const v2 = require('../../app/routes/v2')(cacheMock);
 
   const cacheGetInfoFn = cacheMock.getInfoForVersion;
 
