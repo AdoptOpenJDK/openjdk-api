@@ -3,7 +3,7 @@
  * @property {BSON.ObjectId} _id
  * @property {BSON.String} route
  * @property {BSON.Long} hits
- * @property {BSON.Timestamp} updatedAt
+ * @property {Timestamp} updatedAt
  */
 
 /**
@@ -51,6 +51,37 @@ class RequestTracker {
       .catch(err => console.error(`Error updating document for ${req.path}: ${err}`));
     return next();
   }
+
+  /**
+   * @param {Request} req
+   * @param {Response} res
+   *
+   * @type {RequestHandler}
+   */
+  getAllData(req, res) {
+    const client = db.get();
+    const collection = client.db(db.dbName).collection(db.collectionName);
+
+    collection.find()
+      .map(normalizeDates)
+      .toArray((err, docs) => {
+        res.json(docs);
+      })
+  }
+}
+
+/**
+ * @param {RequestCountDocument} doc
+ * @returns {{_id: BSON.ObjectId, route: BSON.String, hits: BSON.Long, createdAt: number, updatedAt: number}}
+ */
+const normalizeDates = (doc) => {
+  return {
+    _id: doc._id,
+    route: doc.route,
+    hits: doc.hits,
+    createdAt: doc._id.getTimestamp().getTime(),
+    updatedAt: timestampDate(doc.updatedAt).getTime(),
+  };
 }
 
 /**

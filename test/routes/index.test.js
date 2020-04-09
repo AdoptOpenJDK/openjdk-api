@@ -23,7 +23,10 @@ jest.mock('../../app/lib/request.tracker', () => jest.fn(() => {
     hitCounter: function (req, res, next) {
       mockHits++;
       next()
-    }
+    },
+    getAllData: function (req, res) {
+      res.status(200).json({responseStubbedBy: 'v2 request tracker getAllData'})
+    },
   }
 }));
 
@@ -38,6 +41,27 @@ describe('primary router module', () => {
   afterEach(() => {
     mockHits = 0;
   })
+
+  describe('GET /v2/stats', () => {
+    it('returns response from getAllData', () => {
+      expect.assertions(2);
+      return request(app)
+        .get('/v2/stats')
+        .then((res) => {
+          expect(res.statusCode).toEqual(200);
+          expect(res.body).toEqual({responseStubbedBy: 'v2 request tracker getAllData'});
+        });
+    });
+
+    it('does not increment hit counter', () => {
+      expect.assertions(1);
+      return request(app)
+        .get('/v2/stats')
+        .then(() => {
+          expect(mockHits).toEqual(0);
+        });
+    });
+  });
 
   describe('GET v2 API endpoint', () => {
     describe('forwards request to v2.get', () => {

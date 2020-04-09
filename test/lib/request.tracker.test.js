@@ -1,10 +1,13 @@
 const {ObjectId, Timestamp} = require('bson');
+const cursor = require('mongo-mock/lib/cursor');
 
 const RequestTracker = require('../../app/lib/request.tracker');
 
 describe('request tracker', () => {
   const someObjectId = ObjectId.createFromHexString('5e8a9513e547bb0ff078be12');
   const someTimestamp = Timestamp.fromBits(4, 1586212992);
+  const anotherObjectId = ObjectId.createFromHexString('5e8b793de40af1560f2bd2fc');
+  const anotherTimestamp = Timestamp.fromBits(1, 1586198887);
 
   let mockDbClient;
   let mockCollection;
@@ -82,5 +85,58 @@ describe('request tracker', () => {
         }
       );
     })
+  });
+
+  describe('getAllData', () => {
+
+    let docs;
+
+    beforeEach(() => {
+      docs = [
+        {
+          _id: someObjectId,
+          route: '/v2/some/path',
+          hits: 2,
+          updatedAt: someTimestamp,
+        },
+        {
+          _id: anotherObjectId,
+          route: '/v2/another/path',
+          hits: 42,
+          updatedAt: anotherTimestamp,
+        },
+      ];
+      jest.useFakeTimers();
+    })
+
+    it('returns all documents in collection', () => {
+      const req = {}, res = {json: jest.fn()};
+
+      findResult = cursor(docs, {
+        skip: 0,
+        map: true,
+        query: {_id: {$exists: true}},
+      });
+
+      requestTracker.getAllData(req, res);
+      jest.runAllTimers();
+
+      return expect(res.json).toHaveBeenCalledWith([
+        {
+          _id: someObjectId,
+          route: '/v2/some/path',
+          hits: 2,
+          createdAt: 1586140435000,
+          updatedAt: 1586212992000,
+        },
+        {
+          _id: anotherObjectId,
+          route: '/v2/another/path',
+          hits: 42,
+          createdAt: 1586198845000,
+          updatedAt: 1586198887000,
+        },
+      ])
+    });
   });
 });
