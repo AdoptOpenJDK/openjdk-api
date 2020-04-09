@@ -45,8 +45,14 @@ app.get(['/', '/README', '/v2', '/v2/'], (req, res, next) => {
   });
 });
 
+app.use((req, res, next) => {
+  app.set('json spaces', req.query.pretty === 'false' ? false : 2);
+  next();
+});
+
 // import all of the 'routes' JS files
-require('./app/routes')(app);
+const apiRoutes = require('./app/routes');
+app.use(apiRoutes);
 
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
