@@ -41,28 +41,8 @@ describe('request tracker', () => {
   });
 
   describe('hitCounter', () => {
-    it('ignores non-v2 requests', () => {
-      const dbGetterSpy = jest.spyOn(dbService, 'get');
-
-      const next = () => jest.fn();
-
-      const basepathReq = {path: '/'};
-      const readmeReq = {path: '/README'};
-      const v1req = {path: '/v1/some/path'};
-
-      requestTracker.hitCounter(basepathReq, {}, next);
-      requestTracker.hitCounter(readmeReq, {}, next);
-      requestTracker.hitCounter(v1req, {}, next);
-      expect(dbGetterSpy).not.toHaveBeenCalled();
-
-      const v2req = {path: '/v2/some/path'};
-
-      requestTracker.hitCounter(v2req, {}, next);
-      expect(dbGetterSpy).toHaveBeenCalled();
-    });
-
     it('does not interrupt or modify request', () => {
-      const req = {path: '/v2/some/path'}, res = {};
+      const req = {baseUrl: '/v2/some/path', path: '/'}, res = {};
 
       const expected = 'some next function callback response';
       const next = () => expected;
@@ -70,15 +50,16 @@ describe('request tracker', () => {
       const result = requestTracker.hitCounter(req, res, next);
 
       expect(result).toEqual(expected);
-      expect(req.path).toEqual('/v2/some/path');
+      expect(req.path).toEqual('/');
+      expect(req.baseUrl).toEqual('/v2/some/path');
     });
 
     it('upserts document and increments hit counter for given route', () => {
-      const req = {path: '/v2/some/path'}, res = {};
+      const req = {baseUrl: '/v2/some/path', path: '/'}, res = {};
       const doc = {
         value: {
           _id: someObjectId,
-          route: req.path,
+          route: '/v2/some/path',
           hits: 2,
           updatedAt: someTimestamp,
         }

@@ -86,6 +86,15 @@ describe('primary router module', () => {
             expect(res.text).toEqual(expectedErrMsg);
           });
       });
+
+      it('does not increment hit counter', () => {
+        expect.assertions(1);
+        return Promise.all(
+          reqPaths.map(reqPath => request(app).get(reqPath))
+        ).then(() => {
+          expect(mockHits).toEqual(0);
+        });
+      });
     });
   });
 });

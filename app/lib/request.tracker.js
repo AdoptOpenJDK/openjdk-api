@@ -27,15 +27,11 @@ class RequestTracker {
    * @type {RequestHandler}
    */
   hitCounter(req, res, next) {
-    if (!req.path.startsWith('/v2/')) {
-      return next();
-    }
-
     const client = db.get();
     const collection = client.db(db.dbName).collection(db.collectionName);
 
     collection.findOneAndUpdate(
-      {route: req.path}, // query by request path (e.g. /v2/info/releases/openjdk8)
+      {route: req.baseUrl}, // query by request path (e.g. /v2/info/releases/openjdk8)
       {
         $currentDate: {
           updatedAt: {$type: 'timestamp'}, // set updatedAt timestamp to current datetime

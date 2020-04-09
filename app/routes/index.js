@@ -9,7 +9,7 @@ const requestTracker = new RequestTracker(db);
 const express = require('express');
 const router = express.Router();
 
-router.use(requestTracker.hitCounter);
+router.use('/v2/*', requestTracker.hitCounter);
 
 router.get('/v2/:requestType/:buildtype?/:version?', v2.get);
 
