@@ -17,7 +17,9 @@
     "start": "node server.js",
     "start-nodemon": "nodemon --ignore cache/ server.js",
     "lint": "eslint *.js app/routes/*.js",
-    "test": "jest --coverage && npm run lint"
+    "test": "jest --coverage && npm run lint",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "dependencies": {
     "@octokit/rest": "^16.33.1",
@@ -30,7 +32,8 @@
     "pug": "^2.0.4",
     "q": "^1.5.1",
     "request": "^2.88.0",
-    "underscore": "^1.9.1"
+    "underscore": "^1.9.1",
+    "snyk": "^1.316.1"
   },
   "devDependencies": {
     "eslint": "^6.5.1",
@@ -39,5 +42,6 @@
     "jest": "^24.9.0",
     "json-stable-stringify": "^1.0.1",
     "sync-request": "^6.1.0"
-  }
+  },
+  "snyk": true
 }
