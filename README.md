@@ -1,9 +1,9 @@
 # AdoptOpenJDK API
 
-**NOTICE:** [AdoptOpenJDK API v1](/README.v1.md) has been deprecated and will be removed.
-If you are using v1 please move to the latest version (documented below) as soon as possible.
-
-**NOTICE:** AdoptOpenJDK API v3 is the next version being worked on, please ensure you pull request to the [v3 branch](https://github.com/AdoptOpenJDK/openjdk-api/tree/v3).
+* **NOTICE:** AdoptOpenJDK API v1 Has now been removed.
+* **NOTICE:** AdoptOpenJDK API v2 Has now been deprecated.
+* **NOTICE:** If you are using v1 or v2 please move to the [latest version](https://api.adoptopenjdk.net) as soon as possible. Please raise any migration problems as an issue in the [v3 issue tracker](https://github.com/AdoptOpenJDK/openjdk-api-v3/issues/new).
+* **NOTICE:** The documentation below is kept for historical purposes.
 
 ## Overview
 
@@ -129,7 +129,7 @@ Type of release, i.e `releases` for stable builds or `nightly` for most recent b
 
 #### Version
 
-OpenJDK version, i.e `openjdk8`, `openjdk9`, `openjdk10`, `openjdk11`, `openjdk12` 
+OpenJDK version, i.e `openjdk8`, `openjdk9`, `openjdk10`, `openjdk11`, `openjdk12`, `openjdk13` 
 
 ### Query Parameters
 
@@ -137,12 +137,12 @@ The data that can be returned can then be filtered to find builds of a specific 
 
 | Parameter | Query Parameter Name | Examples |
 |-----------|----------------------|----------|
-| Open Jdk Implementation | openjdk_impl | hotspot, openj9 |
-| Operating System | os | windows, linux, mac |
-| Architecture | arch | x64, x32, ppc64, s390x, ppc64le, aarch64 |
-| Binary Type | type | jdk, jre |
-| Heap Size | heap_size | normal, large |
-| Release | release | latest, jdk8u172-b00-201807161800 |
+| JVM Implementation | `openjdk_impl` | `hotspot`, `openj9` |
+| Operating System | `os` | `windows`, `linux`, `mac`, `solaris`, `aix` |
+| Architecture | `arch` | `x64`, `x32`, `ppc64`, `s390x`, `ppc64le`, `aarch64`, `arm` |
+| Binary Type | `type` | `jdk`, `jre` |
+| Heap Size | `heap_size` | `normal`, `large` |
+| Release | `release` | `latest`, `jdk8u172-b00-201807161800` |
 
 In the absence of a given parameter, it will return all elements. 
 
