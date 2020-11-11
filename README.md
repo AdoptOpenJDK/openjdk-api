@@ -9,6 +9,12 @@
 
 The AdoptOpenJDK API provides a way to consume JSON information about the AdoptOpenJDK releases and nightly builds.  Sign up to the [mailing list](https://mail.openjdk.java.net/mailman/listinfo/adoption-discuss) where major API updates will be announced, and visit [adoptopenjdk.net](https://adoptopenjdk.net) to find out more about the community.
 
+## Deployment
+
+The v2 API is currently deployed on AdoptOpenJDK's Red Hat [OpenShift](http://console.pro-us-east-1.openshift.com) instance.  You will need username `adoptopenjdk-admin` or `adoptopenjdk@gmail.com` and the password.
+
+OpenShift contains multiple applications.  The v2 API is called `openjdk-api`.
+
 ## Usage
 
 Here is an example using `curl` (see the [curl documentation](https://curl.haxx.se/docs/tooldocs.html)):

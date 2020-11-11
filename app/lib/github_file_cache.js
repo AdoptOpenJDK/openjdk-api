@@ -1,7 +1,8 @@
 const _ = require('underscore');
 const fs = require('fs');
 const Q = require('q');
-const octokit = require('@octokit/rest')();
+const { Octokit } = require('@octokit/rest');
+let octokit;
 const CronJob = require('cron').CronJob;
 
 // How many tasks can run in parallel.
@@ -17,7 +18,6 @@ function readAuthCreds() {
     logger.log("Reading auth");
     var token;
 
-
     if (fs.existsSync('/home/jenkins/github.auth')) {
       token = fs.readFileSync('/home/jenkins/github.auth').toString("ascii").trim();
     } else if (process.env.GITHUB_TOKEN) {
@@ -26,18 +26,16 @@ function readAuthCreds() {
     }
 
     if (token !== undefined) {
-      octokit.authenticate({
-        type: 'token',
-        token: token
-      });
-
+      octokit = new Octokit( {auth: token} );
       return true
     }
 
   } catch (e) {
     //ignore
-    logger.warn("No github creds found");
+    logger.warn("No github credentials found");
   }
+
+  octokit = new Octokit( {} );
 
   return false;
 }
@@ -61,7 +59,6 @@ function markOldReleases(oldReleases) {
     .value();
 }
 
-
 function formErrorResponse(error, response, body) {
   return {
     error: error,
@@ -69,7 +66,6 @@ function formErrorResponse(error, response, body) {
     body: body
   };
 }
-
 
 // This caches data returned by the github api to speed up response time and avoid going over github api rate limiting
 class GitHubFileCache {
