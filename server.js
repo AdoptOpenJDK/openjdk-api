@@ -1,4 +1,3 @@
-require('appmetrics-dash').attach();
 const express = require('express');
 const cors = require('cors');
 const mds = require('markdown-serve');
