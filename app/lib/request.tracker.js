@@ -20,8 +20,8 @@ class RequestTracker {
   }
 
   /**
-   * @param {Request} req
-   * @param {Response} res
+   * @param {e.Request} req
+   * @param {e.Response} res
    * @param {Function} next
    *
    * @type {RequestHandler}
@@ -53,10 +53,10 @@ class RequestTracker {
   }
 
   /**
-   * @param {Request} req
-   * @param {Response} res
+   * @param {e.Request} req
+   * @param {e.Response} res
    *
-   * @type {RequestHandler}
+   * @type {e.RequestHandler}
    */
   getAllData(req, res) {
     const client = db.get();
@@ -72,15 +72,15 @@ class RequestTracker {
 
 /**
  * @param {RequestCountDocument} doc
- * @returns {{_id: BSON.ObjectId, route: BSON.String, hits: BSON.Long, createdAt: number, updatedAt: number}}
+ * @returns {{_id: BSON.ObjectId, route: BSON.String, hits: BSON.Long, createdAt: string, updatedAt: string}}
  */
 const normalizeDates = (doc) => {
   return {
     _id: doc._id,
     route: doc.route,
     hits: doc.hits,
-    createdAt: doc._id.getTimestamp().getTime(),
-    updatedAt: timestampDate(doc.updatedAt).getTime(),
+    createdAt: doc._id.getTimestamp().toISOString(),
+    updatedAt: timestampDate(doc.updatedAt).toISOString(),
   };
 }
 

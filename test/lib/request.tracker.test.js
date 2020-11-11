@@ -126,15 +126,15 @@ describe('request tracker', () => {
           _id: someObjectId,
           route: '/v2/some/path',
           hits: 2,
-          createdAt: 1586140435000,
-          updatedAt: 1586212992000,
+          createdAt: '2020-04-06T02:33:55.000Z',
+          updatedAt: '2020-04-06T22:43:12.000Z',
         },
         {
           _id: anotherObjectId,
           route: '/v2/another/path',
           hits: 42,
-          createdAt: 1586198845000,
-          updatedAt: 1586198887000,
+          createdAt: '2020-04-06T18:47:25.000Z',
+          updatedAt: '2020-04-06T18:48:07.000Z',
         },
       ])
     });
