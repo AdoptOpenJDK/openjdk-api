@@ -20,22 +20,22 @@
     "test": "jest --coverage && npm run lint"
   },
   "dependencies": {
-    "@octokit/rest": "^16.33.1",
+    "@octokit/rest": "^18.0.9",
     "cors": "^2.8.5",
-    "cron": "1.7.2",
+    "cron": "1.8.2",
     "express": "^4.17.1",
-    "lodash": "^4.17.17",
+    "lodash": "^4.17.20",
     "markdown-serve": "^0.8.0",
-    "pug": "^2.0.4",
+    "pug": "^3.0.0",
     "q": "^1.5.1",
     "request": "^2.88.0",
-    "underscore": "^1.9.1"
+    "underscore": "^1.11.0"
   },
   "devDependencies": {
-    "eslint": "^6.5.1",
-    "eslint-plugin-jest": "^22.20.0",
+    "eslint": "^7.13.0",
+    "eslint-plugin-jest": "^24.1.0",
     "eslint-plugin-jest-async": "^1.0.3",
-    "jest": "^24.9.0",
+    "jest": "^26.6.3",
     "json-stable-stringify": "^1.0.1",
     "sync-request": "^6.1.0"
   }
