@@ -2,6 +2,7 @@ const _ = require('underscore');
 const fs = require('fs');
 const Q = require('q');
 const { Octokit } = require('@octokit/rest');
+// This avoid the race conditions when octokit is throttling our api requests
 const { retry } = require("@octokit/plugin-retry");
 let octokit;
 let MyOctokit;
