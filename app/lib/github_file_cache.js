@@ -1,17 +1,20 @@
 const _ = require('underscore');
 const fs = require('fs');
 const Q = require('q');
-const { Octokit } = require('@octokit/rest');
-// This avoid the race conditions when octokit is throttling our api requests
-const { retry } = require("@octokit/plugin-retry");
 let octokit;
-const MyOctokit = Octokit.plugin(retry);
+const { Octokit } = require('@octokit/rest');
+const { retry } = require("@octokit/plugin-retry");
+const { throttling } = require("@octokit/plugin-throttling");
+const MyOctokit = Octokit.plugin(retry, throttling);
 const CronJob = require('cron').CronJob;
 const logger = console;
 
 // We only go to 12 as we're encouraging folks to move to v3 API
 const LOWEST_JAVA_VERSION = 8;
 const HIGHEST_JAVA_VERSION = 12;
+
+// TODO This is a temporary measure to count how many pages we retrieve per repo as we need to limit ourselves
+const pageCounters = new Map([]);
 
 function readAuthCreds() {
   try {
@@ -28,7 +31,23 @@ function readAuthCreds() {
 
     if (token !== undefined) {
       console.log("Valid token exists, authenticating via Octokit");
-      octokit = new MyOctokit( {auth: token, request: { retries: 3, retryAfter: 1 }} );
+      octokit = new MyOctokit( {
+        auth: token, 
+        request: { retries: 1, retryAfter: 1 }, 
+        throttle: {
+          onRateLimit: (retryAfter, options) => {
+            console.warn(`Request quota exhausted for request ${options.method} ${options.url}`);
+            if (options.request.retryCount === 0) {
+              console.info(`Retrying after ${retryAfter} seconds!`);
+              return true;
+            }
+          },
+          onAbuseLimit: (retryAfter, options) => {
+            console.warn(`Abuse detected for request ${options.method} ${options.url}`);
+          },
+        },
+      } );
+      
       return true;
     }
 
@@ -47,8 +66,8 @@ function getCooldown(auth) {
   if (auth) {
     // 15 min
     //return '0 */15 * * * *';
-    // 12 hours - TODO set back to 15 mins once we fix the await/async nature of our refresh
-    return '0 0 */12 * * *';
+    // TODO Temporarily go for 60 min even when authenticated (API outage is ~10 sec every refresh)
+    return '0 */60 * * * *';
   } else {
     // 60 min
     return '0 */60 * * * *';
@@ -89,7 +108,7 @@ class GitHubFileCache {
       })
       .flatten()
       .values();
-    console.log('Repos: ' + this.repos);  
+    console.log('Nightly Repos: ' + this.repos);  
 
     if (disableCron !== true) {
       console.log('Cron is enabled so scheduling a cache refresh');
@@ -123,16 +142,30 @@ class GitHubFileCache {
   }
 
   getReleaseDataFromGithub(repo, cache) {
+    
+    // Limit page size to 10 deliberately due to sheer volume of assets per release for Java 8 and 11 in particular
+    // TODO Loop through 5 pages worth of data per repo, append the data locally and then update the cache when the 5 pages are retrieved
+    // Yes we are using our own NIH iterator, no this is not a good idea.
+    // This takes about 8-10 secs all up to get ~50 days of the releases
     return octokit
       .paginate(`GET /repos/AdoptOpenJDK/${repo}/releases`, {
         owner: 'AdoptOpenJDK',
         repo: repo,
-        per_page: 100
-      })
-      .then(data => {
-        cache[repo] = data;
-        return data;
-      });
+        per_page: 10
+      }, 
+      (response, done) => {
+        pageCounters[repo] = pageCounters[repo] || 0;
+        
+        if (pageCounters[repo] >= 5) {
+          done();
+          cache[repo] = (cache[repo] || []).concat(response.data);
+          pageCounters[repo] = 0;
+          return cache[repo];
+        }
+        cache[repo] = (cache[repo] || []).concat(response.data);
+        pageCounters[repo]++;
+      }
+    );
   }
 
   cachedGet(repo) {
@@ -156,13 +189,22 @@ class GitHubFileCache {
 
     const newRepoPromise = this.cachedGet(`${version}-binaries`);
 
-    const legacyHotspotPromise = this.cachedGet(`${version}-${releaseType}`);
-    let legacyOpenj9Promise;
+    let legacyHotspotPromise;
+    if (version === "openjdk8" || version === "openjdk9" || version === "openjdk10") {
+      legacyHotspotPromise = this.cachedGet(`${version}-${releaseType}`);
+    } else {
+      legacyHotspotPromise = Q({});
+    }
 
+    let legacyOpenj9Promise;
     if (version.indexOf('amber') > 0) {
       legacyOpenj9Promise = Q({});
     } else {
-      legacyOpenj9Promise = this.cachedGet(`${version}-openj9-${releaseType}`);
+      if (version === "openjdk8" || version === "openjdk9" || version === "openjdk10") {
+        legacyOpenj9Promise = this.cachedGet(`${version}-openj9-${releaseType}`);
+      } else {
+        legacyOpenj9Promise = Q({});
+      }
     }
 
     return Q.allSettled([
@@ -171,7 +213,7 @@ class GitHubFileCache {
       legacyOpenj9Promise
     ])
       .catch(error => {
-        console.error("failed to get", error);
+        console.error("failed to get: ", error);
         return [];
       })
       .spread(function (newData, oldHotspotData, oldOpenJ9Data) {
