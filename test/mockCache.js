@@ -28,7 +28,7 @@ module.exports = (jdkVersions, releaseTypes) => {
     }
 
     return deferred.promise;
-  }
+  };
 
   function loadMockApiData() {
     const newRepoReleaseStrs = [];
@@ -46,16 +46,16 @@ module.exports = (jdkVersions, releaseTypes) => {
 
     newRepoReleaseStrs.forEach(releaseStr => {
       const path = `./test/asset/githubApiMocks/newRepo/${releaseStr}.json`;
-      apiDataStore[releaseStr] = JSON.parse(fs.readFileSync(path, {encoding: 'UTF-8'}))
+      apiDataStore[releaseStr] = JSON.parse(fs.readFileSync(path, {encoding: 'UTF-8'}));
     });
 
     oldRepoReleaseStrs.forEach(releaseStr => {
       const path = `./test/asset/githubApiMocks/oldRepo/${releaseStr}.json`;
-      apiDataStore[releaseStr] = JSON.parse(fs.readFileSync(path, {encoding: 'UTF-8'}))
+      apiDataStore[releaseStr] = JSON.parse(fs.readFileSync(path, {encoding: 'UTF-8'}));
     });
 
     return apiDataStore;
   }
 
-  return cacheMock
-}
+  return cacheMock;
+};
