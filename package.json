@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@octokit/plugin-retry": "^3.0.4",
+    "@octokit/plugin-throttling": "^3.3.3",
     "@octokit/rest": "^18.0.9",
     "cors": "^2.8.5",
     "cron": "1.8.2",
