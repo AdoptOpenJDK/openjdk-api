@@ -151,7 +151,7 @@ describe('v2 API', () => {
                 .each(property => {
                   expect(binary).toHaveProperty(property);
                 });
-            })
+            });
         });
       });
     });
@@ -167,7 +167,7 @@ describe('v2 API', () => {
               expect(binary.openjdk_impl).toEqual("hotspot");
               expect(binary.os).toEqual("linux");
               expect(binary.architecture).toEqual("x64");
-            })
+            });
         });
       });
     });
@@ -183,11 +183,11 @@ describe('v2 API', () => {
                 _.chain(releases.binaries)
                   .each(binary => {
                     expect(binary.os.toLowerCase()).not.toEqual("linuxlh");
-                  })
+                  });
               }
-            })
+            });
         });
-      })
+      });
     });
   });
 
@@ -404,7 +404,6 @@ describe('v2 API', () => {
         ["jdk8u20-b1", "jdk8u20-b1_openj9-0.8.0", "jdk8u100-b1_openj9-0.8.0", "jdk8u100-b2", "jdk8u100-b10"]);
     });
 
-
     it("java 11 is sorted", function () {
       assertSortsCorrectly(
         [
@@ -438,7 +437,7 @@ describe('v2 API', () => {
     jdkVersions.forEach(jdkVersion => {
       releaseTypes.forEach(releaseType => {
         permutations.push([jdkVersion, releaseType]);
-      })
+      });
     });
     return permutations;
   }
@@ -459,9 +458,10 @@ describe('v2 API', () => {
         type: type,
         heap_size: heap_size,
       }
-    }
+    };
   }
 
+  
   function mockRequestWithSingleQuery(requestType, buildtype, version, queryName, queryValue) {
     const request = mockRequest(requestType, buildtype, version);
     request.query[queryName] = queryValue;
@@ -498,6 +498,9 @@ describe('v2 API', () => {
       });
   }
 
+  const assertEachPropertyEqualTo = (subjects, propertyName, propertyValue) =>
+      subjects.map(subject => expect(subject[propertyName]).toEqual(propertyValue));
+
   function checkBinaryProperty(request, returnedPropertyName, propertyValue, assertFn = assertEachPropertyEqualTo) {
     return performRequest(request, (code, msg) => {
       expect(code).toEqual(200);
@@ -516,11 +519,8 @@ describe('v2 API', () => {
     return checkBinaryProperty(request, returnedPropertyName, propertyValues, assertEachPropertyIn);
   }
 
-  const assertEachPropertyEqualTo = (subjects, propertyName, propertyValue) =>
-      subjects.map(subject => expect(subject[propertyName]).toEqual(propertyValue));
-
   const assertEachPropertyIn = (subjects, propertyName, propertyValues) => {
     const actualBinaryPropertyValues = subjects.map(binary => binary[propertyName]);
-    expect(actualBinaryPropertyValues).toEqual(expect.arrayContaining(propertyValues))
+    expect(actualBinaryPropertyValues).toEqual(expect.arrayContaining(propertyValues));
   };
 });

@@ -24,13 +24,13 @@ function readAuthCreds() {
     if (fs.existsSync('/home/jenkins/github.auth')) {
       token = fs.readFileSync('/home/jenkins/github.auth').toString("ascii").trim();
     } else if (process.env.GITHUB_TOKEN) {
-      console.log("Using AUTH from GITHUB_TOKEN")
-      token = process.env.GITHUB_TOKEN
+      console.log("Using AUTH from GITHUB_TOKEN");
+      token = process.env.GITHUB_TOKEN;
     }
 
     if (token !== undefined) {
       octokit = new Octokit( {auth: token} );
-      return true
+      return true;
     }
 
   } catch (e) {
@@ -83,7 +83,7 @@ class GitHubFileCache {
           `openjdk${num}-openj9-nightly`,
           `openjdk${num}-nightly`,
           `openjdk${num}-binaries`
-        ]
+        ];
       })
       .flatten()
       .values();
@@ -108,10 +108,10 @@ class GitHubFileCache {
         Q.allSettled(this.refreshCache(cache))
           .then(() => {
             this.cache = cache;
-            console.log("Cache refreshed")
-          })
+            console.log("Cache refreshed");
+          });
       } catch (e) {
-        console.error(e)
+        console.error(e);
       }
     };
 
@@ -137,7 +137,7 @@ class GitHubFileCache {
         .catch(error => {
           this.cache[repo] = [];
           return [];
-        })
+        });
     } else {
       return Q(data);
     }

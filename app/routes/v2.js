@@ -8,7 +8,7 @@ const errorResponse = (statusCode, errorMsg) => {
   return {
     status: statusCode,
     errorMsg: errorMsg,
-  }
+  };
 };
 
 const paramValidator = (queryValue, validatorFn) => {
@@ -17,7 +17,7 @@ const paramValidator = (queryValue, validatorFn) => {
     hasValue: () => !!queryValue,
     isValid: () => queryValue instanceof Array ? queryValue.every(validatorFn) : validatorFn(queryValue),
     getFirstInvalidValue: () => queryValue instanceof Array ? queryValue.find(v => !validatorFn(v)) : queryValue,
-  }
+  };
 };
 
 function filterReleaseBinaries(releases, filterFunction) {
@@ -29,7 +29,7 @@ function filterReleaseBinaries(releases, filterFunction) {
       return release;
     })
     .filter(function(release) {
-      return release.binaries.length > 0
+      return release.binaries.length > 0;
     });
 }
 
@@ -37,11 +37,11 @@ function filterReleaseOnReleaseName(releases, releaseName) {
   if (releaseName === undefined || releases.value().length === 0) {
     return releases;
   } else if (releaseName === 'latest') {
-    return releases.last()
+    return releases.last();
   } else {
     return releases
       .filter(function(release) {
-        return release.release_name.toLowerCase() === releaseName.toLowerCase()
+        return release.release_name.toLowerCase() === releaseName.toLowerCase();
       });
   }
 }
@@ -81,7 +81,7 @@ function fixPrereleaseTagOnOldRepoData(data, isRelease) {
   return data
     .map(function(release) {
       if (release.oldRepo) {
-        release.prerelease = !isRelease
+        release.prerelease = !isRelease;
       }
       return release;
     });
@@ -130,11 +130,11 @@ function findLatestAssets(data, res) {
           binary.release_link = release.release_link;
           binary.release_version = release.version;
           return binary;
-        })
+        });
       })
       .flatten()
       .sortBy(function(binary) {
-        return binary.timestamp
+        return binary.timestamp;
       })
       .reverse()
       .uniq(false, function(binary) {
@@ -245,7 +245,7 @@ function getNewStyleFileInfo(name) {
       openjdk_impl: matched.groups.impl.toLowerCase(),
       heap_size: heap_size,
       extension: matched.groups.extension.toLowerCase(),
-    }
+    };
   } else {
     return null;
   }
@@ -291,7 +291,7 @@ function getAmberStyleFileInfo(name, release) {
     return null;
   }
 
-  const versionMatcher = release['tag_name'].match(new RegExp('jdk-(?<num>[0-9]+).*'));
+  const versionMatcher = release.tag_name.match(new RegExp('jdk-(?<num>[0-9]+).*'));
   if (versionMatcher === null) {
     return null;
   }
@@ -317,7 +317,7 @@ function formBinaryAssetInfo(asset, release) {
     .replace('.zip', '')
     .replace('.tar.gz', '');
 
-  const installer = _.chain(release['assets'])
+  const installer = _.chain(release.assets)
     .filter(function(asset) {
       // Add installer extensions here
       const installer_extensions = ['msi', 'pkg'];
@@ -326,7 +326,7 @@ function formBinaryAssetInfo(asset, release) {
           return asset.name.endsWith(extension);
         }
       }
-      return false
+      return false;
     })
     .filter(function(asset) {
       return asset.name.startsWith(assetName);
@@ -336,12 +336,12 @@ function formBinaryAssetInfo(asset, release) {
   const version = versions.formAdoptApiVersionObject(release.tag_name);
   const installerAsset = installer.value();
 
-  if (installerAsset && installerAsset['name']){
-    installer.name = installerAsset['name'];
-    installer.browser_download_url = installerAsset['browser_download_url'];
-    installer.size = installerAsset['size'];
-    installer.download_count = installerAsset['download_count'];
-    installer.installer_checksum_link = `${installer.browser_download_url}.sha256.txt`
+  if (installerAsset && installerAsset.name){
+    installer.name = installerAsset.name;
+    installer.browser_download_url = installerAsset.browser_download_url;
+    installer.size = installerAsset.size;
+    installer.download_count = installerAsset.download_count;
+    installer.installer_checksum_link = `${installer.browser_download_url}.sha256.txt`;
   }
 
   return {
@@ -363,12 +363,12 @@ function formBinaryAssetInfo(asset, release) {
     heap_size: fileInfo.heap_size,
     download_count: asset.download_count,
     updated_at: asset.updated_at,
-  }
+  };
 }
 
 function githubReleaseToAdoptRelease(release) {
 
-  const binaries = _.chain(release['assets'])
+  const binaries = _.chain(release.assets)
     .filter(function (asset) {
       for (const extension of BINARY_ASSET_WHITELIST) {
         if (asset.name.endsWith(extension)) {
@@ -386,7 +386,7 @@ function githubReleaseToAdoptRelease(release) {
       return true;
     })
     .map(function(asset) {
-      return formBinaryAssetInfo(asset, release)
+      return formBinaryAssetInfo(asset, release);
     })
     .filter(function(asset) {
       return asset !== null;
@@ -396,9 +396,9 @@ function githubReleaseToAdoptRelease(release) {
   const downloadCount = _.chain(binaries)
     .map(asset => {
       if (asset.installer_download_count) {
-        return asset.installer_download_count + asset.download_count
+        return asset.installer_download_count + asset.download_count;
       } else {
-        return asset.download_count
+        return asset.download_count;
       }
     })
     .reduce(function(sum, num) {
@@ -412,7 +412,7 @@ function githubReleaseToAdoptRelease(release) {
     release: !release.prerelease,
     binaries: binaries,
     download_count: downloadCount,
-  }
+  };
 }
 
 function hasValidProperty(object, property) {
@@ -422,20 +422,20 @@ function hasValidProperty(object, property) {
 function sortByValue(value) {
   return function(release) {
     if (!hasValidProperty(release, value)) {
-      return 0
+      return 0;
     }
     return release[value];
-  }
+  };
 }
 
 function sortByVersionData(value) {
   const sorter = sortByValue(value);
   return function(release) {
     if (!hasValidProperty(release, 'version_data')) {
-      return 0
+      return 0;
     }
     return sorter(release.version_data);
-  }
+  };
 }
 
 function sortReleases(data) {
@@ -456,17 +456,16 @@ function sortReleases(data) {
     .map((release) => {
       delete release.version_data;
       return release;
-    })
-
+    });
 }
 
 function sortReleasesByVersionAsc(releases, isRelease) {
   if (isRelease) {
-    return sortReleases(releases)
+    return sortReleases(releases);
   } else {
     return releases
       .sortBy(function(release) {
-        return release.timestamp
+        return release.timestamp;
       });
   }
 }
@@ -491,12 +490,12 @@ function performGetRequest(req, res, cache) {
     return;
   }
 
-  const QUERY_openjdkImpl = req.query['openjdk_impl'];
-  const QUERY_os = req.query['os'];
-  const QUERY_arch = req.query['arch'];
-  const QUERY_release = req.query['release'];
-  const QUERY_type = req.query['type'];
-  const QUERY_heapSize = req.query['heap_size'];
+  const QUERY_openjdkImpl = req.query.openjdk_impl;
+  const QUERY_os = req.query.os;
+  const QUERY_arch = req.query.arch;
+  const QUERY_release = req.query.release;
+  const QUERY_type = req.query.type;
+  const QUERY_heapSize = req.query.heap_size;
 
   const queryParamError = sanityCheckQueryParams(res, QUERY_openjdkImpl, QUERY_os, QUERY_arch, QUERY_release, QUERY_type, QUERY_heapSize);
   if (queryParamError) {
@@ -563,5 +562,5 @@ module.exports = (cache) => {
     _testExport: {
       sortReleases: sortReleases
     }
-  }
+  };
 };

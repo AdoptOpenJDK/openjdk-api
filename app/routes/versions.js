@@ -42,14 +42,14 @@ const _ = require('underscore');
 
 module.exports = function () {
 
-  //Regexes based on those in http://openjdk.java.net/jeps/223
+  // Regexes based on those in http://openjdk.java.net/jeps/223
   // Technically the standard supports an arbitrary number of numbers, we will support 3 for now
   const vnumRegex = '(?<major>[0-9]+)(\\.(?<minor>[0-9]+))?(\\.(?<security>[0-9]+))?';
   const pre = '(?<pre>[a-zA-Z0-9]+)';
   const build = '(?<build>[0-9]+(\\.(?<buildpatch>[0-9]+))?)';
   const opt = '(?<opt>[-a-zA-Z0-9\\.]+)';
 
-  const version223Regexs = [
+  const version223Regexes = [
                           new RegExp(`(?<version>${vnumRegex}(\\-${pre})?\\+${build}(\\-${opt})?)`),
                           new RegExp(`(?<version>${vnumRegex}\\-${pre}(\\-${opt})?)`),
                           new RegExp(`(?<version>${vnumRegex}(\\+\\-${opt})?)`)
@@ -67,8 +67,8 @@ module.exports = function () {
 
   function removeUndefined(data) {
     return _.omit(data, _.filter(_.keys(data), function (key) {
-      return _.isUndefined(data[key])
-    }))
+      return _.isUndefined(data[key]);
+    }));
   }
 
   function parse223VersionString(versionNumber) {
@@ -76,8 +76,8 @@ module.exports = function () {
     let matched = null;
     let index = 0;
 
-    while (matched == null && index < version223Regexs.length) {
-      matched = versionNumber.match(version223Regexs[index]);
+    while (matched == null && index < version223Regexes.length) {
+      matched = versionNumber.match(version223Regexes[index]);
       index++;
     }
 
@@ -91,7 +91,7 @@ module.exports = function () {
         buildpatch: toInt(matched.groups.buildpatch),
         opt: matched.groups.opt,
         version: matched.groups.version
-      }
+      };
     } else {
       return null;
     }
@@ -111,7 +111,7 @@ module.exports = function () {
         build: toInt(matched.groups.build),
         opt: matched.groups.opt,
         version: matched.groups.version
-      }
+      };
     } else {
       return null;
     }
@@ -119,9 +119,9 @@ module.exports = function () {
 
   function parseVersionString(versionNumber) {
       if(versionNumber.match(/^jdk[1-8]/)) {
-        return parsePre223VersionString(versionNumber)
+        return parsePre223VersionString(versionNumber);
       } else {
-        return parse223VersionString(versionNumber)
+        return parse223VersionString(versionNumber);
       }
   }
 
@@ -132,7 +132,7 @@ module.exports = function () {
     if (parsed === null) {
       return {
         openjdk_version: versionNumber
-      }
+      };
     }
 
     var semver = parsed.major + "." + parsed.minor + "." + parsed.security;
