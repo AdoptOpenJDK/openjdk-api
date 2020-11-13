@@ -2,7 +2,10 @@ const _ = require('underscore');
 const fs = require('fs');
 const Q = require('q');
 const { Octokit } = require('@octokit/rest');
+// This avoid the race conditions when octokit is throttling our api requests
+const { retry } = require("@octokit/plugin-retry");
 let octokit;
+let MyOctokit;
 const CronJob = require('cron').CronJob;
 
 // How many tasks can run in parallel.
@@ -72,6 +75,7 @@ class GitHubFileCache {
 
   constructor(disableCron) {
     this.auth = readAuthCreds();
+    MyOctokit = Octokit.plugin(retry);
     this.cache = {};
     this.repos = _.chain(_.range(LOWEST_JAVA_VERSION, HIGHEST_JAVA_VERSION + 1))
       .map(num => {
@@ -128,7 +132,6 @@ class GitHubFileCache {
 
   cachedGet(repo) {
     const data = this.cache[repo];
-
     if (data === undefined) {
       return this.getReleaseDataFromGithub(repo, this.cache)
         .catch(error => {
