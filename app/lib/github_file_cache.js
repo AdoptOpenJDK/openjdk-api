@@ -44,8 +44,8 @@ function readAuthCreds() {
           },
           onAbuseLimit: (retryAfter, options) => {
             console.warn(`Abuse detected for request ${options.method} ${options.url}`);
-          },
-        },
+          }
+        }
       } );
       
       return true;
@@ -57,7 +57,21 @@ function readAuthCreds() {
   }
 
   console.log("No valid token exists, creating non authenticated Octokit connection");
-  octokit = new MyOctokit( {} );
+  octokit = new MyOctokit( {
+    request: { retries: 1, retryAfter: 1 },
+    throttle: {
+      onRateLimit: (retryAfter, options) => {
+        console.warn(`Request quota exhausted for request ${options.method} ${options.url}`);
+        if (options.request.retryCount === 0) {
+          console.info(`Retrying after ${retryAfter} seconds!`);
+          return true;
+        }
+      },
+      onAbuseLimit: (retryAfter, options) => {
+        console.warn(`Abuse detected for request ${options.method} ${options.url}`);
+      }
+    }
+  } );
 
   return false;
 }
