@@ -552,7 +552,6 @@ function performGetRequest(req, res, cache) {
     });
 }
 
-
 module.exports = (cache) => {
   return {
     get: function(req, res) {

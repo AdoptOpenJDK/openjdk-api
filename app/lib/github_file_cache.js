@@ -5,23 +5,21 @@ const { Octokit } = require('@octokit/rest');
 // This avoid the race conditions when octokit is throttling our api requests
 const { retry } = require("@octokit/plugin-retry");
 let octokit;
-let MyOctokit;
+const MyOctokit = Octokit.plugin(retry);
 const CronJob = require('cron').CronJob;
-
-// How many tasks can run in parallel.
-// 3 was chosen for the common 1 new repo, 2 old repo calls, but realistically the queue length
-// will vary over time.
 const logger = console;
 
+// We only go to 12 as we're encouraging folks to move to v3 API
 const LOWEST_JAVA_VERSION = 8;
 const HIGHEST_JAVA_VERSION = 12;
 
 function readAuthCreds() {
   try {
-    logger.log("Reading auth");
+    logger.log("Reading auth token");
     var token;
 
     if (fs.existsSync('/home/jenkins/github.auth')) {
+      console.log("Using AUTH from Jenkins github.auth");
       token = fs.readFileSync('/home/jenkins/github.auth').toString("ascii").trim();
     } else if (process.env.GITHUB_TOKEN) {
       console.log("Using AUTH from GITHUB_TOKEN");
@@ -29,16 +27,18 @@ function readAuthCreds() {
     }
 
     if (token !== undefined) {
-      octokit = new Octokit( {auth: token} );
+      console.log("Valid token exists, authenticating via Octokit");
+      octokit = new MyOctokit( {auth: token, request: { retries: 3, retryAfter: 1 }} );
       return true;
     }
 
   } catch (e) {
-    //ignore
-    logger.warn("No github credentials found");
+    // Ignore
+    logger.warn("No GitHub credentials found", e);
   }
 
-  octokit = new Octokit( {} );
+  console.log("No valid token exists, creating non authenticated Octokit connection");
+  octokit = new MyOctokit( {} );
 
   return false;
 }
@@ -46,7 +46,9 @@ function readAuthCreds() {
 function getCooldown(auth) {
   if (auth) {
     // 15 min
-    return '0 */15 * * * *';
+    //return '0 */15 * * * *';
+    // 12 hours - TODO set back to 15 mins once we fix the await/async nature of our refresh
+    return '0 0 */12 * * *';
   } else {
     // 60 min
     return '0 */60 * * * *';
@@ -74,8 +76,8 @@ function formErrorResponse(error, response, body) {
 class GitHubFileCache {
 
   constructor(disableCron) {
+    console.log('Constructing the GitHubFileCache');  
     this.auth = readAuthCreds();
-    MyOctokit = Octokit.plugin(retry);
     this.cache = {};
     this.repos = _.chain(_.range(LOWEST_JAVA_VERSION, HIGHEST_JAVA_VERSION + 1))
       .map(num => {
@@ -87,14 +89,16 @@ class GitHubFileCache {
       })
       .flatten()
       .values();
+    console.log('Repos: ' + this.repos);  
 
     if (disableCron !== true) {
+      console.log('Cron is enabled so scheduling a cache refresh');
       this.scheduleCacheRefresh();
     }
   }
 
   refreshCache(cache) {
-    console.log('Refresh at:', new Date());
+    console.log('Refreshing cache at:', new Date());
 
     return _.chain(this.repos)
       .map(repo => this.getReleaseDataFromGithub(repo, cache))
@@ -108,7 +112,7 @@ class GitHubFileCache {
         Q.allSettled(this.refreshCache(cache))
           .then(() => {
             this.cache = cache;
-            console.log("Cache refreshed");
+            console.log("Cache refreshed at:", new Date());
           });
       } catch (e) {
         console.error(e);
@@ -122,7 +126,8 @@ class GitHubFileCache {
     return octokit
       .paginate(`GET /repos/AdoptOpenJDK/${repo}/releases`, {
         owner: 'AdoptOpenJDK',
-        repo: repo
+        repo: repo,
+        per_page: 100
       })
       .then(data => {
         cache[repo] = data;
@@ -135,6 +140,10 @@ class GitHubFileCache {
     if (data === undefined) {
       return this.getReleaseDataFromGithub(repo, this.cache)
         .catch(error => {
+          if (error.request.request.retryCount) {
+            console.error(`request failed after ${error.request.request.retryCount} retries`);
+          }
+          console.error('error: ' + error + ' getting data from repo: ' + repo);
           this.cache[repo] = [];
           return [];
         });
