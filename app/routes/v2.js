@@ -1,8 +1,4 @@
 const _ = require('underscore');
-const versions = require('./versions')();
-
-const BINARY_ASSET_WHITELIST = [".tar.gz", ".msi", ".pkg", ".zip", ".deb", ".rpm"];
-const BINARY_ASSET_EXCLUSIONS = ["hotspot-jfr"];
 
 const errorResponse = (statusCode, errorMsg) => {
   return {
@@ -37,7 +33,7 @@ function filterReleaseOnReleaseName(releases, releaseName) {
   if (releaseName === undefined || releases.value().length === 0) {
     return releases;
   } else if (releaseName === 'latest') {
-    return releases.last();
+    return releases.first();
   } else {
     return releases
       .filter(function(release) {
@@ -53,38 +49,7 @@ function filterReleaseOnBinaryProperty(releases, propertyName, property) {
   const properties = property instanceof Array ? property.map(prop => prop.toLowerCase()) : [property.toLowerCase()];
   const fnBinaryFilter = (binary) => binary.hasOwnProperty(propertyName) &&
     properties.some(prop => binary[propertyName].toLowerCase() === prop);
-
   return filterReleaseBinaries(releases, fnBinaryFilter);
-}
-
-function filterReleaseOnProperty(releases, propertyName, property) {
-  if (property === undefined) {
-    return releases;
-  }
-
-  const properties = property instanceof Array ? property : [property];
-
-  return releases
-    .filter(release => release.hasOwnProperty(propertyName))
-    .filter(release => properties.some(prop => release[propertyName] === prop));
-}
-
-function filterReleasesOnReleaseType(data, isRelease) {
-  if (isRelease === undefined) {
-    return data;
-  }
-
-  return filterReleaseOnProperty(data, 'release', isRelease);
-}
-
-function fixPrereleaseTagOnOldRepoData(data, isRelease) {
-  return data
-    .map(function(release) {
-      if (release.oldRepo) {
-        release.prerelease = !isRelease;
-      }
-      return release;
-    });
 }
 
 function sendData(data, res) {
@@ -206,185 +171,50 @@ function sanityCheckQueryParams(res, openjdkImpl, os, arch, release, type, heapS
   }
 }
 
-function getNewStyleFileInfo(name) {
-  const timestampRegex = '[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}';
-
-  const version8Regex = '8u[0-9]+-?(?:b[0-9X]+|ga)';
-  const version910Regex = '[0-9]+\\.[0-9]+\\.[0-9]+_[0-9]+';
-  const version9PatchedRegex = '9_[0-9]+';
-  const version11Regex = '[0-9]{2}_[0-9]+';
-  const versionRegex = `${version11Regex}|${version8Regex}|${version910Regex}|${version9PatchedRegex}`;
-
-  // IF YOU ARE MODIFYING THIS THEN THE FILE MATCHING IS PROBABLY WRONG, MAKE SURE openjdk-website-backend, Release.sh IS UPDATED TOO
-  //                    1) num          2) jre/jdk          3) arch                4) OS               5) impl                6)heap                   7) timestamp/version                                         8) Random suffix               9) extension
-  const regex = 'OpenJDK(?<num>[0-9]+)U?(?<type>-jre|-jdk)?_(?<arch>[0-9a-zA-Z-]+)_(?<os>[0-9a-zA-Z]+)_(?<impl>[0-9a-zA-Z]+)_?(?<heap>[0-9a-zA-Z]+)?.*_(?<ts_or_version>' + timestampRegex + '|' + versionRegex + ')(?<rand_suffix>[-0-9A-Za-z\\._]+)?\\.(?<extension>tar\\.gz|zip)';
-
-  const matched = name.match(new RegExp(regex));
-
-  if (matched != null) {
-
-    let heap_size = 'normal';
-    const largeHeapNames = ['linuxxl', 'macosxl', 'windowsxl'];
-
-    if (matched.groups.heap && largeHeapNames.includes(matched.groups.heap.toLowerCase())) {
-      heap_size = 'large';
-    }
-
-    const type = matched.groups.type ? matched.groups.type.replace('-', '') : 'jdk';
-
-    let arch = matched.groups.arch.toLowerCase();
-    if (arch === 'x86-32') {
-      arch = 'x32';
-    }
-
-    return {
-      version: matched.groups.num,
-      binary_type: type,
-      arch: arch,
-      os: matched.groups.os.toLowerCase(),
-      openjdk_impl: matched.groups.impl.toLowerCase(),
-      heap_size: heap_size,
-      extension: matched.groups.extension.toLowerCase(),
-    };
-  } else {
-    return null;
-  }
-}
-
-function getOldStyleFileInfo(name) {
-  const timestampRegex = '[0-9]{4}[0-9]{2}[0-9]{2}[0-9]{2}[0-9]{2}';
-  const regex = 'OpenJDK(?<num>[0-9]+)U?(?<type>-[0-9a-zA-Z]+)?_(?<arch>[0-9a-zA-Z]+)_(?<os>[0-9a-zA-Z]+).*_?(?<ts>' + timestampRegex + ')?.(?<extension>tar.gz|zip)';
-
-  const matched = name.match(new RegExp(regex));
-  if (matched === null) {
-    return null;
-  }
-
-  const openjdk_impl = matched.groups.type ? matched.groups.type.replace('-', '') : 'hotspot';
-
-  let os = matched.groups.os.toLowerCase();
-  if (os === 'win') {
-    os = 'windows';
-  } else if (os === 'linuxlh') {
-    os = 'linux';
-  }
-
-  const heap_size = name.indexOf('LinuxLH') >= 0 ? 'large' : 'normal';
-
-  return {
-    version: matched.groups.num,
-    openjdk_impl: openjdk_impl.toLowerCase(),
-    binary_type: 'jdk',
-    arch: matched.groups.arch.toLowerCase(),
-    os: os,
-    extension: matched.groups.extension.toLowerCase(),
-    heap_size: heap_size
-  };
-}
-
-function getAmberStyleFileInfo(name, release) {
-  const timestampRegex = '[0-9]{4}[0-9]{2}[0-9]{2}[0-9]{2}[0-9]{2}';
-  const regex = 'OpenJDK-AMBER_(?<arch>[0-9a-zA-Z]+)_(?<os>[0-9a-zA-Z]+)_(?<ts>' + timestampRegex + ').(?<extension>tar.gz|zip)';
-
-  const matched = name.match(new RegExp(regex));
-  if (matched === null) {
-    return null;
-  }
-
-  const versionMatcher = release.tag_name.match(new RegExp('jdk-(?<num>[0-9]+).*'));
-  if (versionMatcher === null) {
-    return null;
-  }
-
-  return {
-    arch: matched.groups.arch,
-    os: matched.groups.os,
-    binary_type: 'jdk',
-    openjdk_impl: 'hotspot',
-    version: versionMatcher.groups.num,
-    extension: matched.groups.extension,
-    heap_size: 'normal'
-  };
-}
-
 function formBinaryAssetInfo(asset, release) {
-  const fileInfo = getNewStyleFileInfo(asset.name) || getOldStyleFileInfo(asset.name) || getAmberStyleFileInfo(asset.name, release);
-  if (!fileInfo) {
-    return null;
+  const versionData = {
+    openjdk_version: release.versionData.openjdkVersion,
+    semver: release.versionData.semver
   }
 
-  const assetName = asset.name
-    .replace('.zip', '')
-    .replace('.tar.gz', '');
+    let installerName = undefined
+    let installerLink = undefined
+    let installerSize = undefined
+    let installerDownloadCount = undefined
+    let installerChecksumLink = undefined
 
-  const installer = _.chain(release.assets)
-    .filter(function(asset) {
-      // Add installer extensions here
-      const installer_extensions = ['msi', 'pkg'];
-      for (const extension of installer_extensions) {
-        if (asset.name.endsWith(extension)) {
-          return asset.name.endsWith(extension);
-        }
-      }
-      return false;
-    })
-    .filter(function(asset) {
-      return asset.name.startsWith(assetName);
-    })
-    .first();
-
-  const version = versions.formAdoptApiVersionObject(release.tag_name);
-  const installerAsset = installer.value();
-
-  if (installerAsset && installerAsset.name){
-    installer.name = installerAsset.name;
-    installer.browser_download_url = installerAsset.browser_download_url;
-    installer.size = installerAsset.size;
-    installer.download_count = installerAsset.download_count;
-    installer.installer_checksum_link = `${installer.browser_download_url}.sha256.txt`;
+  if (asset.installer && asset.installer.name){
+    installerName = asset.installer.name;
+    installerLink = asset.installer.link;
+    installerSize =  asset.installer.size;
+    installerDownloadCount = asset.installer.downloadCount;
+    installerChecksumLink = asset.installer.checksumLink;
   }
 
   return {
-    os: fileInfo.os.toLowerCase(),
-    architecture: fileInfo.arch.toLowerCase(),
-    binary_type: fileInfo.binary_type,
-    openjdk_impl: fileInfo.openjdk_impl.toLowerCase(),
-    binary_name: asset.name,
-    binary_link: asset.browser_download_url,
-    binary_size: asset.size,
-    checksum_link: `${asset.browser_download_url}.sha256.txt`,
-    installer_name: installer.name,
-    installer_link: installer.browser_download_url,
-    installer_size: installer.size,
-    installer_checksum_link: installer.installer_checksum_link,
-    installer_download_count: installer.download_count,
-    version: fileInfo.version,
-    version_data: version,
-    heap_size: fileInfo.heap_size,
-    download_count: asset.download_count,
-    updated_at: asset.updated_at,
+    os: asset.os.toLowerCase(),
+    architecture: asset.architecture,
+    binary_type: asset.imageType,
+    openjdk_impl: asset.jvmImpl,
+    binary_name: asset.package.name,
+    binary_link: asset.package.link,
+    binary_size: asset.package.size,
+    checksum_link: asset.package.checksumLink,
+    installer_name: installerName,
+    installer_link: installerLink,
+    installer_size: installerSize,
+    installer_checksum_link: installerChecksumLink,
+    installer_download_count: installerDownloadCount,
+    version: release.versionData.major.toString(),
+    version_data: versionData,
+    heap_size: asset.heapSize,
+    download_count: asset.downloadCount,
+    updated_at: asset.updatedAt,
   };
 }
 
 function githubReleaseToAdoptRelease(release) {
-
-  const binaries = _.chain(release.assets)
-    .filter(function (asset) {
-      for (const extension of BINARY_ASSET_WHITELIST) {
-        if (asset.name.endsWith(extension)) {
-          return true;
-        }
-      }
-      return false;
-    })
-    .filter(function (asset) {
-      for (const exclusion of BINARY_ASSET_EXCLUSIONS) {
-        if (asset.name.includes(exclusion)) {
-          return false;
-        }
-      }
-      return true;
-    })
+  const binaries = _.chain(release.binaries)
     .map(function(asset) {
       return formBinaryAssetInfo(asset, release);
     })
@@ -393,87 +223,27 @@ function githubReleaseToAdoptRelease(release) {
     })
     .value();
 
-  const downloadCount = _.chain(binaries)
-    .map(asset => {
-      if (asset.installer_download_count) {
-        return asset.installer_download_count + asset.download_count;
-      } else {
-        return asset.download_count;
-      }
-    })
-    .reduce(function(sum, num) {
-      return sum + num;
-    }, 0);
+  const downloadCount = release.downloadCount
 
   return {
-    release_name: release.tag_name,
-    release_link: release.html_url,
-    timestamp: release.published_at,
+    release_name: release.releaseName,
+    release_link: release.releaseLink,
+    timestamp: release.updatedAt,
     release: !release.prerelease,
     binaries: binaries,
     download_count: downloadCount,
   };
 }
 
-function hasValidProperty(object, property) {
-  return !!object && !!object[property];
-}
-
-function sortByValue(value) {
-  return function(release) {
-    if (!hasValidProperty(release, value)) {
-      return 0;
-    }
-    return release[value];
-  };
-}
-
-function sortByVersionData(value) {
-  const sorter = sortByValue(value);
-  return function(release) {
-    if (!hasValidProperty(release, 'version_data')) {
-      return 0;
-    }
-    return sorter(release.version_data);
-  };
-}
-
-function sortReleases(data) {
-  return data
-    .map((release) => {
-      release.version_data = versions.parseVersionString(release.release_name);
-      return release;
-    })
-    .sortBy(sortByValue('timestamp'))
-    .sortBy(sortByValue('release_name'))
-    .sortBy(sortByVersionData('opt'))
-    .sortBy(sortByVersionData('buildpatch'))
-    .sortBy(sortByVersionData('build'))
-    .sortBy(sortByVersionData('pre'))
-    .sortBy(sortByVersionData('security'))
-    .sortBy(sortByVersionData('minor'))
-    .sortBy(sortByVersionData('major'))
-    .map((release) => {
-      delete release.version_data;
-      return release;
-    });
-}
-
-function sortReleasesByVersionAsc(releases, isRelease) {
-  if (isRelease) {
-    return sortReleases(releases);
-  } else {
-    return releases
-      .sortBy(function(release) {
-        return release.timestamp;
-      });
-  }
-}
-
-function githubDataToAdoptApi(githubApiData) {
+function githubDataToAdoptApi(githubApiData, ROUTE_requestType) {
   return githubApiData
     .map(githubReleaseToAdoptRelease)
     .filter(function(release) {
+      if ( ROUTE_requestType == "releases" ) {
+        release.release = true
+      } else {
+        release.release = false
+      }
       return release.binaries.length > 0;
     });
 }
@@ -504,19 +274,10 @@ function performGetRequest(req, res, cache) {
     return;
   }
 
-  cache.getInfoForVersion(ROUTE_version, ROUTE_buildtype)
+  cache.getInfoForVersion(ROUTE_version, ROUTE_buildtype, QUERY_openjdkImpl)
     .then(function(apiData) {
-      const isRelease = ROUTE_buildtype === 'releases';
-
-      let data = _.chain(apiData);
-
-      data = fixPrereleaseTagOnOldRepoData(data, isRelease);
-      data = githubDataToAdoptApi(data);
-      data = sortReleasesByVersionAsc(data, isRelease);
-
-      data = filterReleasesOnReleaseType(data, isRelease);
-
-      data = filterReleaseOnBinaryProperty(data, 'openjdk_impl', QUERY_openjdkImpl);
+      let data = _.chain(JSON.parse(apiData).data.v3AssetsFeatureReleases);
+      data = githubDataToAdoptApi(data, ROUTE_buildtype);
       data = filterReleaseOnBinaryProperty(data, 'os', QUERY_os);
       data = filterReleaseOnBinaryProperty(data, 'architecture', QUERY_arch);
       data = filterReleaseOnBinaryProperty(data, 'binary_type', QUERY_type);
@@ -556,10 +317,6 @@ module.exports = (cache) => {
   return {
     get: function(req, res) {
       return performGetRequest(req, res, cache);
-    },
-    // Functions exposed for testing
-    _testExport: {
-      sortReleases: sortReleases
     }
   };
 };
