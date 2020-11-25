@@ -13,7 +13,7 @@ class GitHubFileCache {
 
   getInfoForVersion(version, releaseType, openjdkImpl) {
 
-    if ( openjdkImpl ){
+    if (openjdkImpl) {
       const jvmImpl = openjdkImpl.toUpperCase()
       openjdkImpl = ` , jvmImpl: ${jvmImpl}`
     } else {
@@ -27,7 +27,7 @@ class GitHubFileCache {
       case 'nightly': releaseType = 'EA'
       break
     }
-
+    // Strips all non numeric characters from version e.g openjdk8 => 8
     version = version.replace(/\D/g,'');
 
     const options = {
