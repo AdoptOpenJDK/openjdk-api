@@ -193,9 +193,9 @@ function formBinaryAssetInfo(asset, release) {
 
   return {
     os: asset.os.toLowerCase(),
-    architecture: asset.architecture,
-    binary_type: asset.imageType,
-    openjdk_impl: asset.jvmImpl,
+    architecture: asset.architecture.toLowerCase(),
+    binary_type: asset.imageType.toLowerCase(),
+    openjdk_impl: asset.jvmImpl.toLowerCase(),
     binary_name: asset.package.name,
     binary_link: asset.package.link,
     binary_size: asset.package.size,
@@ -207,7 +207,7 @@ function formBinaryAssetInfo(asset, release) {
     installer_download_count: installerDownloadCount,
     version: release.versionData.major.toString(),
     version_data: versionData,
-    heap_size: asset.heapSize,
+    heap_size: asset.heapSize.toLowerCase(),
     download_count: asset.downloadCount,
     updated_at: asset.updatedAt,
   };

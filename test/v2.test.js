@@ -1,5 +1,6 @@
 const _ = require('underscore');
 const Q = require('q');
+const https = require('https'); 
 
 const GitHubFileCache = require('../app/lib/github_file_cache');
 const cache = new GitHubFileCache(false);
@@ -318,21 +319,43 @@ describe('v2 API', () => {
       });
 
       describe('"latest" returns single most recent release', () => {
-        // TODO: Dynamically pull these values from V3
         const versionBuildExpectedResults = [
-            ['openjdk8', 'releases', 'jdk8u275-b01_openj9-0.23.0'],
-            ['openjdk8', 'nightly', 'jdk8u-2020-11-24-04-29'],
-            ['openjdk11', 'releases', 'jdk-11.0.9.1+1'],
-            ['openjdk11', 'nightly', 'jdk11u-2020-11-23-08-58'],
+            ['openjdk8', 'releases'],
+            ['openjdk8', 'nightly'],
+            ['openjdk11', 'releases'],
+            ['openjdk11', 'nightly'],
         ];
 
-        it.each(versionBuildExpectedResults)('%s %s', (version, buildtype, expectedReleaseName) => {
-          const request = mockRequest("info", buildtype, version, undefined, undefined, undefined, "latest", undefined, undefined);
-          return performRequest(request, (code, data) => {
-            const release = JSON.parse(data);
-            expect(release).not.toBeInstanceOf(Array);
-            expect(release.release_name).toEqual(expectedReleaseName);
-          });
+        it.each(versionBuildExpectedResults)('%s %s', (version, buildtype) => {
+          // Switch to V3 syntax
+          const versionV3 = version.replace(/\D/g,'');
+          let buildtypeV3
+          switch (buildtype){
+            case 'releases': buildtypeV3 = 'ga'
+            break
+            case 'nightly': buildtypeV3 = 'ea'
+            break
+          }
+          // Fetch the latest release version from the V3 API
+          const options = new URL(`https://api.adoptopenjdk.net/v3/assets/feature_releases/${versionV3}/${buildtypeV3}?heap_size=normal&page=0&page_size=1&project=jdk&vendor=adoptopenjdk`)
+          const V3Request = https.request(options, res => {
+            let data = ""
+            res.on('data', d => {
+              data += d
+            })
+            res.on("end", () => {
+              const body = JSON.parse(data);
+              const expectedReleaseName = body[0].release_name
+              const request = mockRequest("info", buildtype, version, undefined, undefined, undefined, "latest", undefined, undefined);
+              return performRequest(request, (code, data) => {
+                const release = JSON.parse(data);
+                expect(release).not.toBeInstanceOf(Array);
+                expect(release.release_name).toEqual(expectedReleaseName);
+              });
+            })
+          })
+          V3Request.on("error", console.error)
+          V3Request.end()
         });
       });
 
