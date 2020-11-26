@@ -1,18 +1,21 @@
 const _ = require('underscore');
 const Q = require('q');
+const https = require('https'); 
+
+const GitHubFileCache = require('../app/lib/github_file_cache');
+const cache = new GitHubFileCache(false);
 
 describe('v2 API', () => {
   const jdkVersions = ["openjdk8", "openjdk9", "openjdk10", "openjdk11"];
   const releaseTypes = ["nightly", "releases"];
 
-  const cacheMock = require('./mockCache')(jdkVersions, releaseTypes);
-  const v2 = require('../app/routes/v2')(cacheMock);
+  const v2 = require('../app/routes/v2')(cache);
 
-  const cacheGetInfoFn = cacheMock.getInfoForVersion;
+  const cacheGetInfoFn = cache.getInfoForVersion;
 
   afterEach(() => {
     // Restore cache get function in case a test overrides it
-    cacheMock.getInfoForVersion = cacheGetInfoFn;
+    cache.getInfoForVersion = cacheGetInfoFn;
     jest.clearAllMocks();
   });
 
@@ -151,7 +154,7 @@ describe('v2 API', () => {
                 .each(property => {
                   expect(binary).toHaveProperty(property);
                 });
-            })
+            });
         });
       });
     });
@@ -167,7 +170,7 @@ describe('v2 API', () => {
               expect(binary.openjdk_impl).toEqual("hotspot");
               expect(binary.os).toEqual("linux");
               expect(binary.architecture).toEqual("x64");
-            })
+            });
         });
       });
     });
@@ -183,11 +186,11 @@ describe('v2 API', () => {
                 _.chain(releases.binaries)
                   .each(binary => {
                     expect(binary.os.toLowerCase()).not.toEqual("linuxlh");
-                  })
+                  });
               }
-            })
+            });
         });
-      })
+      });
     });
   });
 
@@ -227,7 +230,6 @@ describe('v2 API', () => {
         it.each`
           queryName         | returnedPropertyName | queryValues
           ${'os'}           | ${'os'}              | ${['windows', 'linux']}
-          ${'openjdk_impl'} | ${'openjdk_impl'}    | ${['hotspot', 'openj9']}
           ${'arch'}         | ${'architecture'}    | ${['aarch64', 'x64']}
           ${'type'}         | ${'binary_type'}     | ${['jdk', 'jre']}
           ${'heap_size'}    | ${'heap_size'}       | ${['normal', 'large']}
@@ -306,7 +308,7 @@ describe('v2 API', () => {
 
     describe('by release name', () => {
       it('returns array containing matching release', () => {
-        const releaseName = 'jdk8u181-b13_openj9-0.9.0';
+        const releaseName = 'jdk8u265-b01_openj9-0.21.0';
         const request = mockRequest("info", "releases", "openjdk8", undefined, undefined, undefined, releaseName, undefined, undefined);
         return performRequest(request, (code, data) => {
           const release = JSON.parse(data);
@@ -318,39 +320,42 @@ describe('v2 API', () => {
 
       describe('"latest" returns single most recent release', () => {
         const versionBuildExpectedResults = [
-            ['openjdk8', 'releases', 'jdk8u181-b13_openj9-0.9.0'],
-            ['openjdk8', 'nightly', 'jdk8u-2018-12-16-12-17'],
-            ['openjdk11', 'releases', 'jdk-11.0.1+13'],
-            ['openjdk11', 'nightly', 'jdk11u-2018-12-16-04-46'],
+            ['openjdk8', 'releases'],
+            ['openjdk8', 'nightly'],
+            ['openjdk11', 'releases'],
+            ['openjdk11', 'nightly'],
         ];
 
-        it.each(versionBuildExpectedResults)('%s %s', (version, buildtype, expectedReleaseName) => {
-          const request = mockRequest("info", buildtype, version, undefined, undefined, undefined, "latest", undefined, undefined);
-          return performRequest(request, (code, data) => {
-            const release = JSON.parse(data);
-            expect(release).not.toBeInstanceOf(Array);
-            expect(release.release_name).toEqual(expectedReleaseName);
-          });
-        });
-
-        it('sorts by build patch version', () => {
-          const rawData = [
-            {
-              tag_name: 'jdk-11.0.4+11_openj9-0.15.1',
-              assets: [{name: 'OpenJDK11U-jdk_x64_mac_openj9_11.0.4_11_openj9-0.15.1.tar.gz'}],
-            },
-            {
-              tag_name: 'jdk-11.0.4+11.2_openj9-0.15.1',
-              assets: [{name: 'OpenJDK11U-jdk_x64_mac_openj9_11.0.4_11_openj9-0.15.1.tar.gz'}],
-            }
-          ];
-          cacheMock.getInfoForVersion = () => Q.resolve(rawData);
-
-          const request = mockRequestWithSingleQuery('info', 'releases', 'openjdk11', 'release', 'latest');
-          return performRequest(request, (code, data) => {
-            const release = JSON.parse(data);
-            expect(release.release_name).toEqual('jdk-11.0.4+11.2_openj9-0.15.1');
-          });
+        it.each(versionBuildExpectedResults)('%s %s', (version, buildtype) => {
+          // Switch to V3 syntax
+          const versionV3 = version.replace(/\D/g,'');
+          let buildtypeV3
+          switch (buildtype){
+            case 'releases': buildtypeV3 = 'ga'
+            break
+            case 'nightly': buildtypeV3 = 'ea'
+            break
+          }
+          // Fetch the latest release version from the V3 API
+          const options = new URL(`https://api.adoptopenjdk.net/v3/assets/feature_releases/${versionV3}/${buildtypeV3}?heap_size=normal&page=0&page_size=1&project=jdk&vendor=adoptopenjdk`)
+          const V3Request = https.request(options, res => {
+            let data = ""
+            res.on('data', d => {
+              data += d
+            })
+            res.on("end", () => {
+              const body = JSON.parse(data);
+              const expectedReleaseName = body[0].release_name
+              const request = mockRequest("info", buildtype, version, undefined, undefined, undefined, "latest", undefined, undefined);
+              return performRequest(request, (code, data) => {
+                const release = JSON.parse(data);
+                expect(release).not.toBeInstanceOf(Array);
+                expect(release.release_name).toEqual(expectedReleaseName);
+              });
+            })
+          })
+          V3Request.on("error", console.error)
+          V3Request.end()
         });
       });
 
@@ -379,66 +384,12 @@ describe('v2 API', () => {
     });
   });
 
-  describe('sort order is correct', function () {
-    function assertSortsCorrectly(data, expectedOrder) {
-      let sorted = v2._testExport.sortReleases(_.chain(data)).value();
-
-      sorted = _.chain(sorted)
-        .map(function (release) {
-          return release.release_name;
-        })
-        .value();
-
-      expect(sorted).toEqual(expectedOrder);
-
-    }
-
-    it("java 8 is sorted", function () {
-      assertSortsCorrectly([
-          {"release_name": "jdk8u100-b10", "timestamp": 1},
-          {"release_name": "jdk8u100-b2", "timestamp": 2},
-          {"release_name": "jdk8u20-b1", "timestamp": 3},
-          {"release_name": "jdk8u100-b1_openj9-0.8.0", "timestamp": 4},
-          {"release_name": "jdk8u20-b1_openj9-0.8.0", "timestamp": 5}
-        ],
-        ["jdk8u20-b1", "jdk8u20-b1_openj9-0.8.0", "jdk8u100-b1_openj9-0.8.0", "jdk8u100-b2", "jdk8u100-b10"]);
-    });
-
-
-    it("java 11 is sorted", function () {
-      assertSortsCorrectly(
-        [
-          {"release_name": "jdk-11+100", "timestamp": 1},
-          {"release_name": "jdk-11+2", "timestamp": 2},
-          {"release_name": "jdk-11.10.1+2", "timestamp": 3},
-          {"release_name": "jdk-11.2.1+10", "timestamp": 4},
-          {"release_name": "jdk-11.2.1+2", "timestamp": 5},
-          {"release_name": "jdk-11.0.4+11_openj9-0.15.1", "timestamp": 6},
-          {"release_name": "jdk-11.0.4+11.2_openj9-0.15.1", "timestamp": 7},
-          {"release_name": "jdk-11.0.5+20.2", "timestamp": 8},
-          {"release_name": "jdk-11.0.5+20", "timestamp": 9},
-        ],
-        [
-          "jdk-11+2",
-          "jdk-11+100",
-          "jdk-11.0.4+11_openj9-0.15.1",
-          "jdk-11.0.4+11.2_openj9-0.15.1",
-          "jdk-11.0.5+20",
-          "jdk-11.0.5+20.2",
-          "jdk-11.2.1+2",
-          "jdk-11.2.1+10",
-          "jdk-11.10.1+2",
-        ]
-      );
-    });
-  });
-
   function getAllPermutations() {
     const permutations = [];
     jdkVersions.forEach(jdkVersion => {
       releaseTypes.forEach(releaseType => {
         permutations.push([jdkVersion, releaseType]);
-      })
+      });
     });
     return permutations;
   }
@@ -459,9 +410,10 @@ describe('v2 API', () => {
         type: type,
         heap_size: heap_size,
       }
-    }
+    };
   }
 
+  
   function mockRequestWithSingleQuery(requestType, buildtype, version, queryName, queryValue) {
     const request = mockRequest(requestType, buildtype, version);
     request.query[queryName] = queryValue;
@@ -498,6 +450,9 @@ describe('v2 API', () => {
       });
   }
 
+  const assertEachPropertyEqualTo = (subjects, propertyName, propertyValue) =>
+      subjects.map(subject => expect(subject[propertyName]).toEqual(propertyValue));
+
   function checkBinaryProperty(request, returnedPropertyName, propertyValue, assertFn = assertEachPropertyEqualTo) {
     return performRequest(request, (code, msg) => {
       expect(code).toEqual(200);
@@ -516,11 +471,8 @@ describe('v2 API', () => {
     return checkBinaryProperty(request, returnedPropertyName, propertyValues, assertEachPropertyIn);
   }
 
-  const assertEachPropertyEqualTo = (subjects, propertyName, propertyValue) =>
-      subjects.map(subject => expect(subject[propertyName]).toEqual(propertyValue));
-
   const assertEachPropertyIn = (subjects, propertyName, propertyValues) => {
     const actualBinaryPropertyValues = subjects.map(binary => binary[propertyName]);
-    expect(actualBinaryPropertyValues).toEqual(expect.arrayContaining(propertyValues))
+    expect(actualBinaryPropertyValues).toEqual(expect.arrayContaining(propertyValues));
   };
 });

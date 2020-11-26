@@ -19,14 +19,15 @@ OpenShift contains multiple applications.  The v2 API is called `openjdk-api`.
 
 Here is an example using `curl` (see the [curl documentation](https://curl.haxx.se/docs/tooldocs.html)):
 
-```bash
+```sh
 curl -L 'https://api.adoptopenjdk.net/v2/info/releases/openjdk8'
 ```
 
 This command returns information about all 'OpenJDK' releases, and defaults to the latest version of the API.
 
 The following [Windows Powershell](https://docs.microsoft.com/en-us/powershell/scripting/getting-started/getting-started-with-windows-powershell?view=powershell-6) script uses `Invoke-Webrequest` to download the latest Windows 64-bit archive.
-```
+
+```powershell
 function Get-RedirectedUrl
 {
     Param (
@@ -61,14 +62,13 @@ Invoke-WebRequest -Uri $url -OutFile $filename
 
 You can append different paths to the `https://api.adoptopenjdk.net/v2/` URL, either in the above `curl` format, in a browser, or through an HTTP client, to return different JSON information:
 
-```
+```http
 /v2/<request type>/<release type>/<version>
 ```
 
-For instance:
+For instance /info/nightly/openjdk10:
 
-```
-/info/latest/openjdk10
+```sh
 curl -L 'https://api.adoptopenjdk.net/v2/info/nightly/openjdk10'
 ```
 
@@ -80,25 +80,29 @@ curl -L 'https://api.adoptopenjdk.net/v2/info/nightly/openjdk10'
 
 List of information about builds that match the current query
 
-```
+```sh
 curl -L 'https://api.adoptopenjdk.net/v2/info/nightly/openjdk8?openjdk_impl=hotspot'
 ```
 
 ##### binary
+
 Redirects to the binary that matches your current query. If multiple or no binaries match the query, an error code will be returned
 
-```
+```sh
 curl -L 'https://api.adoptopenjdk.net/v2/binary/nightly/openjdk8?openjdk_impl=hotspot&os=windows&arch=x64&release=latest&type=jdk'
 ```
 
 ##### latestAssets
+
 Returns the latest binary asset for every matching combination of `os`, `arch`, `type`, `openjdk_impl`, and `heap_size` query parameters.
 
 i.e to find the latest jdk/jre for linux, x64, normal heap, hotspot:
 
-```
+```sh
 curl -L 'https://api.adoptopenjdk.net/v2/latestAssets/nightly/openjdk8?os=linux&arch=x64&heap_size=normal&openjdk_impl=hotspot'
+```
 
+```json
 [
   {
     "os": "linux",
@@ -135,7 +139,7 @@ Type of release, i.e `releases` for stable builds or `nightly` for most recent b
 
 #### Version
 
-OpenJDK version, i.e `openjdk8`, `openjdk9`, `openjdk10`, `openjdk11`, `openjdk12`, `openjdk13` 
+OpenJDK version, i.e `openjdk8`, `openjdk9`, `openjdk10`, `openjdk11`, `openjdk12`, `openjdk13`, `openjdk14`, `openjdk15`
 
 ### Query Parameters
 
@@ -150,17 +154,18 @@ The data that can be returned can then be filtered to find builds of a specific 
 | Heap Size | `heap_size` | `normal`, `large` |
 | Release | `release` | `latest`, `jdk8u172-b00-201807161800` |
 
-In the absence of a given parameter, it will return all elements. 
+In the absence of a given parameter, it will return all elements.
 
 To return latest, hotspot, windows, x64, jdk:
-```
+
+```sh
 curl -L 'https://api.adoptopenjdk.net/v2/binary/nightly/openjdk8?openjdk_impl=hotspot&os=windows&arch=x64&release=latest&type=jdk'
 ```
 
 Multiple values can be supplied for a given parameter like so:
+
 ```sh
 curl 'https://api.adoptopenjdk.net/v2/info/releases/openjdk8?os=windows&os=linux&arch=x32&arch=x64'
 ```
-This will return all Windows and Linux releases of OpenJDK8 for 32-bit and 64-bit x86 architectures.  
-Multi-value `release` queries are not currently supported due to some idiosyncrasies with how it affects response 
-formats. Queries such as `?release=latest&release=jdk8u172-b00-201807161800` will return an appropriate error response.
+
+This will return all Windows and Linux releases of OpenJDK8 for 32-bit and 64-bit x86 architectures. Multi-value `release` queries are not currently supported due to some idiosyncrasies with how it affects response formats. Queries such as `?release=latest&release=jdk8u172-b00-201807161800` will return an appropriate error response.

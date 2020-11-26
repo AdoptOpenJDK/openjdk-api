@@ -6,3 +6,4 @@ regression-data/
 nodejs_dc.log
 nodejs_restclient.log
 coverage/
+.vscode/
