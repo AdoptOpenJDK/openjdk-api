@@ -16,21 +16,17 @@
   "scripts": {
     "start": "node server.js",
     "start-nodemon": "nodemon --ignore cache/ server.js",
-    "lint": "eslint *.js app/routes/*.js",
+    "lint": "eslint *.js app/routes/*.js app/lib/*.js",
     "test": "jest --coverage && npm run lint"
   },
   "dependencies": {
-    "@octokit/plugin-retry": "^3.0.4",
-    "@octokit/plugin-throttling": "^3.3.3",
-    "@octokit/rest": "^18.0.9",
     "cors": "^2.8.5",
-    "cron": "1.8.2",
     "express": "^4.17.1",
     "lodash": "^4.17.20",
     "markdown-serve": "^0.8.0",
     "pug": "^3.0.0",
     "q": "^1.5.1",
-    "request": "^2.88.0",
+    "request-promise": "^4.2.6",
     "underscore": "^1.11.0"
   },
   "devDependencies": {
