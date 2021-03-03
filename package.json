@@ -24,7 +24,7 @@
     "express": "^4.17.1",
     "lodash": "^4.17.20",
     "markdown-serve": "^0.8.0",
-    "pug": "^3.0.0",
+    "pug": "^3.0.1",
     "q": "^1.5.1",
     "request": "^2.88.2",
     "request-promise": "^4.2.6",
