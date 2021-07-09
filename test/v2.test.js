@@ -287,25 +287,6 @@ describe('v2 API', () => {
       });
     });
 
-    describe('by heap_size', () => {
-      const request = mockRequestWithSingleQuery("info", "nightly", "openjdk8", "heap_size", "large");
-      it('only large heaps are returned', () => {
-        return performRequest(request, (code, data) => {
-          const releases = JSON.parse(data);
-          _.chain(releases)
-            .each(release => {
-              if (release.hasOwnProperty('binaries')) {
-                _.chain(releases.binaries)
-                  .each(binary => {
-                    expect(binary.binary_link).toContain("linuxXL");
-                    expect(binary.heap_size).toEqual("large");
-                  });
-              }
-            });
-        });
-      });
-    });
-
     describe('by release name', () => {
       it('returns array containing matching release', () => {
         const releaseName = 'jdk8u265-b01_openj9-0.21.0';
