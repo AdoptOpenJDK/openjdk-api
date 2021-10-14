@@ -1,3 +1,5 @@
+**NOTE** This Repository is deprectated. The code for api.adoptopenjdk.net is sourced from https://github.com/adoptium/adoptium.net which has switches to understand when it is serving adoptopenjdk.net.  This repo wll be archived.
+
 # AdoptOpenJDK API
 
 * **NOTICE:** AdoptOpenJDK API v1 Has now been removed.
