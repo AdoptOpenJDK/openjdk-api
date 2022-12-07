@@ -35,7 +35,7 @@
     "eslint-plugin-jest": "^24.3.6",
     "eslint-plugin-jest-async": "^1.0.3",
     "jest": "^27.0.6",
-    "jshint": "^2.13.0",
+    "jshint": "^2.13.6",
     "json-stable-stringify": "^1.0.1",
     "sync-request": "^6.1.0"
   }
