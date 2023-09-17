@@ -11,9 +11,7 @@ The AdoptOpenJDK API provides a way to consume JSON information about the AdoptO
 
 ## Deployment
 
-The v2 API is currently deployed on AdoptOpenJDK's Red Hat [OpenShift](http://console.pro-us-east-1.openshift.com) instance.  You will need username `adoptopenjdk-admin` or `adoptopenjdk@gmail.com` and the password.
-
-OpenShift contains multiple applications.  The v2 API is called `openjdk-api`.
+The v2 API is currently deployed on AdoptOpenJDK's Heroku instance.
 
 ## Usage
 
