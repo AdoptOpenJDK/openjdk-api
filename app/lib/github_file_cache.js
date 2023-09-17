@@ -22,13 +22,56 @@ class GitHubFileCache {
 
     // Switch to V3 syntax
     switch (releaseType){
-      case 'releases': releaseType = 'GA'
+      case 'releases': releaseType = 'ga'
       break
-      case 'nightly': releaseType = 'EA'
+      case 'nightly': releaseType = 'ea'
       break
     }
     // Strips all non numeric characters from version e.g openjdk8 => 8
     version = version.replace(/\D/g,'');
+
+    const generatedQuery = `query {
+      v3AssetsFeatureReleases(vendor: "ADOPTOPENJDK", featureVersion: ${version}, releaseType: "${releaseType}", sortOrder: "DESC", pageSize: 50 ${openjdkImpl}) {
+        releaseName
+        releaseLink
+        updatedAt
+        downloadCount
+        versionData {
+          adoptBuildNumber
+          build
+          major
+          minor
+          openjdkVersion
+          optional
+          pre
+          security
+          semver
+        }
+        binaries {
+          os
+          architecture
+          imageType
+          jvmImpl
+          heapSize
+          downloadCount
+          updatedAt
+          package {
+            name
+            link
+            checksumLink
+            size
+            downloadCount
+          }
+          installer {
+            name
+            link
+            checksumLink
+            size
+            downloadCount
+          }
+        }
+      }
+    }`
 
     const options = {
       uri: "https://api.adoptopenjdk.net/graphql",
@@ -37,48 +80,7 @@ class GitHubFileCache {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        query: `query {
-          v3AssetsFeatureReleases(vendor: ADOPTOPENJDK, featureVersion: ${version}, releaseType: ${releaseType}, sortOrder: DESC, pageSize: 50 ${openjdkImpl}) {
-            releaseName
-            releaseLink
-            updatedAt
-            downloadCount
-            versionData {
-              adoptBuildNumber
-              build
-              major
-              minor
-              openjdkVersion
-              optional
-              pre
-              security
-              semver
-            }
-            binaries {
-              os
-              architecture
-              imageType
-              jvmImpl
-              heapSize
-              downloadCount
-              updatedAt
-              package {
-                name
-                link
-                checksumLink
-                size
-                downloadCount
-              }
-              installer {
-                name
-                link
-                checksumLink
-                size
-                downloadCount
-              }
-            }
-          }
-        }`
+        query: generatedQuery
       })
     }
 
