@@ -14,8 +14,7 @@ class GitHubFileCache {
   getInfoForVersion(version, releaseType, openjdkImpl) {
 
     if (openjdkImpl) {
-      const jvmImpl = openjdkImpl.toUpperCase()
-      openjdkImpl = ` , jvmImpl: ${jvmImpl}`
+      openjdkImpl = ` , jvmImpl: "${openjdkImpl}"`
     } else {
       openjdkImpl = ''
     }
@@ -31,7 +30,7 @@ class GitHubFileCache {
     version = version.replace(/\D/g,'');
 
     const generatedQuery = `query {
-      v3AssetsFeatureReleases(vendor: "ADOPTOPENJDK", featureVersion: ${version}, releaseType: "${releaseType}", sortOrder: "DESC", pageSize: 50 ${openjdkImpl}) {
+      v3AssetsFeatureReleases(vendor: "adoptopenjdk", featureVersion: ${version}, releaseType: "${releaseType}", sortOrder: "DESC", pageSize: 50 ${openjdkImpl}) {
         releaseName
         releaseLink
         updatedAt
