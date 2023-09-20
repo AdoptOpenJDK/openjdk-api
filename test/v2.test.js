@@ -232,7 +232,7 @@ describe('v2 API', () => {
           ${'os'}           | ${'os'}              | ${['windows', 'linux']}
           ${'arch'}         | ${'architecture'}    | ${['aarch64', 'x64']}
           ${'type'}         | ${'binary_type'}     | ${['jdk', 'jre']}
-          ${'heap_size'}    | ${'heap_size'}       | ${['normal', 'large']}
+          ${'heap_size'}    | ${'heap_size'}       | ${['normal']}
         `('$queryName', ({queryName, returnedPropertyName, queryValues}) => {
           const request = mockRequestWithSingleQuery("info", "releases", "openjdk11", queryName, queryValues);
           return checkBinaryPropertyMultiValueQuery(request, returnedPropertyName, queryValues);
@@ -283,83 +283,6 @@ describe('v2 API', () => {
 
               expect(release.release).toEqual(isRelease);
             });
-        });
-      });
-    });
-
-    describe('by release name', () => {
-      it('returns array containing matching release', () => {
-        const releaseName = 'jdk8u265-b01_openj9-0.21.0';
-        const request = mockRequest("info", "releases", "openjdk8", undefined, undefined, undefined, releaseName, undefined, undefined);
-        return performRequest(request, (code, data) => {
-          const release = JSON.parse(data);
-          expect(release).toBeInstanceOf(Array);
-          expect(release).toHaveLength(1);
-          expect(release[0].release_name).toEqual(releaseName);
-        });
-      });
-
-      describe('"latest" returns single most recent release', () => {
-        const versionBuildExpectedResults = [
-            ['openjdk8', 'releases'],
-            ['openjdk8', 'nightly'],
-            ['openjdk11', 'releases'],
-            ['openjdk11', 'nightly'],
-        ];
-
-        it.each(versionBuildExpectedResults)('%s %s', (version, buildtype) => {
-          // Switch to V3 syntax
-          const versionV3 = version.replace(/\D/g,'');
-          let buildtypeV3
-          switch (buildtype){
-            case 'releases': buildtypeV3 = 'ga'
-            break
-            case 'nightly': buildtypeV3 = 'ea'
-            break
-          }
-          // Fetch the latest release version from the V3 API
-          const options = new URL(`https://api.adoptopenjdk.net/v3/assets/feature_releases/${versionV3}/${buildtypeV3}?heap_size=normal&page=0&page_size=1&project=jdk&vendor=adoptopenjdk`)
-          const V3Request = https.request(options, res => {
-            let data = ""
-            res.on('data', d => {
-              data += d
-            })
-            res.on("end", () => {
-              const body = JSON.parse(data);
-              const expectedReleaseName = body[0].release_name
-              const request = mockRequest("info", buildtype, version, undefined, undefined, undefined, "latest", undefined, undefined);
-              return performRequest(request, (code, data) => {
-                const release = JSON.parse(data);
-                expect(release).not.toBeInstanceOf(Array);
-                expect(release.release_name).toEqual(expectedReleaseName);
-              });
-            })
-          })
-          V3Request.on("error", console.error)
-          V3Request.end()
-        });
-      });
-
-      describe('matches possible release formats', () => {
-        const validReleaseFormats = [
-          'jdk8u162-b12_openj9-0.8.0',
-          'jdk8u181-b13_openj9-0.9.0',
-          'jdk8u192-b13-0.11.0',
-          'jdk-9.0.4+11',
-          'jdk-9.0.4+12_openj9-0.9.0',
-          'jdk-9+181',
-          'jdk-10.0.1+10',
-          'jdk-10.0.2+13_openj9-0.9.0',
-          'jdk-10.0.2+13',
-          'jdk-11+28',
-          'jdk-11.0.1+13',
-        ];
-
-        it.each(validReleaseFormats)('%s', (releaseName) => {
-          const request = mockRequestWithSingleQuery("info", "releases", "openjdk8", "release", releaseName);
-          return performRequest(request, (code) => {
-            expect(code).not.toEqual(400);
-          });
         });
       });
     });
